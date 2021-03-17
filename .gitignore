@@ -1,3 +1,10 @@
+# --- custom ignores
+
+# output dirs
+/*/out
+
+# --- git's C++ Template
+
 # Prerequisites
 *.d
 
