@@ -15,13 +15,16 @@ SRC_DIRS ?= ./src
 HEADERS = $(shell find $(SRC_DIRS) -name *.hpp -or -name *.h)
 $(shell mkdir -p $(BUILD_DIR))
 
-all: jacobiSERIAL jacobiMPI
+all: jacobiSERIAL jacobiMPI run
 
 jacobiSERIAL: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(CXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiSERIAL $(CXXFLAGS)
 
 jacobiMPI: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(MPICXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiMPI -lpthread -DUSEMPI $(CXXFLAGS)
+
+run:
+	sh launch_parallel.sh
 
 clean:
 	rm $(BUILD_DIR)/*
