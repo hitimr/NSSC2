@@ -14,6 +14,8 @@
   #include <mpi.h>
 #endif
 
+#include "logging.hpp"
+
 
 template <typename Type> class MatrixView {
 private:
@@ -63,8 +65,9 @@ enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
 void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc) 
 {
-  #ifdef USEMPI
+  Logger log(mpi_rank);
 
+  #ifdef USEMPI
     MPI_Barrier(MPI_COMM_WORLD);  
     std::cout << "Rank=" << mpi_rank << std::endl;
 
@@ -207,17 +210,19 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
             .count();
     std::cout << std::scientific << "runtime=" << seconds << std::endl;
 
-    {
-      auto residual = ComputeResidual(solution, rightHandSide, stencil, NX, NY);
-      auto residualNorm = NormL2(residual);
-      std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
-      auto residualMax = NormInf(residual);
-      std::cout << std::scientific << "|residualMax|=" << residualMax
-                << std::endl;
-      auto error = ComputeError(solution, referenceSolution, NX, NY);
-      auto errorNorm = NormL2(error);
-      std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
-      auto errorMax = NormInf(error);
-      std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
-    }
+
+    auto residual = ComputeResidual(solution, rightHandSide, stencil, NX, NY);
+    auto residualNorm = NormL2(residual);
+    std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
+    auto residualMax = NormInf(residual);
+    std::cout << std::scientific << "|residualMax|=" << residualMax
+              << std::endl;
+    auto error = ComputeError(solution, referenceSolution, NX, NY);
+    auto errorNorm = NormL2(error);
+    std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
+    auto errorMax = NormInf(error);
+    std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
+
+    log.add("runtime", std::to_string(seconds));
+    log.add("error", std::to_string(errorNorm));
 }
