@@ -13,6 +13,7 @@ CXXFLAGS := $(CXXFLAGS) -std=c++14 -O3 -Wall -pedantic -march=native -ffast-math
 BUILD_DIR ?= ./out
 SRC_DIRS ?= ./src
 HEADERS = $(shell find $(SRC_DIRS) -name *.hpp -or -name *.h)
+$(shell mkdir -p $(BUILD_DIR))
 
 all: jacobiSERIAL jacobiMPI
 
