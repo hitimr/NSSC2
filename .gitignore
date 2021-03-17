@@ -4,7 +4,7 @@
 /*/out
 
 # python
-/*/*.pyc
+*.pyc
 
 # --- git's C++ Template
 
