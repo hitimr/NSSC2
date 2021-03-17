@@ -24,4 +24,4 @@ jacobiMPI: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(MPICXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiMPI -lpthread -DUSEMPI $(CXXFLAGS)
 
 clean:
-	rm jacobiSERIAL jacobiMPI
+	rm $(BUILD_DIR)/*
