@@ -25,3 +25,14 @@ T convertTo(const int position, const T init, int argc, char *argv[]) {
   std::cout << std::endl;
   return arg;
 }
+
+int convertToDim(char *arg)
+{
+  string dim_string = arg;
+  int dim_int;
+
+  dim_string.erase(1,1);  // remove the D
+  dim_int = stoi(dim_string);  // transform the remaining number to an integer
+
+  return dim_int;
+}

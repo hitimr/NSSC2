@@ -8,14 +8,14 @@
 
 CXX=g++
 MPICXX?=mpic++
-CXXFLAGS := $(CXXFLAGS) -std=c++14 -O3 -Wall -pedantic -march=native -ffast-math
+CXXFLAGS := $(CXXFLAGS) -std=c++14 -O0 -g -Wall -pedantic -march=native -ffast-math
 
 BUILD_DIR ?= ./out
 SRC_DIRS ?= ./src
 HEADERS = $(shell find $(SRC_DIRS) -name *.hpp -or -name *.h)
 $(shell mkdir -p $(BUILD_DIR))
 
-all: jacobiSERIAL jacobiMPI run
+all: jacobiSERIAL jacobiMPI jacobiMPI_float run
 
 jacobiSERIAL: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(CXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiSERIAL $(CXXFLAGS)
@@ -23,8 +23,13 @@ jacobiSERIAL: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 jacobiMPI: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(MPICXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiMPI -lpthread -DUSEMPI $(CXXFLAGS)
 
+jacobiMPI_float: Makefile $(SRC_DIRS)/main.cpp $(HEADERS)
+	$(MPICXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiMPI_float -lpthread -DUSEMPI -DUSE_FLOAT $(CXXFLAGS)
+
+
 run:
-	sh launch_parallel.sh
+	./$(BUILD_DIR)/jacobiSERIAL 100 10
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 100 10
 
 clean:
 	rm $(BUILD_DIR)/*

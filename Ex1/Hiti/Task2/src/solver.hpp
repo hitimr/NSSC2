@@ -7,12 +7,13 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-#ifdef USEMPI
-#include <mpi.h>
-#endif
 #include <assert.h>
 
-//extern int rank;
+
+#ifdef USEMPI
+  #include <mpi.h>
+#endif
+
 
 template <typename Type> class MatrixView {
 private:
@@ -31,20 +32,20 @@ public:
   const Type &get(size_t n) { return v[n]; }
 };
 
-double ParticularSolution(double x, double y) {
+FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) {
   return sin(2 * M_PI * x) * sinh(2 * M_PI * y);
 }
 
-double NormL2(const std::vector<double> &v) {
-  double norm = 0;
+FP_TYPE NormL2(const std::vector<FP_TYPE> &v) {
+  FP_TYPE norm = 0;
   for (const auto &value : v) {
     norm += value * value;
   }
   return sqrt(norm);
 }
 
-double NormInf(const std::vector<double> &v) {
-  double max = std::numeric_limits<double>::lowest();
+FP_TYPE NormInf(const std::vector<FP_TYPE> &v) {
+  FP_TYPE max = std::numeric_limits<FP_TYPE>::lowest();
   for (const auto &value : v) {
     max = std::fabs(value) > max ? std::fabs(value) : max;
   }
@@ -52,10 +53,10 @@ double NormInf(const std::vector<double> &v) {
 }
 
 struct Stencil {
-  Stencil(double h)
+  Stencil(FP_TYPE h)
       : C(4.0 / (h * h) + 4 * M_PI * M_PI), N(-1.0 / (h * h)),
         S(-1.0 / (h * h)), W(-1.0 / (h * h)), E(-1.0 / (h * h)) {}
-  const double C, N, S, W, E;
+  const FP_TYPE C, N, S, W, E;
 };
 
 enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
@@ -78,8 +79,7 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &topo_com);  // https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
     MPI_Barrier(MPI_COMM_WORLD);  
 
-    int coords[2] = {};      
-              
+    int coords[2] = {};                 
     MPI_Cart_coords(topo_com, mpi_rank, ndims, coords);
     std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
     std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
@@ -88,7 +88,7 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
 
     size_t NY = resolution;
     size_t NX = (2 * NY)-1;
-    double h = 1.0 / (NY - 1);
+    FP_TYPE h = 1.0 / (NY - 1);
 
     const auto stencil = Stencil(h);
 
@@ -107,8 +107,8 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
     }
 
     // referenceSolution
-    std::vector<double> referenceSolution(NX * NY, 0);
-    MatrixView<double> referenceSolutionView(referenceSolution, NX, NY);
+    std::vector<FP_TYPE> referenceSolution(NX * NY, 0);
+    MatrixView<FP_TYPE> referenceSolutionView(referenceSolution, NX, NY);
     for (size_t j = 0; j != NY; ++j) 
     {
       for (size_t i = 0; i != NX; ++i) 
@@ -118,8 +118,8 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
     }
 
     // right hand side
-    std::vector<double> rightHandSide(NX * NY, 0);
-    MatrixView<double> rightHandSideView(rightHandSide, NX, NY);
+    std::vector<FP_TYPE> rightHandSide(NX * NY, 0);
+    MatrixView<FP_TYPE> rightHandSideView(rightHandSide, NX, NY);
     for (size_t j = 0; j != NY; ++j) 
     {
       for (size_t i = 0; i != NX; ++i) 
@@ -129,12 +129,12 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
       }
     }
 
-    auto SolverJacobi = [](std::vector<double> &sol, std::vector<double> &sol2,
-                          std::vector<double> &rhs, const Stencil &stencil,
+    auto SolverJacobi = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &sol2,
+                          std::vector<FP_TYPE> &rhs, const Stencil &stencil,
                           size_t NX, size_t NY) {
-      MatrixView<double> solView(sol, NX, NY);
-      MatrixView<double> sol2View(sol2, NX, NY);
-      MatrixView<double> rhsView(rhs, NX, NY);
+      MatrixView<FP_TYPE> solView(sol, NX, NY);
+      MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
+      MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
       for (size_t j = 1; j != NY - 1; ++j) {
         for (size_t i = 1; i != NX - 1; ++i) {
@@ -149,13 +149,13 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
       sol.swap(sol2);
     };
 
-    auto ComputeResidual = [](std::vector<double> &sol, std::vector<double> &rhs,
+    auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
                               const Stencil &stencil, size_t NX, size_t NY) {
-      MatrixView<double> solView(sol, NX, NY);
-      MatrixView<double> rhsView(rhs, NX, NY);
+      MatrixView<FP_TYPE> solView(sol, NX, NY);
+      MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
-      std::vector<double> residual(NX * NY, 0);
-      MatrixView<double> residualView(residual, NX, NY);
+      std::vector<FP_TYPE> residual(NX * NY, 0);
+      MatrixView<FP_TYPE> residualView(residual, NX, NY);
       for (size_t j = 1; j != NY - 1; ++j) {
         for (size_t i = 1; i != NX - 1; ++i) {
           residualView.set(i, j) =
@@ -168,13 +168,13 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
       }
       return residual;
     };
-    auto ComputeError = [](std::vector<double> &sol,
-                          std::vector<double> &reference, size_t NX, size_t NY) {
-      MatrixView<double> solView(sol, NX, NY);
-      MatrixView<double> referenceView(reference, NX, NY);
+    auto ComputeError = [](std::vector<FP_TYPE> &sol,
+                          std::vector<FP_TYPE> &reference, size_t NX, size_t NY) {
+      MatrixView<FP_TYPE> solView(sol, NX, NY);
+      MatrixView<FP_TYPE> referenceView(reference, NX, NY);
 
-      std::vector<double> error(NX * NY, 0);
-      MatrixView<double> errorView(error, NX, NY);
+      std::vector<FP_TYPE> error(NX * NY, 0);
+      MatrixView<FP_TYPE> errorView(error, NX, NY);
 
       for (size_t j = 1; j != NY - 1; ++j) {
         for (size_t i = 1; i != NX - 1; ++i) {
@@ -186,15 +186,15 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
 
     // solution approximation starting with boundary initialized to dirichlet
     // conditions, else 0
-    std::vector<double> solution(NX * NY, 0);
-    MatrixView<double> solutionView(solution, NX, NY);
+    std::vector<FP_TYPE> solution(NX * NY, 0);
+    MatrixView<FP_TYPE> solutionView(solution, NX, NY);
     for (size_t j = 0; j != NY; ++j) {
       for (size_t i = 0; i != NX; ++i) {
         if (domainView.get(i, j) == Cell::DIR)
           solutionView.set(i, j) = ParticularSolution(i * h, j * h);
       }
     }
-    std::vector<double> solution2 = solution;
+    std::vector<FP_TYPE> solution2 = solution;
     std::cout << "solve LSE using stencil jacobi" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     for (size_t iter = 0; iter <= iterations; ++iter) {
@@ -203,7 +203,7 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto seconds =
-        std::chrono::duration_cast<std::chrono::duration<double>>(stop - start)
+        std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start)
             .count();
     std::cout << std::scientific << "runtime=" << seconds << std::endl;
 

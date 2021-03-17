@@ -17,8 +17,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/Ex1/Hiti/Task2/out/jacobiSERIAL",
             "args": [
+                "1D",
                 250,
-                250
+                10
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
