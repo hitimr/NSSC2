@@ -1,7 +1,7 @@
 # --- custom ignores
 
 # output dirs
-/*/out
+**/out/
 
 # python
 *.pyc
