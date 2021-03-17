@@ -3,6 +3,9 @@
 # output dirs
 /*/out
 
+# python
+/*/*.pyc
+
 # --- git's C++ Template
 
 # Prerequisites
