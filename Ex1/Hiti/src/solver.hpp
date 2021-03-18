@@ -67,15 +67,6 @@ struct Stencil
 	const FP_TYPE C, N, S, W, E;
 };
 
-/*
-Calculate the size of the the grid decomposition for its rank
-The dimensions each rank has is determined by its rank and not communicated
-*/
-std::tuple<size_t, size_t> calculate_gridSize(size_t resolution, int dimensions, int mpi_rank)
-{
-
-}
-
 enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
 void solve(size_t resolution, size_t iterations, int mpi_rank, int mpi_numproc) 
@@ -239,6 +230,7 @@ void solve(size_t resolution, size_t iterations, int mpi_rank, int mpi_numproc)
 		auto errorMax = NormInf(error);
 		std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
 
+		log.add("n_processes", std::to_string(mpi_numproc));
 		log.add("runtime", std::to_string(seconds));
 		log.add("error", std::to_string(errorNorm));
 }
