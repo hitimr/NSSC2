@@ -15,7 +15,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Ex1/Hiti/out/build/jacobiSERIAL",
+            "program": "${workspaceFolder}/Ex1/out/build/jacobiSERIAL",
             "args": [
                 "1D",
                 250,
