@@ -14,8 +14,7 @@ int main()
     g_n_processes = 5;
     g_dim = DIM1;
     g_resolution = 17;
-    return 0;
 
-
-    cout << "All Tests passed" << endl;
+    cout << "All Tests passed!" << endl;
+    return 0;    
 }
