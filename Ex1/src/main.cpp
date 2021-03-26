@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+
 #ifdef USEMPI
 #include <mpi.h>
 #endif
@@ -17,61 +19,54 @@
 #include "arguments.hpp"
 #include "solver.hpp"
 
+int g_my_rank = 0;
+int g_n_processes = -1;
+int g_dim = -1;
+int g_iterations = -1;
+size_t g_resolution = 0;
+
 
  
-int main(int argc, char *argv[]) {
-
-  // MPI stuff
-  int rank = 0;
-  int numproc = 1;
-
-  // Grid variables
-  int resolution = -1;
-  int iterations = -1;
-  int dim = 1;  // number of dimensions the grid will be decomnposed in (1D or 2D)
-
-
+int main(int argc, char *argv[]) 
+{
 #ifdef USEMPI
   MPI_Init(NULL,NULL);
-  MPI_Comm_size(MPI_COMM_WORLD, &numproc);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &g_n_processes);
+  MPI_Comm_rank(MPI_COMM_WORLD, &g_my_rank);
 #endif
   
-  cout << "argc=" << argc << endl;
   // parse command line arguments
   switch(argc)
   {
     case 3:
-      resolution =  convertTo<int>(1, 32, argc, argv);
-      iterations =  convertTo<int>(2, 1000, argc, argv);   
+      g_dim = 1;
+      g_resolution = convertTo<int>(1, 32, argc, argv);
+      g_iterations = convertTo<int>(2, 1000, argc, argv);   
       break; 
 
     case 4:
-      dim =        convertToDim(argv[1]);
-      resolution =  convertTo<int>(2, 32, argc, argv);
-      iterations =  convertTo<int>(3, 1000, argc, argv);
+      g_dim =        convertToDim(argv[1]);
+      g_resolution = convertTo<int>(2, 32, argc, argv);
+      g_iterations = convertTo<int>(3, 1000, argc, argv);
       break;
       
     default:
       cout << "Error! Invalid number of arguments" << endl;
       exit(-1);
   }
-
-
   
-  if(rank == 0)
+  if(g_my_rank == 0)
   {
-    std::cout << "numproc=" << numproc << std::endl;
-    std::cout << "resolution=" << resolution << std::endl;
-    std::cout << "iterations=" << iterations << std::endl;
+    std::cout << "resolution=" << g_resolution << std::endl;
+    std::cout << "iterations=" << g_iterations << std::endl;
   }
 
   // sanity checks
-  assert(resolution > 0);
-  assert(iterations > 0);
-  assert((dim == 1) || (dim == 2));
+  assert(g_resolution > 0);
+  assert(g_iterations > 0);
+  assert((g_dim == 1) || (g_dim == 2));
 
-  solve(resolution, iterations, rank, numproc);
+  solve(g_resolution, g_iterations, g_my_rank);
 
 #ifdef USEMPI
   MPI_Finalize();

@@ -17,9 +17,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/Ex1/out/build/jacobiSERIAL",
             "args": [
-                "1D",
-                250,
-                10
+                "100",
+                "10"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

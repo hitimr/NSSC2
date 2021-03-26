@@ -28,7 +28,6 @@ CXX=g++
 MPICXX?=mpic++
 CXXFLAGS := $(CXXFLAGS) -std=c++14 -O0 -g -Wall -pedantic -march=native -ffast-math
 
-test: test_splitting	# Unit tests
 all: jacobiSERIAL jacobiMPI jacobiMPI_float run test
 
 
@@ -50,10 +49,14 @@ test_splitting: $(TEST_DIR)/test_splitting.cpp $(HEADERS)
 	$(TEST_DIR)/out/test_splitting
 
 
+
+test: test_splitting	# Unit tests
+
+
 # quick run to check if all programs work properly
 run:
-	#./$(BUILD_DIR)/jacobiSERIAL 100 10
-	#mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 100 10
+	./$(BUILD_DIR)/jacobiSERIAL 100 10
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 100 10
 
 clean:
 	rm -rf $(OUT_DIR)

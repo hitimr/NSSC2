@@ -15,6 +15,7 @@
 #endif
 
 #include "logging.hpp"
+#include "splitting.hpp"
 
 
 template <typename Type> class MatrixView 
@@ -69,7 +70,7 @@ struct Stencil
 
 enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
-void solve(size_t resolution, size_t iterations, int mpi_rank, int mpi_numproc) 
+void solve(size_t resolution, size_t iterations, int mpi_rank) 
 {
 	Logger log(mpi_rank);
 	
@@ -85,7 +86,7 @@ void solve(size_t resolution, size_t iterations, int mpi_rank, int mpi_numproc)
 		int reorder = 1;			// ranking may be reordered (true) or not (false) (logical)
 
 		MPI_Comm topo_com;
-		MPI_Dims_create(mpi_numproc, ndims, dims);	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
+		MPI_Dims_create(g_n_processes, ndims, dims);	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
 		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
@@ -230,7 +231,7 @@ void solve(size_t resolution, size_t iterations, int mpi_rank, int mpi_numproc)
 		auto errorMax = NormInf(error);
 		std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
 
-		log.add("n_processes", std::to_string(mpi_numproc));
+		log.add("n_processes", std::to_string(g_n_processes));
 		log.add("runtime", std::to_string(seconds));
 		log.add("error", std::to_string(errorNorm));
 }

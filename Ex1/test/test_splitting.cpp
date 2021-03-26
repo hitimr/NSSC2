@@ -1,6 +1,5 @@
 #include <iostream>
 #include <assert.h>
-#include <algorithm>
 #include "splitting.hpp"
 
 #define SUCCESS 0
@@ -14,6 +13,8 @@ size_t g_resolution = 0;
 
 int test_local_grid_size()
 {
+    cout << "Testing border_types()" << endl;
+
     // check specific case
     g_n_processes = 3;
     g_dim = DIM1;
@@ -48,12 +49,14 @@ int test_local_grid_size()
     sum += 2;    // add 1 ghost layer for top and bottom grid
     assert(sum == g_resolution);
 
+    cout << "OK" << endl;
     return SUCCESS;
 }
 
 
 int test_border_types()
 {
+    cout << "Testing border_types()" << endl;
     // 1D
     // check specific case
     g_n_processes = 4;
@@ -70,13 +73,15 @@ int test_border_types()
     assert(border_types(1) == mid);
     assert(border_types(0) == bot);
 
+    cout << "OK" << endl;
     return SUCCESS;
 }
 
 
 int main()
 {
-
+    cout << endl << "Starting unit tests..." << endl;
+    
     assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 // Dimensions
 #define DIM1 1
