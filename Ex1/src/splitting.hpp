@@ -91,6 +91,7 @@ std::vector<int> borders_types(int rank)
         {
             boundaries[TOP] = BORDER_DIR;
         }
+        break;
 
     case DIM2:  // 2D
         std::cerr <<  "2D is not implemented yet!" << std::endl;
