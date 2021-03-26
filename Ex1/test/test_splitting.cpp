@@ -9,21 +9,21 @@ int g_dim = -1;
 size_t g_resolution = 0;
 
 
-int test_grid_size()
+int test_local_grid_size()
 {
     // check specific case
     g_n_processes = 3;
     g_dim = DIM1;
     g_resolution = 8;
 
-    assert(grid_size(0)[COORD_X] == 8);
-    assert(grid_size(0)[COORD_Y] == 3);
+    assert(local_grid_size(0)[COORD_X] == 8);
+    assert(local_grid_size(0)[COORD_Y] == 3);
 
-    assert(grid_size(1)[COORD_X] == 8);
-    assert(grid_size(1)[COORD_Y] == 3);
+    assert(local_grid_size(1)[COORD_X] == 8);
+    assert(local_grid_size(1)[COORD_Y] == 3);
 
-    assert(grid_size(2)[COORD_X] == 8);
-    assert(grid_size(2)[COORD_Y] == 2);
+    assert(local_grid_size(2)[COORD_X] == 8);
+    assert(local_grid_size(2)[COORD_Y] == 2);
 
 
     // test if total is correct
@@ -32,7 +32,7 @@ int test_grid_size()
     size_t sum = 0;
     for(int rank = 0; rank < g_n_processes; rank++)
     {
-        sum += grid_size(rank)[COORD_Y];
+        sum += local_grid_size(rank)[COORD_Y];
     }
     assert(sum == g_resolution);
 
@@ -43,7 +43,7 @@ int test_grid_size()
 int main()
 {
 
-    assert(test_grid_size() == 0);
+    assert(test_local_grid_size() == 0);
     cout << "All Tests passed!" << endl;
     return 0;    
 }
