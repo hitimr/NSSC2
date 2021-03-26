@@ -28,47 +28,7 @@ extern int g_dim;
 extern size_t g_resolution;
 
 
-std::vector<size_t> local_grid_size(int rank)
-{
-    std::vector<size_t> size = {0, 0};
-    size_t x_dim;
-    size_t y_dim;
-    int remainder;
-    int base_size;
-
-    switch(g_dim)
-    {
-    case DIM1: // 1D        
-        base_size = (int) g_resolution / (int) g_n_processes;   // integer divinsion required
-        remainder = g_resolution % g_n_processes; // number of grids with size + 1
-
-        x_dim = g_resolution;
-        y_dim = base_size;
-
-        // bigger grids are allocated in ascending order
-        // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-        if(rank < remainder)
-        {
-            y_dim++;
-        } 
-        
-        size = {x_dim, y_dim};
-        break;
-
-    case DIM2:  // 2D
-        std::cerr <<  "2D is not implemented yet!" << std::endl;
-        break;
-
-    default:
-        std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
-        break;
-    }   
-
-    return size;
-}
-
-
-std::vector<int> borders_types(int rank)
+std::vector<int> border_types(int rank)
 {
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
@@ -99,7 +59,56 @@ std::vector<int> borders_types(int rank)
 
     default:
         std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
+        break;
     }
 
     return boundaries;
 }
+
+
+
+std::vector<size_t> local_grid_size(int rank)
+{
+    std::vector<size_t> size = {0, 0};
+    std::vector<int> borders = border_types(rank);
+    size_t x_dim;
+    size_t y_dim;
+    int remainder;
+    int base_size;
+
+    switch(g_dim)
+    {
+    case DIM1: // 1D        
+        base_size = (int) g_resolution / (int) g_n_processes;   // integer divinsion required
+        remainder = g_resolution % g_n_processes; // number of grids with size + 1
+
+        x_dim = g_resolution;
+        y_dim = base_size;
+
+        // bigger grids are allocated in ascending order
+        // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
+        if(rank < remainder)
+        {
+            y_dim++;
+        } 
+
+        // we need to add an additional line of of grid points for every ghost
+        // layer in the subgrid to store the data from the neighbouring grid
+        y_dim += std::count(borders.begin(), borders.end(), BORDER_GHOST);
+        
+        size = {x_dim, y_dim};
+        break;
+
+    case DIM2:  // 2D
+        std::cerr <<  "2D is not implemented yet!" << std::endl;
+        break;
+
+    default:
+        std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
+    }   
+
+
+    return size;
+}
+
+
