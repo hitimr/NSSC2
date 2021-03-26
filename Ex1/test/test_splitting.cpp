@@ -14,7 +14,7 @@ size_t g_resolution = 0;
 
 int test_local_grid_size()
 {
-    cout << "Testing border_types()" << endl;
+    cout << "Testing local_grid_size()" << endl;
 
     // check specific case
     g_n_processes = 3;
