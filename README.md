@@ -34,7 +34,7 @@ Diese Werte sind über die CLI-Argumente festgegeben und sollten sich während d
 build commands:
 - make : kompiliert alle versionen inkl tests und führt sie einmal aus. Tipp: ihr könnt 'make | grep "|error|"' verwenden um schnell zu sehen ob alle versionen das gleiche ausgeben
 - make test : führt die unit tests aus
-- make clean : löscht alle generierten datein und deren ornder
+- make clean : löscht alle generierten datein und deren ordner
 
 
 
