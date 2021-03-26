@@ -1,32 +1,12 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
-// Dimensions
-#define DIM1 1
-#define DIM2 2
-#define COORD_X 0
-#define COORD_Y 1
+#include "common.hpp"
 
-// Border Types
-// Assignemnt resembles the enumerator from solver.hpp,
-// enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
-#define BORDER_UNKNOWN 0
-#define BORDER_DIR     1    // Dirichlet
-#define BORDER_NEU     2    // Neumann
-#define BORDER_ROB     0    // Robin
-#define BORDER_GHOST   3    // Ghost Layer
 
-// Directional Assignemtns
-#define BOTTOM  0
-#define RIGHT   1
-#define TOP     2
-#define LEFT    3
-
-// globals according to command line
-extern int g_n_processes;
-extern int g_dim;
-extern size_t g_resolution;
 
 /* calculate the type of borders for a given rank
 

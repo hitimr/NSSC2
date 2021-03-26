@@ -16,6 +16,7 @@
 
 #include "logging.hpp"
 #include "splitting.hpp"
+#include "common.hpp"
 
 // globals according to command line
 extern int g_n_processes;
@@ -107,7 +108,7 @@ void solve(size_t resolution, size_t iterations)
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
 
-		
+
 
 		/* Example usage: This does not work yet because no data is transferred via MPI
 

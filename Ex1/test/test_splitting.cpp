@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// globals
 int g_n_processes = -1;
 int g_dim = -1;
 size_t g_resolution = 0;

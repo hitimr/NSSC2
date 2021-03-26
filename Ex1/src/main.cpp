@@ -18,13 +18,14 @@
 
 #include "arguments.hpp"
 #include "solver.hpp"
+#include "common.hpp"
+
 
 int g_my_rank = 0;
 int g_n_processes = -1;
 int g_dim = -1;
 int g_iterations = -1;
 size_t g_resolution = 0;
-
 
  
 int main(int argc, char *argv[]) 
