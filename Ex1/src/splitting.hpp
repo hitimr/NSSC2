@@ -23,7 +23,7 @@ std::vector<size_t> grid_size(int rank)
     // i.e. if 2 grids are bigger rank 0 and 1 have increases sizes
     if(rank < remainder)
     {
-        base_size++;
+        y_dim++;
     } 
     
     std::vector<size_t> v = {x_dim, y_dim};
