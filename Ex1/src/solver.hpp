@@ -107,9 +107,15 @@ void solve(size_t resolution, size_t iterations)
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
 
+		
+
+		/* Example usage: This does not work yet because no data is transferred via MPI
+
 		auto grid_size = local_grid_size(g_my_rank);
 		NX = grid_size[COORD_X];
 		NY = grid_size[COORD_Y];
+
+		*/
 
 
 

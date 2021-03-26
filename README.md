@@ -5,7 +5,7 @@ Deadline Ex1: Tuesday, April 13th 2021, 8am (submit to nssc@iue.tuwien.ac.at)
 Report: https://www.overleaf.com/project/604e4e82499c472f16008a0b
 
 
-26.03.2021: ich hab jetzt die Funcktionen fürs splitting neu geschrieben und integriert
+Hiti, 26.03.2021: ich hab jetzt die Funcktionen fürs splitting neu geschrieben und integriert
 
 Fürs erste gibt es jetzt mal local_grid_size() und border_types(). Für die doku schaut bitte in splitting.hpp
 Wichtig: die lokale Größe eines Grids ist um 1 größer für jeden ghost layer um platz für die Daten vom Nachbarn zu haben.
@@ -28,4 +28,6 @@ build commands:
 - make : kompiliert alle versionen inkl tests und führt sie einmal aus. Tipp: ihr könnt 'make | grep "|error|"' verwenden um schnell zu sehen ob alle versionen das gleiche ausgeben
 - make test : führt die unit tests aus
 - make clean : löscht alle generierten datein und deren ornder
+
+
 
