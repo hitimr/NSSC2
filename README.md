@@ -10,7 +10,7 @@ Hiti, 26.03.2021: ich hab jetzt die Funcktionen fürs splitting neu geschrieben 
 Fürs erste gibt es jetzt mal local_grid_size() und border_types(). Für die doku schaut bitte in splitting.hpp
 Wichtig: die lokale Größe eines Grids ist um 1 größer für jeden ghost layer um platz für die Daten vom Nachbarn zu haben.
 
-Aktuell ist nur der 1D-Fall vorhanden. 2D kommt in den nächsten Tagen. ich habe dafür auch ein paar Unit Test Cases in test/test_splitting.cpp geschreiben. Die Ergebnisse vom splitting sollten also passen.
+Aktuell ist nur der 1D-Fall vorhanden. 2D kommt in den nächsten Tagen. ich habe dafür auch ein paar Unit Test Cases in test/test_splitting.cpp geschreiben. Die Ergebnisse vom splitting sollten also passen. Die unit tests sind auch gute Beispiele wie die Funktionen zu verwenden sind
 
 
 Weiters habe ich ein paar globale variablen eingeführt, damit man sie nich ständig als parameter übergeben muss:
@@ -21,7 +21,10 @@ int g_dim;
 int g_iterations;
 size_t g_resolution;
 
+Wenn ihr splitting.hpp in einm separaten Programm verwenden müsst, müsst ihr erst
+
 Diese Werte sind über die CLI-Argumente festgegeben und sollten sich während der Lauzfzeit ohnehin nicht ändern.
+
 
 
 build commands:
