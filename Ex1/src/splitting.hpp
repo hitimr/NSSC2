@@ -27,7 +27,17 @@ extern int g_n_processes;
 extern int g_dim;
 extern size_t g_resolution;
 
+/* calculate the type of borders for a given rank
 
+@param rank: rank of the grid/process who's border has to be calculated
+
+@return: vector of size 4 containing the type of each edge. Edges are assigned by
+    [bottom, right, top, left]
+    possible values are:
+        BORDER_DIR: dirichlet border i.e. fixed
+        BORDER_GHOST: ghost layer containing values of the neighbouring grid
+
+*/
 std::vector<int> border_types(int rank)
 {
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
@@ -66,7 +76,19 @@ std::vector<int> border_types(int rank)
 }
 
 
+/* Calculate the local grid size of a given rank
 
+If the resolution is not exactly divisible by the number of processes, grids of
+different sizes are created such that the difference between each grid is minimal
+
+local_grid_size() takes into account that every ghost layer requires an additional
+line of grid points to store the data from the neighbouring grid.
+
+@param rank: rank of the grid/process who's size has to be calculated
+
+@return: a vector of size 2 containing the x, and y sizes of the local grid
+    including ghost layers
+*/
 std::vector<size_t> local_grid_size(int rank)
 {
     std::vector<size_t> size = {0, 0};
