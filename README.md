@@ -15,13 +15,17 @@ Aktuell ist nur der 1D-Fall vorhanden. 2D kommt in den nächsten Tagen. ich habe
 
 Weiters habe ich ein paar globale variablen eingeführt, damit man sie nich ständig als parameter übergeben muss:
 
-- int g_my_rank;
-- int g_n_processes;
-- int g_dim;
-- int g_iterations;
-- size_t g_resolution;
+int g_my_rank;
 
-Wenn ihr splitting.hpp in einm separaten Programm verwenden müsst, müsst ihr erst
+int g_n_processes;
+
+int g_dim;
+
+int g_iterations;
+
+size_t g_resolution;
+
+Wenn ihr splitting.hpp in einem separaten Programm verwenden müsst, müsst ihr diese variablen erst außerhalb von main() deklarieren und anschließen initialisieren.
 
 Diese Werte sind über die CLI-Argumente festgegeben und sollten sich während der Lauzfzeit ohnehin nicht ändern.
 
