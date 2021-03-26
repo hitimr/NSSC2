@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   assert(g_iterations > 0);
   assert((g_dim == 1) || (g_dim == 2));
 
-  solve(g_resolution, g_iterations, g_my_rank);
+  solve(g_resolution, g_iterations);
 
 #ifdef USEMPI
   MPI_Finalize();

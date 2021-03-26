@@ -77,14 +77,14 @@ struct Stencil
 
 enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
-void solve(size_t resolution, size_t iterations, int mpi_rank) 
+void solve(size_t resolution, size_t iterations) 
 {
-	Logger log(mpi_rank);
+	Logger log(g_my_rank);
 	
 
 	#ifdef USEMPI
 		MPI_Barrier(MPI_COMM_WORLD);	
-		std::cout << "Rank=" << mpi_rank << std::endl;
+		std::cout << "Rank=" << g_my_rank << std::endl;
 		
 		// Create new communicator
 		int ndims = 2;
@@ -98,7 +98,7 @@ void solve(size_t resolution, size_t iterations, int mpi_rank)
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
-		MPI_Cart_coords(topo_com, mpi_rank, ndims, coords);
+		MPI_Cart_coords(topo_com, g_my_rank, ndims, coords);
 		std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
 		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
 	#endif	
