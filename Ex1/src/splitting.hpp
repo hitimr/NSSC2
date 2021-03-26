@@ -41,6 +41,9 @@ extern size_t g_resolution;
 */
 std::vector<int> border_types(int rank)
 {
+    // sanity check
+    assert(rank < g_n_processes);   // Error: invalid rank or g_n_processes is not properly set
+
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
     switch(g_dim)

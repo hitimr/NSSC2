@@ -35,6 +35,15 @@ int test_local_grid_size()
     assert(local_grid_size(0)[COORD_Y] == 4);
 
 
+    // check serial case
+    g_n_processes = 1;
+    g_dim = DIM1;
+    g_resolution = 8;
+    assert(local_grid_size(0)[COORD_X] == g_resolution);
+    assert(local_grid_size(0)[COORD_Y] == g_resolution);
+
+
+
     // test if total is correct
     g_resolution = 500;
     g_n_processes = 31;
@@ -81,7 +90,7 @@ int test_border_types()
 int main()
 {
     cout << endl << "Starting unit tests..." << endl;
-    
+
     assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
 

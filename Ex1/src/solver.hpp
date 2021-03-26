@@ -17,6 +17,13 @@
 #include "logging.hpp"
 #include "splitting.hpp"
 
+// globals according to command line
+extern int g_n_processes;
+extern int g_dim;
+extern size_t g_resolution;
+extern int g_iterations;
+extern int g_my_rank;
+
 
 template <typename Type> class MatrixView 
 {
@@ -99,6 +106,12 @@ void solve(size_t resolution, size_t iterations, int mpi_rank)
 		size_t NY = resolution;
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
+
+		auto grid_size = local_grid_size(g_my_rank);
+		NX = grid_size[COORD_X];
+		NY = grid_size[COORD_Y];
+
+
 
 		const auto stencil = Stencil(h);
 
