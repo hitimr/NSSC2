@@ -28,3 +28,5 @@
 extern int g_n_processes;
 extern int g_dim;
 extern size_t g_resolution;
+extern int g_iterations;
+extern int g_my_rank;

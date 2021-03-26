@@ -18,13 +18,6 @@
 #include "splitting.hpp"
 #include "common.hpp"
 
-// globals according to command line
-extern int g_n_processes;
-extern int g_dim;
-extern size_t g_resolution;
-extern int g_iterations;
-extern int g_my_rank;
-
 
 template <typename Type> class MatrixView 
 {
