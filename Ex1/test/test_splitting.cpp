@@ -11,14 +11,31 @@ size_t g_resolution = 0;
 
 int test_grid_size()
 {
-    g_n_processes = 5;
+    // check specific case
+    g_n_processes = 3;
     g_dim = DIM1;
-    g_resolution = 17;
+    g_resolution = 8;
 
+    assert(grid_size(0)[COORD_X] == 8);
+    assert(grid_size(0)[COORD_Y] == 3);
+
+    assert(grid_size(1)[COORD_X] == 8);
+    assert(grid_size(1)[COORD_Y] == 3);
+
+    assert(grid_size(2)[COORD_X] == 8);
+    assert(grid_size(2)[COORD_Y] == 2);
+
+
+    // test if total is correct
+    g_resolution = 500;
+    g_n_processes = 31;
+    size_t sum = 0;
     for(int rank = 0; rank < g_n_processes; rank++)
     {
-        cout << grid_size(rank)[1] << endl;
+        sum += grid_size(rank)[COORD_Y];
     }
+    assert(sum == g_resolution);
+
     return 0;
 }
 
