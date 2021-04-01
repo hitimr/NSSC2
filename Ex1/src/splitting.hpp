@@ -162,4 +162,22 @@ std::vector<int> get_prime_factors(int n)
     return factors;
 }
 
+size_t split1D(int global_size, int splits, int pos)
+{
+    assert(global_size > 0);
+    assert(splits > 0);
+    assert(pos >= 0);
+    assert(pos < splits);
+
+    int size = global_size / (int) splits; // integer division required
+    int remainder = global_size % splits;
+
+    if(pos < remainder)
+    {
+        size++;
+    }
+
+    return (size_t) size;
+}
+
 

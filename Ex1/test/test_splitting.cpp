@@ -115,6 +115,20 @@ int test_get_prime_factors()
     return SUCCESS;
 }
 
+int test_split1D()
+{
+    cout << "Testing split1D...()" << endl;
+
+    assert(split1D(20, 5, 0) == 4);
+    assert(split1D(20, 5, 4) == 4);
+
+    assert(split1D(21, 5, 0) == 5);
+    assert(split1D(21, 5, 4) == 4);
+
+    cout << "OK" << endl;
+    return SUCCESS;
+}
+
 
 int main()
 {
@@ -123,6 +137,7 @@ int main()
     assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
     assert(test_get_prime_factors() == SUCCESS);
+    assert(test_split1D() == SUCCESS);
 
     cout << "All Tests passed!" << endl;
 
