@@ -2,9 +2,15 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <algorithm>
+#include <cmath>
 
 #include "common.hpp"
+
+#ifdef USEMPI
+	#include <mpi.h>
+#endif
 
 
 
@@ -115,6 +121,35 @@ std::vector<size_t> local_grid_size(int rank)
 
 
     return size;
+}
+
+std::vector<int> get_prime_factors(int n)
+{
+    assert(n > 0 && "Number mus be >0");
+
+    std::vector<int> factors;
+
+    while((n % 2) == 0)
+    {
+        factors.push_back(2);
+        n = n / 2;
+    }
+
+    for(int i = 3; i < (int) sqrt(n) + 1; i += 2)
+    {
+        while((n % i) == 0)
+        {
+            factors.push_back(int(i));
+            n = n / i;
+        }
+    }
+
+    if(n > 2)
+    {
+        factors.push_back(int(n));
+    }
+
+    return factors;
 }
 
 

@@ -88,12 +88,41 @@ int test_border_types()
 }
 
 
+int test_get_prime_factors()
+{
+    cout << "Testing get_prime_factors()..." << endl;
+    int n;
+    vector<int> n_factors;
+
+    n = 2*3*5;
+    n_factors = {2,3,5};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 2*3*3*5*7*7*13;
+    n_factors = {2,3,3,5,7,7,13};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 13*17;
+    n_factors = {13,17};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 13;
+    n_factors = {13};
+    assert(n_factors == get_prime_factors(n));
+
+    cout << "OK" << endl;
+
+    return SUCCESS;
+}
+
+
 int main()
 {
     cout << endl << "Starting unit tests..." << endl;
 
     assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
+    assert(test_get_prime_factors() == SUCCESS);
 
     cout << "All Tests passed!" << endl;
 
