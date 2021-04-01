@@ -14,7 +14,7 @@
     #define MPI_Comm void   // little hack so no errors appear when compiling without MPI
 #endif
 
-std::vector<int> border_types(int rank);
+std::vector<int> border_types(int rank, int dim);
 std::vector<int> get_prime_factors(int n);
 size_t split_1D(int global_size, int splits, int pos);
 
@@ -30,14 +30,14 @@ size_t split_1D(int global_size, int splits, int pos);
         BORDER_GHOST: ghost layer containing values of the neighbouring grid
 
 */
-std::vector<int> border_types(int rank)
+std::vector<int> border_types(int rank, int dim=g_dim)
 {
     // sanity check
     assert(rank < g_n_processes);   // Error: invalid rank or g_n_processes is not properly set
 
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
-    switch(g_dim)
+    switch(dim)
     {
     case DIM1:  // 1D
         boundaries[LEFT] =   BORDER_DIR;
@@ -63,7 +63,7 @@ std::vector<int> border_types(int rank)
         break;
 
     default:
-        std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
+        std::cerr <<  "Invalid dimension: " << dim << std::endl; 
         break;
     }
 
@@ -88,7 +88,7 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
 {
     // variables can't be created within a switch case so we need to do it here
     std::vector<size_t> size = {0, 0};
-    std::vector<int> borders = border_types(rank);
+    std::vector<int> borders;
     std::vector<int> prime_factors;
     size_t x_dim;
     size_t y_dim;
@@ -98,9 +98,10 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
     int n_y;
     int coords[2];	
 
-    switch(g_dim)
+    switch(dim)
     {
-    case DIM1: // 1D        
+    case DIM1: // 1D  
+        borders = border_types(rank, 1);      
         base_size = (int) g_resolution / (int) g_n_processes;   // integer divinsion required
         remainder = g_resolution % g_n_processes; // number of grids with size + 1
 
@@ -131,6 +132,7 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
             // number of processes is a prime number. no splits possible
             // use 1D-split instead
             size = local_grid_size(rank, DIM1);
+            return size;
         }
 
         n_x = prime_factors[0]; // Number of splits in x-Direction
@@ -138,7 +140,7 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
 
 
         x_dim = split_1D(g_resolution, n_x, coords[COORD_X]);
-        y_dim = split_1D(g_resolution, n_x, coords[COORD_Y]);
+        y_dim = split_1D(g_resolution, n_y, coords[COORD_Y]);
 
         break;
 

@@ -50,7 +50,7 @@ test_splitting: $(TEST_DIR)/test_splitting.cpp $(HEADERS)
 
 test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 	$(MPICXX) $(TEST_DIR)/test_mpi.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_mpi $(CXXFLAGS) -lpthread -DUSEMPI
-	mpirun -np 6 --oversubscribe $(TEST_DIR)/out/test_mpi
+	mpirun -np 6 --oversubscribe $(TEST_DIR)/out/test_mpi 45
 
 test: test_splitting test_mpi	# Unit tests
 
