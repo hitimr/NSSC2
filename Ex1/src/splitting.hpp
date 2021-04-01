@@ -10,8 +10,13 @@
 
 #ifdef USEMPI
 	#include <mpi.h>
+#else
+    #define MPI_Comm void
 #endif
 
+std::vector<int> border_types(int rank);
+std::vector<int> get_prime_factors(int n);
+size_t split_1D(int global_size, int splits, int pos);
 
 
 /* calculate the type of borders for a given rank
@@ -79,14 +84,19 @@ line of grid points to store the data from the neighbouring grid.
 @return: a vector of size 2 containing the x, and y sizes of the local grid
     including ghost layers
 */
-std::vector<size_t> local_grid_size(int rank)
+std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
 {
+    // variables can't be created within a switch case so we need to do it here
     std::vector<size_t> size = {0, 0};
     std::vector<int> borders = border_types(rank);
+    std::vector<int> prime_factors;
     size_t x_dim;
     size_t y_dim;
     int remainder;
     int base_size;
+    int n_x;
+    int n_y;
+    int coords[2];	
 
     switch(g_dim)
     {
@@ -108,17 +118,35 @@ std::vector<size_t> local_grid_size(int rank)
         // layer in the subgrid to store the data from the neighbouring grid
         y_dim += std::count(borders.begin(), borders.end(), BORDER_GHOST);
         
-        size = {x_dim, y_dim};
         break;
 
     case DIM2:  // 2D
-        std::cerr <<  "2D is not implemented yet!" << std::endl;
+        #ifdef USEMPI
+            MPI_Cart_coords(g_topo_com, g_my_rank, DIM2, coords);
+        #endif
+
+        prime_factors = get_prime_factors(g_n_processes);
+        if(prime_factors.size() < 2)
+        {
+            // number of processes is a prime number. no splits possible
+            // use 1D-split instead
+            size = local_grid_size(rank, DIM1);
+        }
+
+        n_x = prime_factors[0]; // Number of splits in x-Direction
+        n_y = g_n_processes / n_x; // Number of splits in y-Direction
+
+
+        x_dim = split_1D(g_resolution, n_x, coords[COORD_X]);
+        y_dim = split_1D(g_resolution, n_x, coords[COORD_Y]);
+
         break;
 
     default:
         std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
     }   
 
+    size = {x_dim, y_dim};
 
     return size;
 }
