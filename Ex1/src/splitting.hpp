@@ -162,7 +162,17 @@ std::vector<int> get_prime_factors(int n)
     return factors;
 }
 
-size_t split1D(int global_size, int splits, int pos)
+/* Calculate the size of a given 1D split in an intervall
+
+
+@param global_size: total length of the interval
+
+@param splits: number of parts that the intervall is split into
+
+@param pos: position of the sub-interval
+
+*/
+size_t split_1D(int global_size, int splits, int pos)
 {
     assert(global_size > 0);
     assert(splits > 0);
@@ -172,6 +182,8 @@ size_t split1D(int global_size, int splits, int pos)
     int size = global_size / (int) splits; // integer division required
     int remainder = global_size % splits;
 
+    // bigger grids are allocated in ascending order
+    // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
     if(pos < remainder)
     {
         size++;

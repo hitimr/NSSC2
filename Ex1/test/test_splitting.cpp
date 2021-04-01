@@ -119,11 +119,11 @@ int test_split1D()
 {
     cout << "Testing split1D...()" << endl;
 
-    assert(split1D(20, 5, 0) == 4);
-    assert(split1D(20, 5, 4) == 4);
+    assert(split_1D(20, 5, 0) == 4);
+    assert(split_1D(20, 5, 4) == 4);
 
-    assert(split1D(21, 5, 0) == 5);
-    assert(split1D(21, 5, 4) == 4);
+    assert(split_1D(21, 5, 0) == 5);
+    assert(split_1D(21, 5, 4) == 4);
 
     cout << "OK" << endl;
     return SUCCESS;
