@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef USEMPI
+	#include <mpi.h>
+#endif
+
 // ---- Defines
 // Dimensions
 #define DIM1 1
@@ -30,3 +34,7 @@ extern int g_dim;
 extern size_t g_resolution;
 extern int g_iterations;
 extern int g_my_rank;
+#ifdef USEMPI
+    extern MPI_Comm g_topo_com;
+#endif
+    
