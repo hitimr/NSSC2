@@ -11,7 +11,7 @@
 #ifdef USEMPI
 	#include <mpi.h>
 #else
-    #define MPI_Comm void
+    #define MPI_Comm void   // little hack so no errors appear when compiling without MPI
 #endif
 
 std::vector<int> border_types(int rank);

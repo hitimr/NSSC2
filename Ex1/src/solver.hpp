@@ -12,16 +12,13 @@
 
 #ifdef USEMPI
 	#include <mpi.h>
+	extern MPI_Comm g_topo_com;
 #endif
 
 #include "logging.hpp"
 #include "splitting.hpp"
 #include "common.hpp"
 
-
-#ifdef USEMPI
-    MPI_Comm g_topo_com;
-#endif
 
 
 template <typename Type> class MatrixView 

@@ -48,10 +48,11 @@ test_splitting: $(TEST_DIR)/test_splitting.cpp $(HEADERS)
 	$(CXX) $(TEST_DIR)/test_splitting.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_splitting $(CXXFLAGS)
 	$(TEST_DIR)/out/test_splitting
 
+test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
+	$(MPICXX) $(TEST_DIR)/test_mpi.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_mpi $(CXXFLAGS) -lpthread -DUSEMPI
+	mpirun -np 6 --oversubscribe $(TEST_DIR)/out/test_mpi
 
-
-test: test_splitting	# Unit tests
-
+test: test_splitting test_mpi	# Unit tests
 
 # quick run to check if all programs work properly
 run:

@@ -27,6 +27,10 @@ int g_dim = -1;
 int g_iterations = -1;
 size_t g_resolution = 0;
 
+#ifdef USEMPI
+    MPI_Comm g_topo_com;
+#endif
+
  
 int main(int argc, char *argv[]) 
 {
