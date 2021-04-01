@@ -123,6 +123,16 @@ std::vector<size_t> local_grid_size(int rank)
     return size;
 }
 
+/* Calculate the prime factors of a give integer n
+
+# original taken from https://gist.githubusercontent.com/rohan-paul/3b0ef7d6ca9bbcfd3625132be1c29cdc/raw/a1937ce0d746ca4002522ec157561e8de4434701/prime-factors-of-number-simple-python.py
+
+@param n: target number. must be > 0
+
+@return: a vector containing all prime factors. factors appear in ascending order
+    may contain the same prime multiple times. i.e.: 2*2*3 = 12
+    if n is prime then factors = {n}
+*/
 std::vector<int> get_prime_factors(int n)
 {
     assert(n > 0 && "Number mus be >0");
