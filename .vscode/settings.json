@@ -50,5 +50,6 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "python.pythonPath": "C:\\Program Files\\Python37\\python.exe"
 }
