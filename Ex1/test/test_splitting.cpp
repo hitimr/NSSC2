@@ -72,7 +72,7 @@ int test_border_types()
     g_n_processes = 4;
     g_dim = DIM1;
     g_resolution = 100; 
-
+    
     // assignemnt is [bottom, right, top, left]
     vector<int> top = {BORDER_GHOST, BORDER_DIR, BORDER_DIR,   BORDER_DIR};    
     vector<int> mid = {BORDER_GHOST, BORDER_DIR, BORDER_GHOST, BORDER_DIR};
