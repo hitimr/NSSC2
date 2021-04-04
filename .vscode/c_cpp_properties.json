@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/mpich"
+                "/usr/include/x86_64-linux-gnu/openmpi",
+                "/usr/lib/x86_64-linux-gnu/openmpi/include"
             ],
             "defines": [
                 "USEMPI"
