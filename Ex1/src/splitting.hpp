@@ -21,7 +21,7 @@ size_t split_1D(int global_size, int splits, int pos);
 
 /* calculate the type of borders for a given rank
 
-@param rank: rank of the grid/process who's border has to be calculated
+@param coords: cartesian coordinates within the mpi communicator. has only 1 entry in 1D equivalent to its rank
 
 @return: vector of size 4 containing the type of each edge. Edges are assigned by
     [bottom, right, top, left]
@@ -88,7 +88,8 @@ different sizes are created such that the difference between each grid is minima
 local_grid_size() takes into account that every ghost layer requires an additional
 line of grid points to store the data from the neighbouring grid.
 
-@param rank: rank of the grid/process who's size has to be calculated
+@param coords: cartesian coordinates within the mpi communicator. has only 1 
+entry in 1D equivalent to its rank
 
 @return: a vector of size 2 containing the x, and y sizes of the local grid
     including ghost layers
