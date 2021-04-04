@@ -30,14 +30,14 @@ size_t split_1D(int global_size, int splits, int pos);
         BORDER_GHOST: ghost layer containing values of the neighbouring grid
 
 */
-std::vector<int> border_types(int rank, int dim=g_dim)
+std::vector<int> border_types(const std::vector<int> & coords)
 {
     // sanity check
-    assert(rank < g_n_processes);   // Error: invalid rank or g_n_processes is not properly set
+    assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
 
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
-    switch(dim)
+    switch(coords.size())
     {
     case DIM1:  // 1D
         boundaries[LEFT] =   BORDER_DIR;
@@ -46,13 +46,13 @@ std::vector<int> border_types(int rank, int dim=g_dim)
         boundaries[TOP] =    BORDER_GHOST;
 
         // special case for bottom grid
-        if(rank == 0)
+        if(coords[0] == 0)
         {
             boundaries[BOTTOM] = BORDER_DIR;
         }
 
         // special case for top grid
-        if(rank == g_n_processes - 1)
+        if(coords[0] == g_n_processes - 1)
         {
             boundaries[TOP] = BORDER_DIR;
         }
@@ -63,11 +63,20 @@ std::vector<int> border_types(int rank, int dim=g_dim)
         break;
 
     default:
-        std::cerr <<  "Invalid dimension: " << dim << std::endl; 
+        std::cerr <<  "Invalid dimension: " << coords.size() << std::endl; 
         break;
     }
 
     return boundaries;
+}
+
+// convenience overload fuction
+std::vector<int> border_types(int n)
+{
+    assert(n >= 0);
+    std::vector<int> coords = {n};
+    return border_types(coords);
+    
 }
 
 
@@ -84,10 +93,13 @@ line of grid points to store the data from the neighbouring grid.
 @return: a vector of size 2 containing the x, and y sizes of the local grid
     including ghost layers
 */
-std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
+std::vector<size_t> local_grid_size(const std::vector<int> & coords)
 {
+    // sanity check
+    assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
+
     // variables can't be created within a switch case so we need to do it here
-    std::vector<size_t> size = {0, 0};
+    std::vector<size_t> size = {0, 0};  // local grid size
     std::vector<int> borders;
     std::vector<int> prime_factors;
     size_t x_dim;
@@ -96,12 +108,11 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
     int base_size;
     int n_x;
     int n_y;
-    int coords[2];	
 
-    switch(dim)
+    switch(coords.size())
     {
     case DIM1: // 1D  
-        borders = border_types(rank, 1);      
+        borders = border_types(coords);      
         base_size = (int) g_resolution / (int) g_n_processes;   // integer divinsion required
         remainder = g_resolution % g_n_processes; // number of grids with size + 1
 
@@ -110,7 +121,7 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
 
         // bigger grids are allocated in ascending order
         // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-        if(rank < remainder)
+        if(coords[0] < remainder)
         {
             y_dim++;
         } 
@@ -122,16 +133,13 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
         break;
 
     case DIM2:  // 2D
-        #ifdef USEMPI
-            MPI_Cart_coords(g_topo_com, g_my_rank, DIM2, coords);
-        #endif
 
         prime_factors = get_prime_factors(g_n_processes);
         if(prime_factors.size() < 2)
         {
             // number of processes is a prime number. no splits possible
             // use 1D-split instead
-            size = local_grid_size(rank, DIM1);
+            size = local_grid_size(coords);
             return size;
         }
 
@@ -151,6 +159,14 @@ std::vector<size_t> local_grid_size(int rank, int dim=g_dim)
     size = {x_dim, y_dim};
 
     return size;
+}
+
+// convenience overload function 
+std::vector<size_t> local_grid_size(int n)
+{
+    assert(n >= 0);
+    std::vector<int> coords = {n};
+    return local_grid_size(coords);
 }
 
 /* Calculate the prime factors of a give integer n
