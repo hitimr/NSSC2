@@ -12,11 +12,13 @@
 
 #ifdef USEMPI
 	#include <mpi.h>
+	extern MPI_Comm g_topo_com;
 #endif
 
 #include "logging.hpp"
 #include "splitting.hpp"
 #include "common.hpp"
+
 
 
 template <typename Type> class MatrixView 
@@ -86,13 +88,12 @@ void solve(size_t resolution, size_t iterations)
 		int bcs[2] = {0,0};	 // logical array of size ndims specifying whether the grid is periodic (true) or not (false) in each dimension
 		int reorder = 1;			// ranking may be reordered (true) or not (false) (logical)
 
-		MPI_Comm topo_com;
 		MPI_Dims_create(g_n_processes, ndims, dims);	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
+		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
-		MPI_Cart_coords(topo_com, g_my_rank, ndims, coords);
+		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
 		std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
 		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
 	#endif	

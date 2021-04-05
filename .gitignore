@@ -6,6 +6,10 @@
 # python
 *.pyc
 
+
+# logs
+*.log
+
 # --- git's C++ Template
 
 # Prerequisites
