@@ -37,6 +37,7 @@ Logger::Logger(int rank)
     }
 }
 
+//descruct Logger instance
 Logger::~Logger()
 {
     m_outStream.close();
