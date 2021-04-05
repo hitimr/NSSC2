@@ -14,10 +14,10 @@ LOG_DIR = $(OUT_DIR)/logs
 SRC_DIRS = ./src
 TEST_DIR = ./test
 
+# header files
 HEADERS = $(shell find $(SRC_DIRS) -name *.hpp -or -name *.h)
 
-
-# create directories if the dont exist
+# create directories if they dont exist
 $(shell mkdir -p $(OUT_DIR))
 $(shell mkdir -p $(BUILD_DIR))
 $(shell mkdir -p $(LOG_DIR))
@@ -28,14 +28,14 @@ CXX=g++
 MPICXX?=mpic++
 CXXFLAGS := $(CXXFLAGS) -std=c++14 -O0 -g -Wall -pedantic -march=native -ffast-math
 
+# $ make all
 all: jacobiSERIAL jacobiMPI jacobiMPI_float run test
-
 
 # Serial Baseline for comparision
 jacobiSERIAL: $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(CXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiSERIAL $(CXXFLAGS)
 
-# Task 2
+# Task 2 
 jacobiMPI: $(SRC_DIRS)/main.cpp $(HEADERS)
 	$(MPICXX) $(SRC_DIRS)/main.cpp -o $(BUILD_DIR)/jacobiMPI -lpthread -DUSEMPI $(CXXFLAGS)
 
