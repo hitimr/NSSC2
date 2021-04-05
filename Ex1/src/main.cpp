@@ -11,8 +11,10 @@
 // switch between float and double
 #ifdef USE_FLOAT
   #define FP_TYPE float
+  #define MPI_FP_TYPE MPI_FLOAT
 #else
   #define FP_TYPE double
+  #define MPI_FP_TYPE MPI_DOUBLE
 #endif
 
 

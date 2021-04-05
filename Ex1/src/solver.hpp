@@ -22,22 +22,21 @@
 
 
 template <typename Type> class MatrixView 
-{
-private:	
+{	
+public:
 	MatrixView(const MatrixView &);
 	std::vector<Type> &v;
 	MatrixView &operator=(const MatrixView &);
 
-public:
 	const size_t N, M;
 	MatrixView(std::vector<Type> &v, size_t N, size_t M) : v(v), N(N), M(M) 
 	{
 		assert(v.size() / N == M);
 	}
 	Type &set(size_t i, size_t j) { return v[i + N * j]; }
-	const Type &get(size_t i, size_t j) { return v[i + N * j]; }
+	Type &get(size_t i, size_t j) { return v[i + N * j]; }
 	Type &set(size_t n) { return v[n]; }
-	const Type &get(size_t n) { return v[n]; }
+	Type &get(size_t n) { return v[n]; }
 };
 
 FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) 
@@ -96,22 +95,20 @@ void solve(size_t resolution, size_t iterations)
 		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
 		std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
 		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
-	#endif	
 
+
+
+		//Example usage: This does not work yet because no data is transferred via MPI
+		vector<size_t> coord_vec = {coords[0], coords[1]};
+		auto grid_size = local_grid_size(g_my_rank);
+		int NX = grid_size[COORD_X];
+		int NY = grid_size[COORD_Y];
+		FP_TYPE h = 1.0 / (NY - 1);	
+	#else
 		size_t NY = resolution;
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
-
-
-
-		/* Example usage: This does not work yet because no data is transferred via MPI
-
-		auto grid_size = local_grid_size(g_my_rank);
-		NX = grid_size[COORD_X];
-		NY = grid_size[COORD_Y];
-
-		*/
-
+	#endif	
 
 
 		const auto stencil = Stencil(h);
@@ -120,11 +117,34 @@ void solve(size_t resolution, size_t iterations)
 		// domain cell types
 		std::vector<int> domain(NX * NY, Cell::UNKNOWN);
 		MatrixView<int> domainView(domain, NX, NY);
+
+		int topProc;
+		int botProc;
+		MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+
 		for (size_t i = 0; i != NX; ++i) 
 		{
-			domainView.set(i, 0) = Cell::DIR;
-			domainView.set(i, NY - 1) = Cell::DIR;
+			domainView.set(i, 0) = Cell::DIR;	// left
+			domainView.set(i, NY - 1) = Cell::DIR;	// rigth
 		}
+
+		if(topProc < 0)
+		{
+			// no top neighbour
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				domainView.set(NX - 1, j) = Cell::DIR;
+			}
+		}
+		if(botProc < 0)
+		{
+			// no bot neigbhour
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				domainView.set(0, j) = Cell::DIR;
+			}
+		}
+
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			domainView.set(0, j) = Cell::DIR;
@@ -160,6 +180,49 @@ void solve(size_t resolution, size_t iterations)
 			MatrixView<FP_TYPE> solView(sol, NX, NY);
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
+
+
+			
+
+			int topProc;
+			int botProc;
+
+			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+
+			MPI_Status status;
+			if(topProc >= 0)
+			{	// send up
+				MPI_Sendrecv(
+					&solView.get(1, NY-1),	// send data start
+					NX-2, 	// xmit length
+					MPI_FP_TYPE,	//xmit dtypte
+					topProc,	// rank of receiver
+					0,	// Tag
+					&sol2View.get(1, NY), // desstination buffers
+					NX-2,	// Receive length
+					MPI_FP_TYPE, // Receive dtype
+					g_my_rank, // source rank
+					0, // Tag
+					g_topo_com,
+					&status);
+			}
+
+			if(botProc >= 0)
+			{	// send down
+				MPI_Sendrecv(
+					&solView.get(1, 1),	// send data start
+					NX-2, 	// xmit length
+					MPI_FP_TYPE,	//xmit dtypte
+					botProc,	// rank of receiver
+					0,	// Tag
+					&sol2View.get(1, 0), // desstination buffers
+					NX-2,	// Receive length
+					MPI_FP_TYPE, // Receive dtype
+					g_my_rank, // source rank
+					0, // Tag
+					g_topo_com,
+					&status);
+			}
 
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
