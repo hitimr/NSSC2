@@ -9,6 +9,7 @@
 #include <vector>
 #include <assert.h>
 
+
 #ifdef USEMPI
 	#include <mpi.h>
 #endif
@@ -16,6 +17,7 @@
 #include "logging.hpp"
 #include "splitting.hpp"
 #include "common.hpp"
+
 
 template <typename Type> class MatrixView 
 {
