@@ -27,6 +27,9 @@
 #define LEFT    3
 
 
+// Misc
+#define MASTER 0
+
 // ---- Globals
 // globals according to command line
 extern int g_n_processes;

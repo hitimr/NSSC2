@@ -17,7 +17,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/Ex1/out/build/jacobiMPI",
             "args": [
-                "100",
+                "10",
                 "10"
             ],
             "stopAtEntry": false,
@@ -32,7 +32,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "make",
+            //"preLaunchTask": "make",
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {

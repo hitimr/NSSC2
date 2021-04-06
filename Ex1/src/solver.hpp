@@ -74,7 +74,7 @@ enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
 void solve(size_t resolution, size_t iterations) 
 {
-	Logger log(g_my_rank);
+	//Logger log(g_my_rank);
 	
 
 	#ifdef USEMPI
@@ -280,12 +280,51 @@ void solve(size_t resolution, size_t iterations)
 					solutionView.set(i, j) = ParticularSolution(i * h, j * h);
 			}
 		}
+
+
+		// local solution
 		std::vector<FP_TYPE> solution2 = solution;
 		std::cout << "solve LSE using stencil jacobi" << std::endl;
 		auto start = std::chrono::high_resolution_clock::now();
-		for (size_t iter = 0; iter <= iterations; ++iter) {
+		for (size_t iter = 0; iter <= iterations; ++iter) 
+		{
 			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
 		}
+
+#ifdef USEMPI
+		std::vector<FP_TYPE> recv_buf;
+		if(g_my_rank == MASTER)
+		{
+			recv_buf.resize(g_resolution * g_resolution);			
+		}		
+		
+		
+		int x_start = borders[LEFT] 	== BORDER_GHOST ? 1 : 0;
+		int x_end 	= borders[RIGHT] 	== BORDER_GHOST ? grid_size[COORD_X] - 1 : grid_size[COORD_X];
+		int y_start = borders[BOTTOM] 	== BORDER_GHOST ? 1 : 0;
+		int y_end 	= borders[TOP] 		== BORDER_GHOST ? grid_size[COORD_Y] - 1 : grid_size[COORD_Y];
+
+		int len = 0;
+		std::vector<FP_TYPE> send_buf(solution.size());
+		for(int y = y_start; y < y_end; y++)
+		{
+			std::vector<FP_TYPE> next_line(&solution[x_start + grid_size[COORD_Y] * y], &solution[x_end + grid_size[COORD_Y] * y]);
+			send_buf.insert(send_buf.begin() + len, next_line.begin(), next_line.end());
+			len += next_line.size();
+		}
+		send_buf.resize(len);
+
+		MPI_Gather(
+			&send_buf,		// send_data
+			send_buf.size(),// send_count
+			MPI_FP_TYPE,	// send_datatype
+			&recv_buf,		// recv_data
+			recv_buf.size(),// recv_datatype
+			MPI_FP_TYPE,	// send_datatype
+			MASTER,			// root (rank of the receiver)
+			g_topo_com		// communicator
+		);
+#endif
 
 		auto stop = std::chrono::high_resolution_clock::now();
 		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
@@ -304,8 +343,10 @@ void solve(size_t resolution, size_t iterations)
 		auto errorMax = NormInf(error);
 		std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
 		std::cout << "--------------solver.hpp----------------\n";
+		/*
 		log.add("n_processes", std::to_string(g_n_processes));
 		log.add("runtime", std::to_string(seconds));
 		log.add("error", std::to_string(errorNorm));
 		log.add("error", std::to_string(2308945720935784));
+		*/
 }
