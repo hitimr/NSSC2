@@ -55,9 +55,14 @@ test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 test: test_splitting test_mpi	# Unit tests
 
 # quick run to check if all programs work properly
+# args: dimension Yresolution iterations
 run:
-# /$(BUILD_DIR)/jacobiSERIAL 100 10
-	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 1000 100
+	rm -rf $(LOG_DIR)/*.csv
+	./$(BUILD_DIR)/jacobiSERIAL 125 10
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 125 10
+	mpirun -np 3 $(BUILD_DIR)/jacobiMPI 1D 125 10
+	mpirun -np 4 $(BUILD_DIR)/jacobiMPI 1D 125 10
+	mpirun -np 5 $(BUILD_DIR)/jacobiMPI 1D 125 10
 
 clean:
 	rm -rf $(OUT_DIR)

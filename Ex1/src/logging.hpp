@@ -17,9 +17,9 @@ public:
 
     const std::string currentDateTime();
 
-    void add(std::string key, std::string val)
+    void add(std::string res, std::string nprocs, std::string runtimeval, std::string errorval)
     {
-        m_outStream << key << ";" << val << endl;
+        m_outStream << res << ";" << nprocs << ";" << runtimeval << ";" << errorval << std::endl;
     }
 };
 
@@ -29,11 +29,12 @@ Logger::Logger(int rank)
     if(m_rank == 0) master = true;
     else master = false;
 
-    m_logFile = string("./out/logs/log_" + currentDateTime() + ".csv");
+    //m_logFile = string("./out/logs/log_" + currentDateTime() + ".csv");
+    m_logFile = "./out/logs/log_2021-04-06.csv";
 
     if(master)
     {
-        m_outStream.open(m_logFile);
+        m_outStream.open(m_logFile, fstream::app);
     }
 }
 

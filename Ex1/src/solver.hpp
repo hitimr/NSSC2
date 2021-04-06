@@ -307,9 +307,10 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
 		auto errorMax = NormInf(error);
 		std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
-		std::cout << "--------------solver.hpp----------------\n";
-		log.add("n_processes", std::to_string(g_n_processes));
-		log.add("runtime", std::to_string(seconds));
-		log.add("error", std::to_string(errorNorm));
-		log.add("error", std::to_string(2308945720935784));
+
+		log.add(
+		std::to_string(g_resolution),
+		std::to_string(g_n_processes),
+		std::to_string(seconds),
+		std::to_string(errorNorm));
 }
