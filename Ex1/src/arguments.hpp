@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include "common.hpp"
 
 using namespace std;
 

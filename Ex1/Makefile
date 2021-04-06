@@ -27,6 +27,7 @@ $(shell mkdir -p $(TEST_DIR)/out)
 CXX=g++
 MPICXX?=mpic++
 CXXFLAGS := -std=c++14 -O0 -g -pedantic -march=native -ffast-math -Wall
+CXXFLAGS += -ggdb3	# enable valgrind to show code
 
 all:  jacobiMPI jacobiMPI_float run test
 
@@ -57,7 +58,7 @@ test: test_splitting #test_mpi	# Unit tests
 # quick run to check if all programs work properly
 run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10 | grep "|error|"
-	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
+	mpirun -np 3 $(BUILD_DIR)/jacobiMPI 100 10
 #mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
 
 clean:

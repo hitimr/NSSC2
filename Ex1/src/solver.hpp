@@ -93,8 +93,12 @@ void solve(size_t resolution, size_t iterations)
 
 		int coords[2] = {};								 
 		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
-		std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
-		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
+		if(g_my_rank == MASTER)
+		{
+			std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
+			std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
+		}
+
 
 
 		// calculate local grid size
@@ -291,12 +295,7 @@ void solve(size_t resolution, size_t iterations)
 #endif
 		}
 
-#ifdef USEMPI
-		std::vector<FP_TYPE> recv_buf;
-		if(g_my_rank == MASTER)
-		{
-			recv_buf.resize(g_resolution * g_resolution);			
-		}		
+#ifdef USEMPI		
 		
 		// check if we need to remove the ghost layer before sending it
 		int x_start = borders[LEFT] 	== BORDER_GHOST ? 1 : 0;
@@ -308,45 +307,76 @@ void solve(size_t resolution, size_t iterations)
 		std::vector<FP_TYPE> send_buf(solution.size());
 		for(int y = y_start; y < y_end; y++)
 		{
+			// copy each line into the send-buffer
+			// since this buffer could be smaller than the solution due to ghost layers we need to keep tracj of its length
 			std::vector<FP_TYPE> next_line(&solution[x_start + grid_size[COORD_Y] * y], &solution[x_end + grid_size[COORD_Y] * y]);
 			send_buf.insert(send_buf.begin() + len, next_line.begin(), next_line.end());
 			len += next_line.size();
 		}
 		send_buf.resize(len);
 
-		MPI_Gather(
-			&send_buf,		// send_data
-			send_buf.size(),// send_count
-			MPI_FP_TYPE,	// send_datatype
-			&recv_buf,		// recv_data
-			recv_buf.size(),// recv_datatype
-			MPI_FP_TYPE,	// send_datatype
-			MASTER,			// root (rank of the receiver)
-			g_topo_com		// communicator
-		);
+
+		std::vector<FP_TYPE> recv_buf;
+		if(g_my_rank == MASTER)
+		{
+			recv_buf.resize((2 * g_resolution - 1) * g_resolution);				
+			MPI_Gather(
+				send_buf.data(),// send_data
+				send_buf.size(),// send_count
+				MPI_FP_TYPE,	// send_datatype
+				recv_buf.data(),// recv_data
+				recv_buf.size(),// recv_count
+				MPI_FP_TYPE,	// send_datatype
+				MASTER,			// root (rank of the receiver)
+				g_topo_com		// communicator
+			);
+		} 
+		else 
+		{		
+			MPI_Gather(
+				send_buf.data(),// send_data
+				send_buf.size(),// send_count
+				MPI_FP_TYPE,	// send_datatype
+				NULL,			// no receive buffer required
+				0,				// recv_count
+				MPI_FP_TYPE,	// send_datatype
+				MASTER,			// root (rank of the receiver)
+				g_topo_com		// communicator
+			);
+		}
+					
+
+		//cout << "Rank " << g_my_rank << " sending " << a_send << " elements" << endl;
+		//cout << "Rank " << g_my_rank << " recieving " << a_recv << " elements" << endl;
 #endif
+		if(g_my_rank == MASTER)
+		{
+			// Assemble solution
+			solution.clear();
+			solution = recv_buf;
 
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
-		std::cout << std::scientific << "runtime=" << seconds << std::endl;
+			auto stop = std::chrono::high_resolution_clock::now();
+			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
+			std::cout << std::scientific << "runtime=" << seconds << std::endl;
 
 
-		auto residual = ComputeResidual(solution, rightHandSide, stencil, NX, NY);
-		auto residualNorm = NormL2(residual);
-		std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
-		auto residualMax = NormInf(residual);
-		std::cout << std::scientific << "|residualMax|=" << residualMax
-							<< std::endl;
-		auto error = ComputeError(solution, referenceSolution, NX, NY);
-		auto errorNorm = NormL2(error);
-		std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
-		auto errorMax = NormInf(error);
-		std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
-		std::cout << "--------------solver.hpp----------------\n";
-		/*
-		log.add("n_processes", std::to_string(g_n_processes));
-		log.add("runtime", std::to_string(seconds));
-		log.add("error", std::to_string(errorNorm));
-		log.add("error", std::to_string(2308945720935784));
-		*/
+			auto residual = ComputeResidual(solution, rightHandSide, stencil, NX, NY);
+			auto residualNorm = NormL2(residual);
+			std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
+			auto residualMax = NormInf(residual);
+			std::cout << std::scientific << "|residualMax|=" << residualMax
+								<< std::endl;
+			auto error = ComputeError(solution, referenceSolution, NX, NY);
+			auto errorNorm = NormL2(error);
+			std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
+			auto errorMax = NormInf(error);
+			std::cout << std::scientific << "|errorMax|=" << errorMax << std::endl;
+			std::cout << "--------------solver.hpp----------------\n";
+			/*
+			log.add("n_processes", std::to_string(g_n_processes));
+			log.add("runtime", std::to_string(seconds));
+			log.add("error", std::to_string(errorNorm));
+			log.add("error", std::to_string(2308945720935784));
+			*/
+		}
 }
