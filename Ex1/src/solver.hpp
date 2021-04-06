@@ -291,6 +291,7 @@ void solve(size_t resolution, size_t iterations)
 		{
 			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
 #ifdef USEMPI			
+
 			MPI_Barrier(g_topo_com);
 #endif
 		}
@@ -317,43 +318,41 @@ void solve(size_t resolution, size_t iterations)
 
 
 		std::vector<FP_TYPE> recv_buf;
+		FP_TYPE * recv_buf_ptr;
+		size_t recv_buf_size;		
 		if(g_my_rank == MASTER)
 		{
-			recv_buf.resize((2 * g_resolution - 1) * g_resolution);				
-			MPI_Gather(
-				send_buf.data(),// send_data
-				send_buf.size(),// send_count
-				MPI_FP_TYPE,	// send_datatype
-				recv_buf.data(),// recv_data
-				recv_buf.size(),// recv_count
-				MPI_FP_TYPE,	// send_datatype
-				MASTER,			// root (rank of the receiver)
-				g_topo_com		// communicator
-			);
+			recv_buf.resize((2 * g_resolution - 1) * g_resolution);
+			recv_buf_size = recv_buf.size();
+			recv_buf_ptr = &recv_buf[0];				
 		} 
 		else 
-		{		
-			MPI_Gather(
-				send_buf.data(),// send_data
-				send_buf.size(),// send_count
-				MPI_FP_TYPE,	// send_datatype
-				NULL,			// no receive buffer required
-				0,				// recv_count
-				MPI_FP_TYPE,	// send_datatype
-				MASTER,			// root (rank of the receiver)
-				g_topo_com		// communicator
-			);
+		{
+			recv_buf_ptr = NULL;
+			recv_buf_size = 0;
 		}
-					
+		cout << "Rank " << g_my_rank <<  " Made it until here 1" << endl;
+		cout << "Rank " << g_my_rank << " sending " << send_buf.size() << " elements" << endl;
+		cout << "Rank " << g_my_rank << " recieving " << recv_buf_size << " elements" << endl;
+		MPI_Gather(
+			send_buf.data(),// send_data
+			send_buf.size(),// send_count
+			MPI_FP_TYPE,	// send_datatype
+			recv_buf_ptr,	// recv_data
+			recv_buf_size,	// recv_count
+			MPI_FP_TYPE,	// send_datatype
+			MASTER,			// root (rank of the receiver)
+			g_topo_com		// communicator
+		);
+			
+		cout << "Rank " << g_my_rank <<  "Made it until here 2" << endl;
 
-		//cout << "Rank " << g_my_rank << " sending " << a_send << " elements" << endl;
-		//cout << "Rank " << g_my_rank << " recieving " << a_recv << " elements" << endl;
 #endif
 		if(g_my_rank == MASTER)
 		{
 			// Assemble solution
-			solution.clear();
-			solution = recv_buf;
+			//solution.clear();
+			//solution = recv_buf;
 
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();

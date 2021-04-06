@@ -8,9 +8,12 @@
 
 using namespace std;
 
+extern int g_my_rank;
+
 template<typename T>
 T convertTo(const int position, const T init, int argc, char *argv[]) {
   if (argc <= position) {
+    if(g_my_rank == MASTER)
     std::cout
         << "Conversion of argument " << position
         << " to 'int' failed, not enough parameters, using default parameter: "
@@ -19,11 +22,7 @@ T convertTo(const int position, const T init, int argc, char *argv[]) {
   }
   T arg;
   std::istringstream tmp(argv[position]);
-  tmp >> arg ? (std::cout << "Conversion of argument " << position
-                             << " to 'int' successfull: " << arg)
-                : (std::cout << "Conversion of argument " << position
-                             << " to 'int' failed");
-  std::cout << std::endl;
+  tmp >> arg;
   return arg;
 }
 

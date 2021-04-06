@@ -44,14 +44,6 @@ int main(int argc, char *argv[])
   g_my_rank = 0;
   g_n_processes = 1;
 #endif
-
-  // redirect cout except for master to the output is less clogged
-  streambuf *old = cout.rdbuf();   // save cout
-  if(g_my_rank != MASTER)
-  {
-    stringstream ss;
-    cout.rdbuf (ss.rdbuf());  // redirect cout to null
-  }
   
   // parse command line arguments
   switch(argc)
@@ -89,12 +81,6 @@ int main(int argc, char *argv[])
 #ifdef USEMPI
   MPI_Finalize();
 #endif
-
-  // restore cout buffer
-  if(g_my_rank != MASTER)
-  {
-    cout.rdbuf (old);
-  }
 
   return 0;
 }
