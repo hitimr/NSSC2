@@ -16,7 +16,7 @@
 
 std::vector<int> border_types(int rank, int dim);
 std::vector<int> get_prime_factors(int n);
-size_t split_1D(int global_size, int splits, int pos);
+size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers);
 
 
 /* calculate the type of borders for a given rank
@@ -94,7 +94,7 @@ entry in 1D equivalent to its rank
 @return: a vector of size 2 containing the x, and y sizes of the local grid
     including ghost layers
 */
-std::vector<size_t> local_grid_size(const std::vector<int> & coords)
+std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_ghost_layers=true)
 {
     // sanity check
     assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
@@ -122,7 +122,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords)
 
         // bigger grids are allocated in ascending order
         // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-        if(coords[0] < remainder)
+        if(coords[0] < remainder && add_ghost_layers == true)
         {
             y_dim++;
         } 
@@ -147,9 +147,8 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords)
         n_x = prime_factors[0]; // Number of splits in x-Direction
         n_y = g_n_processes / n_x; // Number of splits in y-Direction
 
-
-        x_dim = split_1D(g_resolution, n_x, coords[COORD_X]);
-        y_dim = split_1D(g_resolution, n_y, coords[COORD_Y]);
+        x_dim = split_1D(g_resolution, n_x, coords[COORD_X], add_ghost_layers);
+        y_dim = split_1D(g_resolution, n_y, coords[COORD_Y], add_ghost_layers);
 
         break;
 
@@ -163,11 +162,11 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords)
 }
 
 // convenience overload function 
-std::vector<size_t> local_grid_size(int n)
+std::vector<size_t> local_grid_size(int n, bool add_ghost_layers)
 {
     assert(n >= 0);
     std::vector<int> coords = {n};
-    return local_grid_size(coords);
+    return local_grid_size(coords, add_ghost_layers);
 }
 
 /* Calculate the prime factors of a give integer n
@@ -219,7 +218,7 @@ std::vector<int> get_prime_factors(int n)
 @param pos: position of the sub-interval
 
 */
-size_t split_1D(int global_size, int splits, int pos)
+size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
 {
     assert(global_size > 0);
     assert(splits > 0);
@@ -231,7 +230,7 @@ size_t split_1D(int global_size, int splits, int pos)
 
     // bigger grids are allocated in ascending order
     // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-    if(pos < remainder)
+    if(pos < remainder && add_ghost_layers == true)
     {
         size++;
     }
@@ -239,4 +238,14 @@ size_t split_1D(int global_size, int splits, int pos)
     return (size_t) size;
 }
 
+/*
+std::vector<int> to_local_grid_coords(const std::vector<int> & local_coords)
+{
+    switch(coord.size())
+    {
+    case DIM1:
+        brek
+
+    }
+}*/
 
