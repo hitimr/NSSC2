@@ -143,6 +143,9 @@ int test_to_global_grid_coords()
     assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
     assert(to_global_grid_coords({1}, {2, 1})[1] == 5);
     assert(to_global_grid_coords({2}, {3, 1})[1] == 9);
+    assert(to_global_grid_coords({0}, {1, 1})[0] == 1);
+    assert(to_global_grid_coords({1}, {2, 1})[0] == 2);
+    assert(to_global_grid_coords({2}, {3, 1})[0] == 3);
 
 
     // 1D different grid sizes
@@ -152,7 +155,10 @@ int test_to_global_grid_coords()
     //                          rank   x  y
     assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
     assert(to_global_grid_coords({1}, {2, 1})[1] == 6);
-    assert(to_global_grid_coords({2}, {3, 1})[1] == 11);
+    assert(to_global_grid_coords({2}, {3, 1})[1] == 11);    
+    assert(to_global_grid_coords({0}, {1, 1})[0] == 1);
+    assert(to_global_grid_coords({1}, {2, 1})[0] == 2);
+    assert(to_global_grid_coords({2}, {3, 1})[0] == 3);
 
     cout << "OK" << endl;
     return SUCCESS;

@@ -94,7 +94,7 @@ entry in 1D equivalent to its rank
 @return: a vector of size 2 containing the x, and y sizes of the local grid
     including ghost layers
 */
-std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_ghost_layers=true)
+std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_ghost_layers)
 {
     // sanity check
     assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
@@ -122,14 +122,18 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
 
         // bigger grids are allocated in ascending order
         // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-        if(coords[0] < remainder && add_ghost_layers == true)
+        if(coords[0] < remainder)
         {
             y_dim++;
         } 
 
         // we need to add an additional line of of grid points for every ghost
         // layer in the subgrid to store the data from the neighbouring grid
-        y_dim += std::count(borders.begin(), borders.end(), BORDER_GHOST);
+        if(add_ghost_layers == true)
+        {
+            y_dim += std::count(borders.begin(), borders.end(), BORDER_GHOST);
+        }
+        
         
         break;
 
@@ -140,7 +144,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         {
             // number of processes is a prime number. no splits possible
             // use 1D-split instead
-            size = local_grid_size(coords);
+            size = local_grid_size(coords, true);
             return size;
         }
 
@@ -230,7 +234,7 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
 
     // bigger grids are allocated in ascending order
     // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-    if(pos < remainder && add_ghost_layers == true)
+    if((pos < remainder) && (add_ghost_layers == true))
     {
         size++;
     }
@@ -238,14 +242,23 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
     return (size_t) size;
 }
 
-/*
-std::vector<int> to_local_grid_coords(const std::vector<int> & local_coords)
+
+std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std::vector<int> local_grid_coords)
 {
-    switch(coord.size())
+    int offset_x = 0;
+    switch(topo_coords.size())
     {
     case DIM1:
-        brek
+        // add heigths of the grids below
+        for(int i = 0; i < topo_coords[0]; i++)
+        {
+            offset_x += local_grid_size(i, false)[COORD_Y];
+        }
+        local_grid_coords[COORD_Y] += offset_x;
+        return local_grid_coords;
 
+    default:
+        assert(false && "Invalid number of dimensions");
     }
-}*/
+}
 

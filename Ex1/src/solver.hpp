@@ -108,7 +108,7 @@ void solve(size_t resolution, size_t iterations)
 			my_coords = {coords[0], coords[1]};	// transform to vector
 		}
 		
-		auto grid_size = local_grid_size(my_coords);
+		auto grid_size = local_grid_size(my_coords, true);
 		int NX = grid_size[COORD_X];
 		int NY = grid_size[COORD_Y];
 		FP_TYPE h = 1.0 / (NY - 1);	
@@ -152,11 +152,13 @@ void solve(size_t resolution, size_t iterations)
 		// referenceSolution
 		std::vector<FP_TYPE> referenceSolution(NX * NY, 0);
 		MatrixView<FP_TYPE> referenceSolutionView(referenceSolution, NX, NY);
+		std::vector<int> offset = to_global_grid_coords(my_coords, {0,0});
+
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			for (size_t i = 0; i != NX; ++i) 
 			{
-				referenceSolutionView.set(i, j) = ParticularSolution(i * h, j * h);
+				referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 			}
 		}
 
@@ -168,7 +170,7 @@ void solve(size_t resolution, size_t iterations)
 			for (size_t i = 0; i != NX; ++i) 
 			{
 				rightHandSideView.set(i, j) =
-						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;
+						ParticularSolution((i + offset[0]) * h, (j + offset[1]) * h) * 4 * M_PI * M_PI;
 			}
 		}
 
@@ -179,16 +181,10 @@ void solve(size_t resolution, size_t iterations)
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
-
-			
-
-			int topProc;
-			int botProc;
-
-			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+			auto borders = border_types(g_my_rank);
 
 			MPI_Status status;
-			if(topProc >= 0)
+			if(borders[TOP] == BORDER_GHOST)
 			{	// send up
 				MPI_Sendrecv(
 					&solView.get(1, NY-1),	// send data start
