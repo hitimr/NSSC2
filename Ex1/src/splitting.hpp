@@ -239,6 +239,4 @@ size_t split_1D(int global_size, int splits, int pos)
     return (size_t) size;
 }
 
-size
-
 
