@@ -66,7 +66,7 @@ int test_local_grid_size()
 
 int test_border_types()
 {
-    cout << "Testing border_types()" << endl;
+    cout << "Testing border_types()..." << endl;
     // 1D
     // check specific case
     g_n_processes = 4;
@@ -117,13 +117,42 @@ int test_get_prime_factors()
 
 int test_split1D()
 {
-    cout << "Testing split1D...()" << endl;
+    cout << "Testing split1D()..." << endl;
 
     assert(split_1D(20, 5, 0, true) == 4);
     assert(split_1D(20, 5, 4, true) == 4);
 
     assert(split_1D(21, 5, 0, true) == 5);
     assert(split_1D(21, 5, 4, true) == 4);
+
+    cout << "OK" << endl;
+    return SUCCESS;
+}
+
+
+int test_to_global_grid_coords()
+
+{
+    cout << "to_global_grid_coords() ..." << endl;
+
+    // 1D equal grid sizes
+    g_n_processes = 3;
+    g_dim = 1;
+    g_resolution = 12;
+    //                          rank   x  y
+    assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
+    assert(to_global_grid_coords({1}, {2, 1})[1] == 5);
+    assert(to_global_grid_coords({2}, {3, 1})[1] == 9);
+
+
+    // 1D different grid sizes
+    g_n_processes = 3;
+    g_dim = 1;
+    g_resolution = 14;
+    //                          rank   x  y
+    assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
+    assert(to_global_grid_coords({1}, {2, 1})[1] == 6);
+    assert(to_global_grid_coords({2}, {3, 1})[1] == 11);
 
     cout << "OK" << endl;
     return SUCCESS;
@@ -138,6 +167,7 @@ int main()
     assert(test_border_types() == SUCCESS);
     assert(test_get_prime_factors() == SUCCESS);
     assert(test_split1D() == SUCCESS);
+    assert(test_to_global_grid_coords() == SUCCESS);
 
     cout << "All Tests passed!" << endl;
 
