@@ -33,7 +33,7 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers);
 std::vector<int> border_types(const std::vector<int> & coords)
 {
     // sanity check
-    assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
+    assert(((coords.size() == 1) || (coords.size() == 2)) && "Invalid number of coordinates");
 
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
@@ -97,7 +97,7 @@ entry in 1D equivalent to its rank
 std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_ghost_layers)
 {
     // sanity check
-    assert((coords.size() == 1) || (coords.size() == 2) && "Invalid number of coordinates");
+    assert(((coords.size() == 1) || (coords.size() == 2)) && "Invalid number of coordinates");
 
     // variables can't be created within a switch case so we need to do it here
     std::vector<size_t> size = {0, 0};  // local grid size

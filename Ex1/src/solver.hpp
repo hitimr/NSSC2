@@ -152,7 +152,6 @@ void solve(size_t resolution, size_t iterations)
 		// referenceSolution
 		std::vector<FP_TYPE> referenceSolution(NX * NY, 0);
 		MatrixView<FP_TYPE> referenceSolutionView(referenceSolution, NX, NY);
-		std::vector<int> offset = to_global_grid_coords(my_coords, {0,0});
 
 		for (size_t j = 0; j != NY; ++j) 
 		{
@@ -170,7 +169,7 @@ void solve(size_t resolution, size_t iterations)
 			for (size_t i = 0; i != NX; ++i) 
 			{
 				rightHandSideView.set(i, j) =
-						ParticularSolution((i + offset[0]) * h, (j + offset[1]) * h) * 4 * M_PI * M_PI;
+						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;
 			}
 		}
 
@@ -230,9 +229,7 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
-			MPI_Barrier(g_topo_com);
 			sol.swap(sol2);
-			MPI_Barrier(g_topo_com);
 		};
 
 		auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
@@ -289,6 +286,9 @@ void solve(size_t resolution, size_t iterations)
 		for (size_t iter = 0; iter <= iterations; ++iter) 
 		{
 			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
+#ifdef USEMPI			
+			MPI_Barrier(g_topo_com);
+#endif
 		}
 
 #ifdef USEMPI
@@ -298,7 +298,7 @@ void solve(size_t resolution, size_t iterations)
 			recv_buf.resize(g_resolution * g_resolution);			
 		}		
 		
-		
+		// check if we need to remove the ghost layer before sending it
 		int x_start = borders[LEFT] 	== BORDER_GHOST ? 1 : 0;
 		int x_end 	= borders[RIGHT] 	== BORDER_GHOST ? grid_size[COORD_X] - 1 : grid_size[COORD_X];
 		int y_start = borders[BOTTOM] 	== BORDER_GHOST ? 1 : 0;
