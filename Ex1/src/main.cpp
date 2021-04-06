@@ -11,8 +11,10 @@
 // switch between float and double
 #ifdef USE_FLOAT
   #define FP_TYPE float
+  #define MPI_FP_TYPE MPI_FLOAT
 #else
   #define FP_TYPE double
+  #define MPI_FP_TYPE MPI_DOUBLE
 #endif
 
 
@@ -26,6 +28,10 @@ int g_n_processes = -1;
 int g_dim = -1;
 int g_iterations = -1;
 size_t g_resolution = 0;
+
+#ifdef USEMPI
+    MPI_Comm g_topo_com;
+#endif
 
  
 int main(int argc, char *argv[]) 

@@ -67,7 +67,6 @@ void solve(size_t resolution, size_t iterations,  int mpi_rank, int mpi_numproc)
   MPI_Barrier(MPI_COMM_WORLD);  
   MPI_Dims_create(mpi_numproc, ndims, dims);
   std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
-  MPI_Comm topo_com;
   int bcs[2] = {0,0};
   int reorder = 1;
   MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs,reorder, &topo_com);

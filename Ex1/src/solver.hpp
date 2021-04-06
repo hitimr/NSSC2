@@ -12,6 +12,7 @@
 
 #ifdef USEMPI
 	#include <mpi.h>
+	extern MPI_Comm g_topo_com;
 #endif
 
 #include "logging.hpp"
@@ -19,23 +20,23 @@
 #include "common.hpp"
 
 
+
 template <typename Type> class MatrixView 
-{
-private:	
+{	
+public:
 	MatrixView(const MatrixView &);
 	std::vector<Type> &v;
 	MatrixView &operator=(const MatrixView &);
 
-public:
 	const size_t N, M;
 	MatrixView(std::vector<Type> &v, size_t N, size_t M) : v(v), N(N), M(M) 
 	{
 		assert(v.size() / N == M);
 	}
 	Type &set(size_t i, size_t j) { return v[i + N * j]; }
-	const Type &get(size_t i, size_t j) { return v[i + N * j]; }
+	Type &get(size_t i, size_t j) { return v[i + N * j]; }
 	Type &set(size_t n) { return v[n]; }
-	const Type &get(size_t n) { return v[n]; }
+	Type &get(size_t n) { return v[n]; }
 };
 
 FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) 
@@ -86,31 +87,28 @@ void solve(size_t resolution, size_t iterations)
 		int bcs[2] = {0,0};	 // logical array of size ndims specifying whether the grid is periodic (true) or not (false) in each dimension
 		int reorder = 1;			// ranking may be reordered (true) or not (false) (logical)
 
-		MPI_Comm topo_com;
 		MPI_Dims_create(g_n_processes, ndims, dims);	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
+		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
-		MPI_Cart_coords(topo_com, g_my_rank, ndims, coords);
+		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
 		std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
 		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
-	#endif	
 
+
+
+		//Example usage: This does not work yet because no data is transferred via MPI
+		vector<size_t> coord_vec = {coords[0], coords[1]};
+		auto grid_size = local_grid_size(g_my_rank);
+		int NX = grid_size[COORD_X];
+		int NY = grid_size[COORD_Y];
+		FP_TYPE h = 1.0 / (NY - 1);	
+	#else
 		size_t NY = resolution;
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
-
-
-
-		/* Example usage: This does not work yet because no data is transferred via MPI
-
-		auto grid_size = local_grid_size(g_my_rank);
-		NX = grid_size[COORD_X];
-		NY = grid_size[COORD_Y];
-
-		*/
-
+	#endif	
 
 
 		const auto stencil = Stencil(h);
@@ -119,11 +117,34 @@ void solve(size_t resolution, size_t iterations)
 		// domain cell types
 		std::vector<int> domain(NX * NY, Cell::UNKNOWN);
 		MatrixView<int> domainView(domain, NX, NY);
+
+		int topProc;
+		int botProc;
+		MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+
 		for (size_t i = 0; i != NX; ++i) 
 		{
-			domainView.set(i, 0) = Cell::DIR;
-			domainView.set(i, NY - 1) = Cell::DIR;
+			domainView.set(i, 0) = Cell::DIR;	// left
+			domainView.set(i, NY - 1) = Cell::DIR;	// rigth
 		}
+
+		if(topProc < 0)
+		{
+			// no top neighbour
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				domainView.set(NX - 1, j) = Cell::DIR;
+			}
+		}
+		if(botProc < 0)
+		{
+			// no bot neigbhour
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				domainView.set(0, j) = Cell::DIR;
+			}
+		}
+
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			domainView.set(0, j) = Cell::DIR;
@@ -159,6 +180,49 @@ void solve(size_t resolution, size_t iterations)
 			MatrixView<FP_TYPE> solView(sol, NX, NY);
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
+
+
+			
+
+			int topProc;
+			int botProc;
+
+			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+
+			MPI_Status status;
+			if(topProc >= 0)
+			{	// send up
+				MPI_Sendrecv(
+					&solView.get(1, NY-1),	// send data start
+					NX-2, 	// xmit length
+					MPI_FP_TYPE,	//xmit dtypte
+					topProc,	// rank of receiver
+					0,	// Tag
+					&sol2View.get(1, NY), // desstination buffers
+					NX-2,	// Receive length
+					MPI_FP_TYPE, // Receive dtype
+					g_my_rank, // source rank
+					0, // Tag
+					g_topo_com,
+					&status);
+			}
+
+			if(botProc >= 0)
+			{	// send down
+				MPI_Sendrecv(
+					&solView.get(1, 1),	// send data start
+					NX-2, 	// xmit length
+					MPI_FP_TYPE,	//xmit dtypte
+					botProc,	// rank of receiver
+					0,	// Tag
+					&sol2View.get(1, 0), // desstination buffers
+					NX-2,	// Receive length
+					MPI_FP_TYPE, // Receive dtype
+					g_my_rank, // source rank
+					0, // Tag
+					g_topo_com,
+					&status);
+			}
 
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {

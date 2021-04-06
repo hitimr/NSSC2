@@ -28,7 +28,7 @@ CXX=g++
 MPICXX?=mpic++
 CXXFLAGS := $(CXXFLAGS) -std=c++14 -O0 -g -Wall -pedantic -march=native -ffast-math
 
-all: jacobiSERIAL jacobiMPI jacobiMPI_float run test
+all:  jacobiMPI jacobiMPI_float run test
 
 
 # Serial Baseline for comparision
@@ -48,15 +48,16 @@ test_splitting: $(TEST_DIR)/test_splitting.cpp $(HEADERS)
 	$(CXX) $(TEST_DIR)/test_splitting.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_splitting $(CXXFLAGS)
 	$(TEST_DIR)/out/test_splitting
 
+test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
+	$(MPICXX) $(TEST_DIR)/test_mpi.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_mpi $(CXXFLAGS) -lpthread -DUSEMPI
+	mpirun -np 6 --oversubscribe $(TEST_DIR)/out/test_mpi 45
 
-
-test: test_splitting	# Unit tests
-
+test: test_splitting test_mpi	# Unit tests
 
 # quick run to check if all programs work properly
 run:
-	./$(BUILD_DIR)/jacobiSERIAL 100 10
-	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 100 10
+# /$(BUILD_DIR)/jacobiSERIAL 100 10
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 1D 1000 100
 
 clean:
 	rm -rf $(OUT_DIR)

@@ -72,7 +72,7 @@ int test_border_types()
     g_n_processes = 4;
     g_dim = DIM1;
     g_resolution = 100; 
-
+    
     // assignemnt is [bottom, right, top, left]
     vector<int> top = {BORDER_GHOST, BORDER_DIR, BORDER_DIR,   BORDER_DIR};    
     vector<int> mid = {BORDER_GHOST, BORDER_DIR, BORDER_GHOST, BORDER_DIR};
@@ -88,12 +88,56 @@ int test_border_types()
 }
 
 
+int test_get_prime_factors()
+{
+    cout << "Testing get_prime_factors()..." << endl;
+    int n;
+    vector<int> n_factors;
+
+    n = 2*3*5;
+    n_factors = {2,3,5};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 2*3*3*5*7*7*13;
+    n_factors = {2,3,3,5,7,7,13};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 13*17;
+    n_factors = {13,17};
+    assert(n_factors == get_prime_factors(n));
+
+    n = 13;
+    n_factors = {13};
+    assert(n_factors == get_prime_factors(n));
+
+    cout << "OK" << endl;
+
+    return SUCCESS;
+}
+
+int test_split1D()
+{
+    cout << "Testing split1D...()" << endl;
+
+    assert(split_1D(20, 5, 0) == 4);
+    assert(split_1D(20, 5, 4) == 4);
+
+    assert(split_1D(21, 5, 0) == 5);
+    assert(split_1D(21, 5, 4) == 4);
+
+    cout << "OK" << endl;
+    return SUCCESS;
+}
+
+
 int main()
 {
     cout << endl << "Starting unit tests..." << endl;
 
     assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
+    assert(test_get_prime_factors() == SUCCESS);
+    assert(test_split1D() == SUCCESS);
 
     cout << "All Tests passed!" << endl;
 
