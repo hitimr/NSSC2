@@ -26,7 +26,8 @@ $(shell mkdir -p $(TEST_DIR)/out)
 # compiler settings
 CXX=g++
 MPICXX?=mpic++
-CXXFLAGS := $(CXXFLAGS) -std=c++14 -O0 -g -Wall -pedantic -march=native -ffast-math
+CXXFLAGS := -std=c++14 -O0 -g -pedantic -march=native -ffast-math
+CXXFLAGS += -Wall -Wno-parentheses-equality	# supress the warning when using assert([test] && "Error message")
 
 all:  jacobiMPI jacobiMPI_float run test
 

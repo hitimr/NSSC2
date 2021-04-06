@@ -109,8 +109,8 @@ void solve(size_t resolution, size_t iterations)
 		}
 		
 		auto grid_size = local_grid_size(my_coords, true);
-		int NX = grid_size[COORD_X];
-		int NY = grid_size[COORD_Y];
+		size_t NX = grid_size[COORD_X];
+		size_t NY = grid_size[COORD_Y];
 		FP_TYPE h = 1.0 / (NY - 1);	
 	#else
 		// Serial

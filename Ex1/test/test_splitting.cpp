@@ -26,13 +26,13 @@ int test_local_grid_size()
         rank 1: 3 + 2 Ghost layers  (mid)
         rank 0: 3 + 1 Ghost Layer   (bot)
     */
-    assert(local_grid_size(2, true)[COORD_X] == 8);
+    assert(local_grid_size(2, true)[COORD_X] == 15);
     assert(local_grid_size(2, true)[COORD_Y] == 3);
 
-    assert(local_grid_size(1, true)[COORD_X] == 8);
+    assert(local_grid_size(1, true)[COORD_X] == 15);
     assert(local_grid_size(1, true)[COORD_Y] == 5);
 
-    assert(local_grid_size(0, true)[COORD_X] == 8);
+    assert(local_grid_size(0, true)[COORD_X] == 15);
     assert(local_grid_size(0, true)[COORD_Y] == 4);
 
 
@@ -40,7 +40,7 @@ int test_local_grid_size()
     g_n_processes = 1;
     g_dim = DIM1;
     g_resolution = 8;
-    assert(local_grid_size(0, true)[COORD_X] == g_resolution);
+    assert(local_grid_size(0, true)[COORD_X] == 2*g_resolution - 1);
     assert(local_grid_size(0, true)[COORD_Y] == g_resolution);
 
 

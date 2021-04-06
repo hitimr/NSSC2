@@ -160,7 +160,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
     }   
 
-    size = {x_dim, y_dim};
+    size = {2 * x_dim - 1, y_dim};
 
     return size;
 }
