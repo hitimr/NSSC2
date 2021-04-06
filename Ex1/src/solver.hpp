@@ -181,10 +181,12 @@ void solve(size_t resolution, size_t iterations)
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
-			auto borders = border_types(g_my_rank);
+			int topProc;
+			int botProc;
 
+			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
 			MPI_Status status;
-			if(borders[TOP] == BORDER_GHOST)
+			if(topProc >= 0)
 			{	// send up
 				MPI_Sendrecv(
 					&solView.get(1, NY-1),	// send data start
@@ -286,9 +288,7 @@ void solve(size_t resolution, size_t iterations)
 		}
 
 		auto stop = std::chrono::high_resolution_clock::now();
-		auto seconds =
-				std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start)
-						.count();
+		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
 		std::cout << std::scientific << "runtime=" << seconds << std::endl;
 
 
