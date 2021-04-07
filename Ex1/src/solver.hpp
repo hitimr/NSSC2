@@ -191,8 +191,6 @@ void solve(size_t resolution, size_t iterations)
 
 			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
 
-			cout << "topProc of Rank " << g_my_rank << " is " << topProc << endl;
-			cout << "botProc of Rank " << g_my_rank << " is " << botProc << endl;
 			MPI_Request req;
 			MPI_Status status;
 
@@ -313,7 +311,6 @@ void solve(size_t resolution, size_t iterations)
 		for (size_t iter = 0; iter <= iterations; ++iter) 
 		{
 			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
-			cout << "Rank " << g_my_rank << " Made it until here "<< iter << endl;
 #ifdef USEMPI			
 			MPI_Barrier(g_topo_com);
 #endif
@@ -338,20 +335,32 @@ void solve(size_t resolution, size_t iterations)
 		
 		
 		int send_buf_size = send_buf.size();
-		vector<int> sizes;
-		int *grid_sizes = new int[g_n_processes];
+		cout << "rank " << g_my_rank << " send_buf_size="<<send_buf_size << endl;
+
+		vector<int> grid_sizes(g_n_processes);
 
 		MPI_Gather(
 			&send_buf_size,		// send_data
 			1,			// send_count
 			MPI_INT,	// send_datatype
-			g_my_rank == MASTER ? grid_sizes : nullptr,		// recv_data
-			g_my_rank == MASTER ? g_n_processes + 1 : 0,		// recv_count
+			g_my_rank == MASTER ? grid_sizes.data() : nullptr,		// recv_data
+			g_my_rank == MASTER ? 1 : 0,		// recv_count
 			MPI_INT,		// send_datatype
 			MASTER,			// root (rank of the receiver)
 			g_topo_com		// communicator
 		);
+
+		if(g_my_rank == MASTER)
+		{
+			for(int i = 0; i < 3; i++)
+			{
+				cout << "size " << i << ": " << grid_sizes[i] << endl;
+			}
+		}
 		/*
+	
+		//cout << "Rank " << g_my_rank << " Made it until here " << endl;
+		
 		
 		FP_TYPE * recv_buf = NULL;
 		size_t recv_buf_size = 0;		
