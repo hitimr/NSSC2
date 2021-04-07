@@ -201,8 +201,8 @@ void solve(size_t resolution, size_t iterations)
 				if(topProc >= 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
 				if(botProc >= 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
 
-				if(topProc >= 0)  MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
-				if(botProc >= 0)  MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
+				if(topProc >= 0) MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
+				if(botProc >= 0) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
 			}
 			else
 			{
@@ -338,19 +338,20 @@ void solve(size_t resolution, size_t iterations)
 		
 		
 		int send_buf_size = send_buf.size();
-		
 		vector<int> sizes;
-		int rbuf[3];
+		int *grid_sizes = new int[g_n_processes];
+
 		MPI_Gather(
 			&send_buf_size,		// send_data
 			1,			// send_count
-			MPI_LONG,	// send_datatype
-			g_my_rank == MASTER ? rbuf : nullptr,		// recv_data
-			g_my_rank == MASTER ? g_n_processes : 0,		// recv_count
-			MPI_LONG,		// send_datatype
+			MPI_INT,	// send_datatype
+			g_my_rank == MASTER ? grid_sizes : nullptr,		// recv_data
+			g_my_rank == MASTER ? g_n_processes + 1 : 0,		// recv_count
+			MPI_INT,		// send_datatype
 			MASTER,			// root (rank of the receiver)
 			g_topo_com		// communicator
-		);/*
+		);
+		/*
 		
 		FP_TYPE * recv_buf = NULL;
 		size_t recv_buf_size = 0;		
