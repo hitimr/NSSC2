@@ -205,44 +205,7 @@ void solve(size_t resolution, size_t iterations)
 			else
 			{
 				// TODO 2D
-			}
-
-
-			/*
-			if(topProc >= 0)
-			{	// send up
-				MPI_Sendrecv(
-					&solView.get(1, NY-1),	// send data start
-					NX-2, 	// xmit length
-					MPI_FP_TYPE,	//xmit dtypte
-					topProc,	// rank of receiver
-					0,	// Tag
-					&sol2View.get(1, NY), // desstination buffers
-					NX-2,	// Receive length
-					MPI_FP_TYPE, // Receive dtype
-					botProc, // source rank
-					0, // Tag
-					g_topo_com,
-					&status);
 			}			
-
-			if(botProc >= 0)
-			{	// send down
-				MPI_Sendrecv(
-					&solView.get(1, 1),	// send data start
-					NX-2, 	// xmit length
-					MPI_FP_TYPE,	//xmit dtypte
-					botProc,	// rank of receiver
-					0,	// Tag
-					&sol2View.get(1, 0), // desstination buffers
-					NX-2,	// Receive length
-					MPI_FP_TYPE, // Receive dtype
-					topProc, // source rank
-					0, // Tag
-					g_topo_com,
-					&status);
-			}*/
-			
 
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
@@ -259,6 +222,7 @@ void solve(size_t resolution, size_t iterations)
 
 		auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
 															const Stencil &stencil, size_t NX, size_t NY) {
+			
 			MatrixView<FP_TYPE> solView(sol, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
@@ -337,72 +301,107 @@ void solve(size_t resolution, size_t iterations)
 		int send_buf_size = send_buf.size();
 		cout << "rank " << g_my_rank << " send_buf_size="<<send_buf_size << endl;
 
-		vector<int> grid_sizes(g_n_processes);
-
+		vector<int> recvcounts(g_my_rank == MASTER ? g_n_processes : 0);	// only allocate memory on master
 		MPI_Gather(
 			&send_buf_size,		// send_data
 			1,			// send_count
 			MPI_INT,	// send_datatype
-			g_my_rank == MASTER ? grid_sizes.data() : nullptr,		// recv_data
+			g_my_rank == MASTER ? recvcounts.data() : nullptr,		// recv_data
 			g_my_rank == MASTER ? 1 : 0,		// recv_count
 			MPI_INT,		// send_datatype
 			MASTER,			// root (rank of the receiver)
 			g_topo_com		// communicator
-		);
+		);				
 
-		if(g_my_rank == MASTER)
+		int offset = 0;
+		vector<int> displs(g_n_processes);
+		for(size_t i = 0; i < recvcounts.size(); i++)
 		{
-			for(int i = 0; i < 3; i++)
-			{
-				cout << "size " << i << ": " << grid_sizes[i] << endl;
-			}
+			displs[i] = offset;
+			offset += recvcounts[i] + 0;
 		}
+		
 		/*
-	
-		//cout << "Rank " << g_my_rank << " Made it until here " << endl;
-		
-		
-		FP_TYPE * recv_buf = NULL;
-		size_t recv_buf_size = 0;		
-		if(g_my_rank == MASTER)
-		{
-			recv_buf_size = (2 * g_resolution - 1) * g_resolution;
-			recv_buf = new FP_TYPE[recv_buf_size];
-		} 
+		cout << "recvcounts={";
+		for(int i = 0; i < recvcounts.size(); i++)
+			cout << recvcounts[i] << ", ";
+		cout << "}" << endl;
 
-		
-		cout << "Rank " << g_my_rank << " sending " << send_buf.size() << " elements" << endl;
-		cout << "Rank " << g_my_rank << " recieving " << recv_buf_size << " elements" << endl;
+		cout << "displs={";
+		for(int i = 0; i < displs.size(); i++)
+			cout << displs[i] << ", ";
+		cout << "}" << endl;
+		*/
+
+		vector<int> rbuf(g_my_rank == MASTER ? offset*2 : 0);	// only allocate memory on master	// TODO> check rbuf size
 		
 		MPI_Gatherv(
-			send_buf.data(),// send_data
-			send_buf.size(),// send_count
-			MPI_FP_TYPE,	// send_datatype
-			recv_buf,		// recv_data
-			rbuf,			// recv_count
-			MPI_FP_TYPE,	// send_datatype
-			MASTER,			// root (rank of the receiver)
-			g_topo_com		// communicator
-		);*/
+			send_buf.data(),// sendbuf
+			send_buf.size(),// sendcount
+			MPI_FP_TYPE,	// MPI_Datatype
+			g_my_rank == MASTER ? rbuf.data() : nullptr,	// recvbuf
+			recvcounts.data(), 	// recvcounts
+			displs.data(),		// displs
+			MPI_FP_TYPE,
+			MASTER,				// root (rank of the receiver)
+			g_topo_com			// communicator
+		);
 #endif	
-		if(g_my_rank == -1)
-		{
+		if(g_my_rank == MASTER)
+		{	
+			NY = resolution;
+			NX = (2.0 * NY) - 1;
+			h = 1.0 / (NY - 1);
+
+
+			cout << "NX=" << NX << endl;
+			cout << "NY=" << NY << endl;
+
+			// right hand side
+			std::vector<FP_TYPE> global_rightHandSide(NX * NY, 0);
+			MatrixView<FP_TYPE>  global_rightHandSideView(global_rightHandSide, NX, NY);
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				for (size_t i = 0; i != NX; ++i) 
+				{
+					global_rightHandSideView.set(i, j) =
+							ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;
+				}
+			}
+
+
+			// referenceSolution
+			std::vector<FP_TYPE> global_referenceSolution(NX * NY, 0);
+			MatrixView<FP_TYPE> global_referenceSolutionView(referenceSolution, NX, NY);
+
+			for (size_t j = 0; j != NY; ++j) 
+			{
+				for (size_t i = 0; i != NX; ++i) 
+				{
+					global_referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
+				}
+			}
+
+
+
 			// Assemble solution
-			//solution.clear();
-			//solution = recv_buf;
+			solution.clear();
+			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);				
+			
+			cout << solution.size() << endl;
 
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
 			std::cout << std::scientific << "runtime=" << seconds << std::endl;
 
-
-			auto residual = ComputeResidual(solution, rightHandSide, stencil, NX, NY);
+			
+			auto residual = ComputeResidual(solution, global_rightHandSide, stencil, NX, NY);
 			auto residualNorm = NormL2(residual);
 			std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
 			auto residualMax = NormInf(residual);
 			std::cout << std::scientific << "|residualMax|=" << residualMax
 								<< std::endl;
-			auto error = ComputeError(solution, referenceSolution, NX, NY);
+			auto error = ComputeError(solution, global_referenceSolution, NX, NY);
 			auto errorNorm = NormL2(error);
 			std::cout << std::scientific << "|error|=" << errorNorm << std::endl;
 			auto errorMax = NormInf(error);
