@@ -30,7 +30,7 @@ Logger::Logger(int rank)
     else master = false;
 
     //m_logFile = string("./out/logs/log_" + currentDateTime() + ".csv");
-    m_logFile = "./out/logs/log_2021-04-06.csv";
+    m_logFile = "./out/logs/log.csv";
 
     if(master)
     {
