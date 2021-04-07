@@ -8,6 +8,7 @@
 #include <limits>
 #include <vector>
 #include <assert.h>
+#include <fstream>
 
 
 #ifdef USEMPI
@@ -18,6 +19,7 @@
 #include "logging.hpp"
 #include "splitting.hpp"
 #include "common.hpp"
+
 
 
 
@@ -355,9 +357,11 @@ void solve(size_t resolution, size_t iterations)
 			NX = (2.0 * NY) - 1;
 			h = 1.0 / (NY - 1);
 
-
-			cout << "NX=" << NX << endl;
-			cout << "NY=" << NY << endl;
+			
+			// Assemble solution
+			solution.clear();
+			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);		
+			MatrixView<FP_TYPE> solution_view(solution, NX, NY);
 
 			// right hand side
 			std::vector<FP_TYPE> global_rightHandSide(NX * NY, 0);
@@ -383,12 +387,19 @@ void solve(size_t resolution, size_t iterations)
 					global_referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 				}
 			}
-
-			// Assemble solution
-			solution.clear();
-			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);				
 			
-			cout << solution.size() << endl;
+			ofstream out("out/solution.txt");
+			for(size_t y = 0; y < NY; y++)
+			{
+				for(size_t x = 0; x < NX; x++)
+				{
+					double val = global_referenceSolutionView.get(x,y);
+					out  << val << "\t";
+				}
+				out << endl;
+			}
+			out.close();
+
 
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
@@ -416,3 +427,7 @@ void solve(size_t resolution, size_t iterations)
 		}
 		MPI_Barrier(g_topo_com);
 }
+
+
+
+
