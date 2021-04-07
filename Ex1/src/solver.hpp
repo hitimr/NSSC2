@@ -222,9 +222,11 @@ void solve(size_t resolution, size_t iterations)
 
 		auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
 															const Stencil &stencil, size_t NX, size_t NY) {
-			
-			MatrixView<FP_TYPE> solView(sol, NX, NY);
+
+			MatrixView<FP_TYPE> solView(sol, NX, NY);						
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
+			
+
 
 			std::vector<FP_TYPE> residual(NX * NY, 0);
 			MatrixView<FP_TYPE> residualView(residual, NX, NY);
@@ -369,10 +371,10 @@ void solve(size_t resolution, size_t iterations)
 				}
 			}
 
-
+						
 			// referenceSolution
 			std::vector<FP_TYPE> global_referenceSolution(NX * NY, 0);
-			MatrixView<FP_TYPE> global_referenceSolutionView(referenceSolution, NX, NY);
+			MatrixView<FP_TYPE> global_referenceSolutionView(global_referenceSolution, NX, NY);
 
 			for (size_t j = 0; j != NY; ++j) 
 			{
@@ -381,8 +383,6 @@ void solve(size_t resolution, size_t iterations)
 					global_referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 				}
 			}
-
-
 
 			// Assemble solution
 			solution.clear();
