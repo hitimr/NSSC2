@@ -52,7 +52,7 @@ test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 	$(MPICXX) $(TEST_DIR)/test_mpi.cpp -I$(SRC_DIRS) -o $(TEST_DIR)/out/test_mpi $(CXXFLAGS) -lpthread -DUSEMPI
 	mpirun -np 6 --oversubscribe $(TEST_DIR)/out/test_mpi 45
 
-test: test_splitting test_mpi	# Unit tests
+test: test_splitting #test_mpi	# Unit tests
 
 # quick run to check if all programs work properly
 # args: dimension Yresolution iterations

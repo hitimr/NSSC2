@@ -97,14 +97,23 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
 
 
-
-		//Example usage: This does not work yet because no data is transferred via MPI
-		vector<size_t> coord_vec = {coords[0], coords[1]};
-		auto grid_size = local_grid_size(g_my_rank);
+		// calculate local grid size
+		vector<int> my_coords;
+		if(g_dim == DIM1)
+		{
+			my_coords = {coords[0]};
+		} 
+		else 
+		{
+			my_coords = {coords[0], coords[1]};	// transform to vector
+		}
+		
+		auto grid_size = local_grid_size(my_coords, true);
 		int NX = grid_size[COORD_X];
 		int NY = grid_size[COORD_Y];
 		FP_TYPE h = 1.0 / (NY - 1);	
 	#else
+		// Serial
 		size_t NY = resolution;
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
@@ -121,44 +130,35 @@ void solve(size_t resolution, size_t iterations)
 		int topProc;
 		int botProc;
 		MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+		auto borders = border_types(my_coords);
 
 		for (size_t i = 0; i != NX; ++i) 
 		{
 			domainView.set(i, 0) = Cell::DIR;	// left
-			domainView.set(i, NY - 1) = Cell::DIR;	// rigth
+			domainView.set(i, NY - 1) = Cell::DIR;	// right
 		}
 
-		if(topProc < 0)
-		{
-			// no top neighbour
-			for (size_t j = 0; j != NY; ++j) 
-			{
-				domainView.set(NX - 1, j) = Cell::DIR;
-			}
-		}
-		if(botProc < 0)
-		{
-			// no bot neigbhour
-			for (size_t j = 0; j != NY; ++j) 
-			{
-				domainView.set(0, j) = Cell::DIR;
-			}
-		}
-
+		// top/bot
 		for (size_t j = 0; j != NY; ++j) 
 		{
-			domainView.set(0, j) = Cell::DIR;
-			domainView.set(NX - 1, j) = Cell::DIR;
+			if(borders[TOP] == BORDER_DIR)
+				domainView.set(0, j) = Cell::DIR;
+
+			if(borders[BOTTOM] == BORDER_DIR)
+				domainView.set(NX - 1, j) = Cell::DIR;			
 		}
+
 
 		// referenceSolution
 		std::vector<FP_TYPE> referenceSolution(NX * NY, 0);
 		MatrixView<FP_TYPE> referenceSolutionView(referenceSolution, NX, NY);
+		std::vector<int> offset = to_global_grid_coords(my_coords, {0,0});
+
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			for (size_t i = 0; i != NX; ++i) 
 			{
-				referenceSolutionView.set(i, j) = ParticularSolution(i * h, j * h);
+				referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 			}
 		}
 
@@ -170,7 +170,7 @@ void solve(size_t resolution, size_t iterations)
 			for (size_t i = 0; i != NX; ++i) 
 			{
 				rightHandSideView.set(i, j) =
-						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;
+						ParticularSolution((i + offset[0]) * h, (j + offset[1]) * h) * 4 * M_PI * M_PI;
 			}
 		}
 
@@ -181,14 +181,10 @@ void solve(size_t resolution, size_t iterations)
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
 
-
-			
-
 			int topProc;
 			int botProc;
 
 			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
-
 			MPI_Status status;
 			if(topProc >= 0)
 			{	// send up
@@ -234,7 +230,9 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
+			MPI_Barrier(g_topo_com);
 			sol.swap(sol2);
+			MPI_Barrier(g_topo_com);
 		};
 
 		auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
@@ -290,9 +288,7 @@ void solve(size_t resolution, size_t iterations)
 		}
 
 		auto stop = std::chrono::high_resolution_clock::now();
-		auto seconds =
-				std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start)
-						.count();
+		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
 		std::cout << std::scientific << "runtime=" << seconds << std::endl;
 
 

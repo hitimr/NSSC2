@@ -37,7 +37,7 @@ int test_local_grid_size()
         cout << "OK" << endl;
         for(int x = 0; x < n_x; x++)
         {
-            sum_x += local_grid_size(0)[0];
+            sum_x += local_grid_size(0, true)[0];
         }
         for(int y = 0; y < n_y; y++)
         {
