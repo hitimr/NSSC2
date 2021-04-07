@@ -75,31 +75,33 @@ enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 void solve(size_t resolution, size_t iterations) 
 {
 	//Logger log(g_my_rank);
-	
 
 	#ifdef USEMPI
 		MPI_Barrier(MPI_COMM_WORLD);	
 		std::cout << "Rank=" << g_my_rank << std::endl;
 		
 		// Create new communicator
-		int ndims = 2;
-		int dims[2] = {};
-		int bcs[2] = {0,0};	 // logical array of size ndims specifying whether the grid is periodic (true) or not (false) in each dimension
+		
+		int ndims = g_dim;
+		std::vector<int> dims;
+		dims.resize(g_dim); 
 		int reorder = 1;			// ranking may be reordered (true) or not (false) (logical)
-
-		MPI_Dims_create(g_n_processes, ndims, dims);	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, bcs, reorder, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
+		std::vector<int> bcs;	// logical array of size ndims specifying whether the grid is periodic (true) or not (false) in each dimension
+		bcs.resize(g_dim, 0);
+		
+		MPI_Dims_create(g_n_processes, ndims, dims.data());	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
+		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims.data(), bcs.data(), reorder, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
 		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
 		if(g_my_rank == MASTER)
 		{
-			std::cout << "dims=(" << dims[0] << ", " << dims[1] << ")" << std::endl;
-			std::cout << "coords=(" << coords[0] << ", " << coords[1] << ")" << std::endl;
+			std::cout << "dims= (";
+			for(int i = 0; i < g_dim; i++) std::cout << dims[i] << ",";
+			std::cout << ")" << endl;
 		}
-
-
+		//g_topo_com = MPI_COMM_WORLD;
 
 		// calculate local grid size
 		vector<int> my_coords;
@@ -188,7 +190,27 @@ void solve(size_t resolution, size_t iterations)
 			int botProc;
 
 			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+
+			cout << "topProc of Rank " << g_my_rank << " is " << topProc << endl;
+			cout << "botProc of Rank " << g_my_rank << " is " << botProc << endl;
+			MPI_Request req;
 			MPI_Status status;
+
+			if(g_dim == DIM1)
+			{
+				if(topProc >= 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
+				if(botProc >= 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+
+				if(topProc >= 0)  MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
+				if(botProc >= 0)  MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
+			}
+			else
+			{
+				// TODO 2D
+			}
+
+
+			/*
 			if(topProc >= 0)
 			{	// send up
 				MPI_Sendrecv(
@@ -200,11 +222,11 @@ void solve(size_t resolution, size_t iterations)
 					&sol2View.get(1, NY), // desstination buffers
 					NX-2,	// Receive length
 					MPI_FP_TYPE, // Receive dtype
-					g_my_rank, // source rank
+					botProc, // source rank
 					0, // Tag
 					g_topo_com,
 					&status);
-			}
+			}			
 
 			if(botProc >= 0)
 			{	// send down
@@ -217,11 +239,12 @@ void solve(size_t resolution, size_t iterations)
 					&sol2View.get(1, 0), // desstination buffers
 					NX-2,	// Receive length
 					MPI_FP_TYPE, // Receive dtype
-					g_my_rank, // source rank
+					topProc, // source rank
 					0, // Tag
 					g_topo_com,
 					&status);
-			}
+			}*/
+			
 
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
@@ -290,8 +313,8 @@ void solve(size_t resolution, size_t iterations)
 		for (size_t iter = 0; iter <= iterations; ++iter) 
 		{
 			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
+			cout << "Rank " << g_my_rank << " Made it until here "<< iter << endl;
 #ifdef USEMPI			
-
 			MPI_Barrier(g_topo_com);
 #endif
 		}
@@ -304,51 +327,55 @@ void solve(size_t resolution, size_t iterations)
 		int y_start = borders[BOTTOM] 	== BORDER_GHOST ? 1 : 0;
 		int y_end 	= borders[TOP] 		== BORDER_GHOST ? grid_size[COORD_Y] - 1 : grid_size[COORD_Y];
 
-		int len = 0;
-		std::vector<FP_TYPE> send_buf(solution.size());
+		std::vector<FP_TYPE> send_buf;
 		for(int y = y_start; y < y_end; y++)
 		{
 			// copy each line into the send-buffer
-			// since this buffer could be smaller than the solution due to ghost layers we need to keep tracj of its length
-			std::vector<FP_TYPE> next_line(&solution[x_start + grid_size[COORD_Y] * y], &solution[x_end + grid_size[COORD_Y] * y]);
-			send_buf.insert(send_buf.begin() + len, next_line.begin(), next_line.end());
-			len += next_line.size();
+			// since this buffer could be smaller than the solution due to ghost layers we need to keep track of its length
+			std::vector<FP_TYPE> next_line(&solution[x_start + grid_size[COORD_Y] * y], &solution[x_end + grid_size[COORD_Y] * y]); // exract line without ghost layers
+			send_buf.insert(send_buf.end(), next_line.begin(), next_line.end());	// add to send buffer
 		}
-		send_buf.resize(len);
-
-
-		std::vector<FP_TYPE> recv_buf;
-		FP_TYPE * recv_buf_ptr;
-		size_t recv_buf_size;		
+		
+		
+		int send_buf_size = send_buf.size();
+		
+		vector<int> sizes;
+		int rbuf[3];
+		MPI_Gather(
+			&send_buf_size,		// send_data
+			1,			// send_count
+			MPI_LONG,	// send_datatype
+			g_my_rank == MASTER ? rbuf : nullptr,		// recv_data
+			g_my_rank == MASTER ? g_n_processes : 0,		// recv_count
+			MPI_LONG,		// send_datatype
+			MASTER,			// root (rank of the receiver)
+			g_topo_com		// communicator
+		);/*
+		
+		FP_TYPE * recv_buf = NULL;
+		size_t recv_buf_size = 0;		
 		if(g_my_rank == MASTER)
 		{
-			recv_buf.resize((2 * g_resolution - 1) * g_resolution);
-			recv_buf_size = recv_buf.size();
-			recv_buf_ptr = &recv_buf[0];				
+			recv_buf_size = (2 * g_resolution - 1) * g_resolution;
+			recv_buf = new FP_TYPE[recv_buf_size];
 		} 
-		else 
-		{
-			recv_buf_ptr = NULL;
-			recv_buf_size = 0;
-		}
-		cout << "Rank " << g_my_rank <<  " Made it until here 1" << endl;
+
+		
 		cout << "Rank " << g_my_rank << " sending " << send_buf.size() << " elements" << endl;
 		cout << "Rank " << g_my_rank << " recieving " << recv_buf_size << " elements" << endl;
-		MPI_Gather(
+		
+		MPI_Gatherv(
 			send_buf.data(),// send_data
 			send_buf.size(),// send_count
 			MPI_FP_TYPE,	// send_datatype
-			recv_buf_ptr,	// recv_data
-			recv_buf_size,	// recv_count
+			recv_buf,		// recv_data
+			rbuf,			// recv_count
 			MPI_FP_TYPE,	// send_datatype
 			MASTER,			// root (rank of the receiver)
 			g_topo_com		// communicator
-		);
-			
-		cout << "Rank " << g_my_rank <<  "Made it until here 2" << endl;
-
-#endif
-		if(g_my_rank == MASTER)
+		);*/
+#endif	
+		if(g_my_rank == -1)
 		{
 			// Assemble solution
 			//solution.clear();
@@ -378,4 +405,5 @@ void solve(size_t resolution, size_t iterations)
 			log.add("error", std::to_string(2308945720935784));
 			*/
 		}
+		MPI_Barrier(g_topo_com);
 }

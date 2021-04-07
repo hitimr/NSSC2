@@ -78,10 +78,10 @@ int test_border_types()
     vector<int> mid = {BORDER_GHOST, BORDER_DIR, BORDER_GHOST, BORDER_DIR};
     vector<int> bot = {BORDER_DIR,   BORDER_DIR, BORDER_GHOST, BORDER_DIR};
     
-    assert(border_types(3) == top);
-    assert(border_types(2) == mid);
+    assert(border_types(0) == top);
     assert(border_types(1) == mid);
-    assert(border_types(0) == bot);
+    assert(border_types(2) == mid);
+    assert(border_types(3) == bot);
 
     cout << "OK" << endl;
     return SUCCESS;

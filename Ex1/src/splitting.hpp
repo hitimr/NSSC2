@@ -46,13 +46,13 @@ std::vector<int> border_types(const std::vector<int> & coords)
         boundaries[TOP] =    BORDER_GHOST;
 
         // special case for bottom grid
-        if(coords[0] == 0)
+        if(coords[0] == g_n_processes - 1)
         {
             boundaries[BOTTOM] = BORDER_DIR;
         }
 
         // special case for top grid
-        if(coords[0] == g_n_processes - 1)
+        if(coords[0] == 0)
         {
             boundaries[TOP] = BORDER_DIR;
         }
@@ -261,4 +261,3 @@ std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std
         assert(false && "Invalid number of dimensions");
     }
 }
-
