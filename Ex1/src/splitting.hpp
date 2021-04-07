@@ -262,3 +262,14 @@ std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std
     }
 }
 
+/*
+
+int get_neighbour(int direction)
+{
+    return rank_of_neighbour in direction
+}
+
+
+get_neighbour(TOP) -> rank of topProc
+
+*/
