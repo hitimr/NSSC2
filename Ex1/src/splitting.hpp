@@ -33,11 +33,11 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers);
 std::vector<int> border_types(const std::vector<int> & coords)
 {
     // sanity check
-    assert(((coords.size() == 1) || (coords.size() == 2)) && "Invalid number of coordinates");
+    assert(((coords.size() == 2)) && "Invalid number of coordinates");
 
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 
-    switch(coords.size())
+    switch(g_dim)
     {
     case DIM1:  // 1D
         boundaries[LEFT] =   BORDER_DIR;
@@ -46,13 +46,13 @@ std::vector<int> border_types(const std::vector<int> & coords)
         boundaries[TOP] =    BORDER_GHOST;
 
         // special case for bottom grid
-        if(coords[0] == 0)
+        if(coords[COORD_Y] == 0)
         {
             boundaries[BOTTOM] = BORDER_DIR;
         }
 
         // special case for top grid
-        if(coords[0] == g_n_processes - 1)
+        if(coords[COORD_Y] == g_n_processes - 1)
         {
             boundaries[TOP] = BORDER_DIR;
         }
@@ -74,7 +74,7 @@ std::vector<int> border_types(const std::vector<int> & coords)
 std::vector<int> border_types(int n)
 {
     assert(n >= 0);
-    std::vector<int> coords = {n};
+    std::vector<int> coords = {0,n};
     return border_types(coords);
     
 }
@@ -97,7 +97,7 @@ entry in 1D equivalent to its rank
 std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_ghost_layers)
 {
     // sanity check
-    assert(((coords.size() == 1) || (coords.size() == 2)) && "Invalid number of coordinates");
+    assert((coords.size() == 2) && "Invalid number of coordinates");
 
     // variables can't be created within a switch case so we need to do it here
     std::vector<size_t> size = {0, 0};  // local grid size
@@ -110,7 +110,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
     int n_x;
     int n_y;
 
-    switch(coords.size())
+    switch(g_dim)
     {
     case DIM1: // 1D  
         borders = border_types(coords);      
@@ -122,7 +122,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
 
         // bigger grids are allocated in ascending order
         // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-        if(coords[0] < remainder)
+        if(coords[COORD_Y] < remainder)
         {
             y_dim++;
         } 
@@ -169,7 +169,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
 std::vector<size_t> local_grid_size(int n, bool add_ghost_layers)
 {
     assert(n >= 0);
-    std::vector<int> coords = {n};
+    std::vector<int> coords = {0, n};
     return local_grid_size(coords, add_ghost_layers);
 }
 
@@ -246,7 +246,7 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
 std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std::vector<int> local_grid_coords)
 {
     int offset_x = 0;
-    switch(topo_coords.size())
+    switch(g_dim)
     {
     case DIM1:
         // add heigths of the grids below
