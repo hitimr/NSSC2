@@ -116,8 +116,8 @@ void solve(size_t resolution, size_t iterations)
 		MPI_Cart_create(MPI_COMM_WORLD, 2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
-		int coords[2] = {};								 
-		MPI_Cart_coords(g_topo_com, g_my_rank, 2, coords);		// TODO provide vector immediately
+		vector<int> coords(2);								 
+		MPI_Cart_coords(g_topo_com, g_my_rank, 2, coords.data());		// TODO provide vector immediately
 		if(g_my_rank == MASTER)
 		{
 			std::cout << "dims= (";
@@ -125,20 +125,9 @@ void solve(size_t resolution, size_t iterations)
 			std::cout << ")" << endl;
 		}
 
-		// calculate local grid size
-		vector<int> my_coords;
-		if(g_dim == DIM1)
-		{
-			my_coords = {0, coords[0]};
-		} 
-		else 
-		{
-			my_coords = {coords[0], coords[1]};	// transform to vector
-		}
-
 		std::cout << "Rank=" << g_my_rank << "; coords =(" << coords[0] << "|" << coords[1] << ")" << std::endl;
 		
-		auto grid_size = local_grid_size(my_coords, true);
+		auto grid_size = local_grid_size(coords, true);
 		size_t NX = grid_size[COORD_X];
 		size_t NY = grid_size[COORD_Y];
 		FP_TYPE h = 1.0 / (g_resolution - 1);	
@@ -157,7 +146,7 @@ void solve(size_t resolution, size_t iterations)
 		std::vector<int> domain(NX * NY, Cell::UNKNOWN);
 		MatrixView<int> domainView(domain, NX, NY);
 
-		auto borders = border_types(my_coords);
+		auto borders = border_types(coords);
 
 		for (size_t i = 0; i != NX; ++i) 
 		{
@@ -178,7 +167,7 @@ void solve(size_t resolution, size_t iterations)
 		// right hand side
 		std::vector<FP_TYPE> rightHandSide(NX * NY, 0);
 		MatrixView<FP_TYPE> rightHandSideView(rightHandSide, NX, NY);
-		auto coord_offset = to_global_grid_coords(my_coords, {(int) 0, (int) 0});
+		auto coord_offset = to_global_grid_coords(coords, {(int) 0, (int) 0});
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			for (size_t i = 0; i != NX; ++i) 
