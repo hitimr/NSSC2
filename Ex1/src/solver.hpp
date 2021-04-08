@@ -107,19 +107,17 @@ void solve(size_t resolution, size_t iterations)
 		
 		// Create new communicator
 		
-		int ndims = g_dim;
-		std::vector<int> dims;
-		dims.resize(g_dim); 
-		int reorder = 1;			// ranking may be reordered (true) or not (false) (logical)
-		std::vector<int> bcs;	// logical array of size ndims specifying whether the grid is periodic (true) or not (false) in each dimension
-		bcs.resize(g_dim, 0);
-		
-		MPI_Dims_create(g_n_processes, ndims, dims.data());	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-		MPI_Cart_create(MPI_COMM_WORLD, ndims, dims.data(), bcs.data(), reorder, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
+		// TODO fix for 2D
+		//MPI_Dims_create(g_n_processes, 2, dims.data());	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
+		vector<int> dims(2);
+		dims[0] = 1;
+		dims[1] = g_n_processes;
+		vector<int> periods = {false, false};
+		MPI_Cart_create(MPI_COMM_WORLD, 2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
-		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);		// TODO provide vector immediately
+		MPI_Cart_coords(g_topo_com, g_my_rank, 2, coords);		// TODO provide vector immediately
 		if(g_my_rank == MASTER)
 		{
 			std::cout << "dims= (";
@@ -131,14 +129,14 @@ void solve(size_t resolution, size_t iterations)
 		vector<int> my_coords;
 		if(g_dim == DIM1)
 		{
-			my_coords = {coords[0]};
+			my_coords = {0, coords[0]};
 		} 
 		else 
 		{
 			my_coords = {coords[0], coords[1]};	// transform to vector
 		}
 
-		std::cout << "Rank=" << g_my_rank << "; coords =" << coords[0] <<std::endl;
+		std::cout << "Rank=" << g_my_rank << "; coords =(" << coords[0] << "|" << coords[1] << ")" << std::endl;
 		
 		auto grid_size = local_grid_size(my_coords, true);
 		size_t NX = grid_size[COORD_X];
@@ -190,7 +188,7 @@ void solve(size_t resolution, size_t iterations)
 	//cout << "(" << global_coords[0] << "|" << global_coords[1] << ")";
 
 				rightHandSideView.set(i, j) =
-						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
+						ParticularSolution((coord_offset[0] + i) * h, (coord_offset[1] + j) * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
 			}
 //if(g_my_rank == DEBUG_RANK) cout << endl;
 		}
@@ -216,7 +214,7 @@ void solve(size_t resolution, size_t iterations)
 
 			if(g_dim == DIM1)
 			{				
-				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
 				if(g_my_rank == 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
 				
 				if(g_my_rank == 1) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
@@ -228,7 +226,7 @@ void solve(size_t resolution, size_t iterations)
 			}	
 
 	
-			MPI_Barrier(g_topo_com);
+			
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
 					sol2View.set(i, j) =
@@ -239,6 +237,7 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
+			MPI_Barrier(g_topo_com);
 
 
 
