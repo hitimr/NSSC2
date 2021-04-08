@@ -42,12 +42,12 @@ public:
 	Type &get(size_t n) { return v[n]; }
 };
 
-void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName, size_t NX, size_t NY)
+void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName)
 {
 	ofstream out(fileName);
-	for(size_t y = 0; y < NY; y++)
+	for(size_t y = 0; y < mv.M; y++)
 	{
-		for(size_t x = 0; x < NX; x++)
+		for(size_t x = 0; x < mv.N; x++)
 		{
 			double val = mv.get(x,y);
 			out  << val << "\t";
@@ -55,6 +55,13 @@ void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName, size_t NX,
 		out << endl;
 	}
 	out.close();
+}
+
+
+void print_matrix(std::vector<FP_TYPE> &v, std::string fileName, size_t NX, size_t NY)
+{
+	MatrixView<FP_TYPE> mv(v, NX, NY);
+	print_matrixView(mv, fileName);
 }
 
 FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) 
@@ -206,22 +213,6 @@ void solve(size_t resolution, size_t iterations)
 			botProc = 0;
 			topProc = 1;
 
-	
-			MPI_Barrier(g_topo_com);
-			for (size_t j = 1; j != NY - 1; ++j) {
-				for (size_t i = 1; i != NX - 1; ++i) {
-					sol2View.set(i, j) =
-							1.0 / stencil.C *
-							(rhsView.set(i, j) - (solView.get(i + 1, j) * stencil.E +
-																		solView.get(i - 1, j) * stencil.W +
-																		solView.get(i, j + 1) * stencil.S +
-																		solView.get(i, j - 1) * stencil.N));
-				}
-			}
-if(g_my_rank == DEBUG_RANK)
-print_matrixView(solView, "out/solution.txt", NX, NY);
-sol.swap(sol2);			
-
 			if(g_dim == DIM1)
 			{				
 				if(g_my_rank == 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
@@ -234,6 +225,23 @@ sol.swap(sol2);
 			{
 				// TODO 2D
 			}	
+
+	
+			MPI_Barrier(g_topo_com);
+			for (size_t j = 1; j != NY - 1; ++j) {
+				for (size_t i = 1; i != NX - 1; ++i) {
+					sol2View.set(i, j) =
+							1.0 / stencil.C *
+							(rhsView.set(i, j) - (solView.get(i + 1, j) * stencil.E +
+																		solView.get(i - 1, j) * stencil.W +
+																		solView.get(i, j + 1) * stencil.S +
+																		solView.get(i, j - 1) * stencil.N));
+				}
+			}
+
+			sol.swap(sol2);		
+//if(g_my_rank == DEBUG_RANK)
+//print_matrixView(solView, "out/solution.txt");	
 	
 		};
 
@@ -337,10 +345,11 @@ sol.swap(sol2);
 		for(size_t i = 0; i < recvcounts.size(); i++)
 		{
 			displs[i] = offset;
-			offset += recvcounts[i] + 0;
+			offset += recvcounts[i] +0;
 		}
 
-		vector<int> rbuf(g_my_rank == MASTER ? offset*2 : 0);	// only allocate memory on master	// TODO check rbuf size
+		vector<FP_TYPE> rbuf(g_my_rank == MASTER ? offset : 0);	// only allocate memory on master
+		cout << "Rank " << g_my_rank << 
 		
 		MPI_Gatherv(
 			send_buf.data(),// sendbuf
@@ -360,6 +369,8 @@ sol.swap(sol2);
 			NY = resolution;
 			NX = (2.0 * NY) - 1;
 			h = 1.0 / (NY - 1);
+
+//print_matrix(rbuf, "out/solution.txt", NX, NY);
 			
 			// Assemble solution
 			solution.clear();
@@ -378,7 +389,7 @@ sol.swap(sol2);
 				}
 			}
 
-//print_matrixView(solution_view, "out/solution.txt", NX,NY);
+print_matrixView(solution_view, "out/solution.txt");
 						
 			// referenceSolution
 			std::vector<FP_TYPE> global_referenceSolution(NX * NY, 0);
