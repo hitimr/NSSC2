@@ -319,7 +319,7 @@ print_matrix(solution, fileName, NX, NY);
 		{
 			// copy each line into the send-buffer
 			// since this buffer could be smaller than the solution due to ghost layers we need to keep track of its length
-			std::vector<FP_TYPE> next_line(&solution[x_start + grid_size[COORD_Y] * y], &solution[x_end + grid_size[COORD_Y] * y]); // exract line without ghost layers
+			std::vector<FP_TYPE> next_line(&solution[x_start + NX * y], &solution[x_end + NX* y]); // exract line without ghost layers
 			send_buf.insert(send_buf.end(), next_line.begin(), next_line.end());	// add to send buffer
 		}
 		

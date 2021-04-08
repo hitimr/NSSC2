@@ -56,8 +56,8 @@ test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 test: test_splitting #test_mpi	# Unit tests
 
 
-GDB_ARGS = -ex "break solver.hpp:181" 
-GDB_RUN = -ex "run 10 10"
+GDB_ARGS = -ex "break solver.hpp:369" 
+GDB_RUN = -ex "run 4 10"
 # quick run to check if all programs work properly
 run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10 | grep "|error|"
