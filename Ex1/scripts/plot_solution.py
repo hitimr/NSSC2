@@ -10,7 +10,7 @@ from common import *
 
 
 
-data = np.genfromtxt(WORKSPACE_DIR + "out/solution.txt")
+data = np.genfromtxt(WORKSPACE_DIR + "out/solution1.txt")
 
 x = np.linspace(0, 1, len(data[0]))
 y = np.linspace(0, 1, len(data))

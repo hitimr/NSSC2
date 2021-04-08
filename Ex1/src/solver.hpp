@@ -180,16 +180,17 @@ void solve(size_t resolution, size_t iterations)
 		// right hand side
 		std::vector<FP_TYPE> rightHandSide(NX * NY, 0);
 		MatrixView<FP_TYPE> rightHandSideView(rightHandSide, NX, NY);
+		auto coord_offset = to_global_grid_coords(my_coords, {(int) 0, (int) 0});
 		for (size_t j = 0; j != NY; ++j) 
 		{
 			for (size_t i = 0; i != NX; ++i) 
 			{
-				auto global_coords = to_global_grid_coords(my_coords, {(int) i, (int) j});
+				
 //if(g_my_rank == DEBUG_RANK)
 	//cout << "(" << global_coords[0] << "|" << global_coords[1] << ")";
 
 				rightHandSideView.set(i, j) =
-						ParticularSolution(global_coords[0] * h, global_coords[1] * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
+						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
 			}
 //if(g_my_rank == DEBUG_RANK) cout << endl;
 		}
@@ -215,11 +216,11 @@ void solve(size_t resolution, size_t iterations)
 
 			if(g_dim == DIM1)
 			{				
-				if(g_my_rank == 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
-				if(g_my_rank == 1) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
+				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+				if(g_my_rank == 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
 				
-				if(g_my_rank == 0) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
-				if(g_my_rank == 1) MPI_Recv(&solView.get(1, NY-1), 		NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
+				if(g_my_rank == 1) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
+				if(g_my_rank == 0) MPI_Recv(&solView.get(1, NY-1), 		NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
 			}
 			else
 			{
@@ -238,6 +239,8 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
+
+
 
 			sol.swap(sol2);		
 if(g_my_rank == DEBUG_RANK)
@@ -306,6 +309,8 @@ print_matrixView(solView, "out/solution.txt");
 			MPI_Barrier(g_topo_com);
 #endif
 		}
+string fileName = "out/solution"+std::to_string(g_my_rank)+".txt";
+print_matrix(solution, fileName, NX, NY);
 
 #ifdef USEMPI		
 		
@@ -380,7 +385,6 @@ cout << "Rank " << g_my_rank << "sending"  << endl;
 			solution.clear();
 			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);		
 
-cout << "solution.size() = "<< solution.size() << endl;	
 print_matrix(solution, "out/solution.txt", NX, NY);
 
 
