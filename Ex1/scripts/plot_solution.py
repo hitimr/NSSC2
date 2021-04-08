@@ -9,8 +9,8 @@ import subprocess
 from common import *
 
 
-
-data = np.genfromtxt(WORKSPACE_DIR + "out/solution1.txt")
+fileName = "out/solution0.txt"
+data = np.genfromtxt(WORKSPACE_DIR + fileName)
 
 x = np.linspace(0, 1, len(data[0]))
 y = np.linspace(0, 1, len(data))
@@ -24,4 +24,5 @@ Z = np.sinc(np.sqrt(X ** 2 + Y ** 2))
 fig = plt.figure()
 ax = fig.gca(projection = '3d')
 ax.plot_surface(X, Y, data)
+plt.title(fileName)
 plt.show()

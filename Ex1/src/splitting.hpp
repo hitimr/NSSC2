@@ -33,7 +33,7 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers);
 std::vector<int> border_types(const std::vector<int> & coords)
 {
     // sanity check
-    assert(((coords.size() == 2)) && "Invalid number of coordinates");
+    assert((coords.size() == 2) && "Invalid number of coordinates");
 
     std::vector<int> boundaries(4, BORDER_UNKNOWN);
 

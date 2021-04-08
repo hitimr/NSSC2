@@ -57,6 +57,19 @@ void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName)
 	out.close();
 }
 
+void print_matrixView(MatrixView<FP_TYPE> & mv)
+{
+	for(size_t y = 0; y < mv.M; y++)
+	{
+		for(size_t x = 0; x < mv.N; x++)
+		{
+			double val = mv.get(x,y);
+			cout  << val << "\t";
+		}
+		cout << endl;
+	}	
+}
+
 
 void print_matrix(std::vector<FP_TYPE> &v, std::string fileName, size_t NX, size_t NY)
 {
@@ -148,20 +161,20 @@ void solve(size_t resolution, size_t iterations)
 
 		auto borders = border_types(coords);
 
-		for (size_t i = 0; i != NX; ++i) 
+		for (size_t i = 0; i != NX; ++i) 	// TODO fix for 2D
 		{
-			domainView.set(i, 0) = Cell::DIR;	// left
-			domainView.set(i, NY - 1) = Cell::DIR;	// right
+			if(borders[TOP] == BORDER_DIR)	// TOP Border
+				domainView.set(i, NY-1) = Cell::DIR;
+
+			if(borders[BOTTOM] == BORDER_DIR)	// Bottom Border
+				domainView.set(i, 0) = Cell::DIR;	
 		}
 
-		// top/bot
+		// left/right border
 		for (size_t j = 0; j != NY; ++j) 
-		{
-			if(borders[TOP] == BORDER_DIR)
-				domainView.set(0, j) = Cell::DIR;
-
-			if(borders[BOTTOM] == BORDER_DIR)
-				domainView.set(NX - 1, j) = Cell::DIR;			
+		{		
+			domainView.set(0, j) = Cell::DIR;	// left
+			domainView.set(NX - 1, j) = Cell::DIR;	// right
 		}
 		
 		// right hand side
@@ -172,14 +185,9 @@ void solve(size_t resolution, size_t iterations)
 		{
 			for (size_t i = 0; i != NX; ++i) 
 			{
-				
-//if(g_my_rank == DEBUG_RANK)
-	//cout << "(" << global_coords[0] << "|" << global_coords[1] << ")";
-
 				rightHandSideView.set(i, j) =
 						ParticularSolution((coord_offset[0] + i) * h, (coord_offset[1] + j) * h) * 4 * M_PI * M_PI;
 			}
-//if(g_my_rank == DEBUG_RANK) cout << endl;
 		}
 
 

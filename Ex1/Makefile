@@ -55,12 +55,15 @@ test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 
 test: test_splitting #test_mpi	# Unit tests
 
+
+GDB_ARGS = -ex "break solver.hpp:181" 
+GDB_RUN = -ex "run 10 10"
 # quick run to check if all programs work properly
 run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10 | grep "|error|"
-	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 10 200
-#mpirun -np 2 xterm -e gdb $(BUILD_DIR)/jacobiMPI	# debugging
-	python3 ./scripts/plot_solution.py
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 10 100
+#mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
+#python3 ./scripts/plot_solution.py
 #mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
 
 clean:
