@@ -63,7 +63,7 @@ run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10 | grep "|error|"
 	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 10 100
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
-#python3 ./scripts/plot_solution.py
+	python3 ./scripts/plot_solution.py
 #mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
 
 clean:

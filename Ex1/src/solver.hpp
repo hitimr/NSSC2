@@ -161,7 +161,7 @@ void solve(size_t resolution, size_t iterations)
 
 		auto borders = border_types(coords);
 
-		for (size_t i = 0; i != NX; ++i) 	// TODO fix for 2D
+		for (size_t i = 0; i != NX; ++i) 	
 		{
 			if(borders[TOP] == BORDER_DIR)	// TOP Border
 				domainView.set(i, NY-1) = Cell::DIR;
@@ -171,7 +171,7 @@ void solve(size_t resolution, size_t iterations)
 		}
 
 		// left/right border
-		for (size_t j = 0; j != NY; ++j) 
+		for (size_t j = 0; j != NY; ++j) // TODO fix for 2D
 		{		
 			domainView.set(0, j) = Cell::DIR;	// left
 			domainView.set(NX - 1, j) = Cell::DIR;	// right

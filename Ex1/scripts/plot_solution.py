@@ -9,7 +9,7 @@ import subprocess
 from common import *
 
 
-fileName = "out/solution0.txt"
+fileName = "out/solution.txt"
 data = np.genfromtxt(WORKSPACE_DIR + fileName)
 
 x = np.linspace(0, 1, len(data[0]))
