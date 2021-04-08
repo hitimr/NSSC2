@@ -177,7 +177,7 @@ void solve(size_t resolution, size_t iterations)
 	//cout << "(" << global_coords[0] << "|" << global_coords[1] << ")";
 
 				rightHandSideView.set(i, j) =
-						ParticularSolution((coord_offset[0] + i) * h, (coord_offset[1] + j) * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
+						ParticularSolution((coord_offset[0] + i) * h, (coord_offset[1] + j) * h) * 4 * M_PI * M_PI;
 			}
 //if(g_my_rank == DEBUG_RANK) cout << endl;
 		}
@@ -201,21 +201,7 @@ void solve(size_t resolution, size_t iterations)
 			botProc = 0;
 			topProc = 1;
 
-			if(g_dim == DIM1)
-			{				
-				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
-				if(g_my_rank == 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
-				
-				if(g_my_rank == 1) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
-				if(g_my_rank == 0) MPI_Recv(&solView.get(1, NY-1), 		NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
-			}
-			else
-			{
-				// TODO 2D
-			}	
 
-	
-			
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
 					sol2View.set(i, j) =
@@ -226,11 +212,22 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
-			MPI_Barrier(g_topo_com);
 
+			if(g_dim == DIM1)
+			{				
+				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+				if(g_my_rank == 0) MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
+				
+				if(g_my_rank == 1) MPI_Recv(&solView.get(1, 0), 	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
+				if(g_my_rank == 0) MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
+			}
+			else
+			{
+				// TODO 2D
+			}	
+			MPI_Barrier(g_topo_com);	
 
-
-			sol.swap(sol2);		
+sol.swap(sol2);		
 if(g_my_rank == DEBUG_RANK)
 print_matrixView(solView, "out/solution.txt");	
 	
@@ -278,10 +275,11 @@ print_matrixView(solView, "out/solution.txt");
 		// conditions, else 0
 		std::vector<FP_TYPE> solution(NX * NY, 0);
 		MatrixView<FP_TYPE> solutionView(solution, NX, NY);
+		coord_offset = to_global_grid_coords(coords, {(int) 0, (int) 0});
 		for (size_t j = 0; j != NY; ++j) {
 			for (size_t i = 0; i != NX; ++i) {
 				if (domainView.get(i, j) == Cell::DIR)
-					solutionView.set(i, j) = ParticularSolution(i * h, j * h);
+					solutionView.set(i, j) = ParticularSolution((coord_offset[0] + i) * h, (coord_offset[1] + j) * h);
 			}
 		}
 
