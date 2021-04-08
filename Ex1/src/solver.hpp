@@ -240,8 +240,8 @@ void solve(size_t resolution, size_t iterations)
 			}
 
 			sol.swap(sol2);		
-//if(g_my_rank == DEBUG_RANK)
-//print_matrixView(solView, "out/solution.txt");	
+if(g_my_rank == DEBUG_RANK)
+print_matrixView(solView, "out/solution.txt");	
 	
 		};
 
@@ -345,11 +345,11 @@ void solve(size_t resolution, size_t iterations)
 		for(size_t i = 0; i < recvcounts.size(); i++)
 		{
 			displs[i] = offset;
-			offset += recvcounts[i] +0;
+			offset += recvcounts[i] + 0;
 		}
 
 		vector<FP_TYPE> rbuf(g_my_rank == MASTER ? offset : 0);	// only allocate memory on master
-		cout << "Rank " << g_my_rank << 
+cout << "Rank " << g_my_rank << "sending"  << endl;
 		
 		MPI_Gatherv(
 			send_buf.data(),// sendbuf
@@ -362,19 +362,28 @@ void solve(size_t resolution, size_t iterations)
 			MASTER,				// root (rank of the receiver)
 			g_topo_com			// communicator
 		);
+
+
+
+
 #endif	
 		if(g_my_rank == MASTER)
 		{	
 			// change to global coordinates
-			NY = resolution;
+			NY = g_resolution;
 			NX = (2.0 * NY) - 1;
 			h = 1.0 / (NY - 1);
 
-//print_matrix(rbuf, "out/solution.txt", NX, NY);
-			
+
+		
 			// Assemble solution
 			solution.clear();
 			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);		
+
+cout << "solution.size() = "<< solution.size() << endl;	
+print_matrix(solution, "out/solution.txt", NX, NY);
+
+
 			MatrixView<FP_TYPE> solution_view(solution, NX, NY);
 
 			// right hand side
@@ -389,7 +398,6 @@ void solve(size_t resolution, size_t iterations)
 				}
 			}
 
-print_matrixView(solution_view, "out/solution.txt");
 						
 			// referenceSolution
 			std::vector<FP_TYPE> global_referenceSolution(NX * NY, 0);
@@ -402,6 +410,8 @@ print_matrixView(solution_view, "out/solution.txt");
 					global_referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 				}
 			}
+
+//print_matrix(global_referenceSolution, "out/solution.txt", NX, NY);
 
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
@@ -426,6 +436,10 @@ print_matrixView(solution_view, "out/solution.txt");
 			log.add("error", std::to_string(errorNorm));
 			log.add("error", std::to_string(2308945720935784));
 			*/
+		}
+		else
+		{
+			//MPI_Send(&send_buf[0], 95, MPI_FP_TYPE, 0, 0, g_topo_com);
 		}
 		MPI_Barrier(g_topo_com);
 }
