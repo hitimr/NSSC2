@@ -58,7 +58,7 @@ test: test_splitting #test_mpi	# Unit tests
 # quick run to check if all programs work properly
 run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10 | grep "|error|"
-	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 20 1
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI 20 10
 	python3 ./scripts/plot_solution.py
 #mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
 

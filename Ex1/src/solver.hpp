@@ -9,6 +9,7 @@
 #include <vector>
 #include <assert.h>
 #include <fstream>
+#include <string>
 
 
 #ifdef USEMPI
@@ -40,6 +41,21 @@ public:
 	Type &set(size_t n) { return v[n]; }
 	Type &get(size_t n) { return v[n]; }
 };
+
+void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName, size_t NX, size_t NY)
+{
+	ofstream out(fileName);
+	for(size_t y = 0; y < NY; y++)
+	{
+		for(size_t x = 0; x < NX; x++)
+		{
+			double val = mv.get(x,y);
+			out  << val << "\t";
+		}
+		out << endl;
+	}
+	out.close();
+}
 
 FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) 
 {
@@ -80,7 +96,7 @@ void solve(size_t resolution, size_t iterations)
 
 	#ifdef USEMPI
 		MPI_Barrier(MPI_COMM_WORLD);	
-		std::cout << "Rank=" << g_my_rank << std::endl;
+		
 		
 		// Create new communicator
 		
@@ -96,14 +112,13 @@ void solve(size_t resolution, size_t iterations)
 		MPI_Barrier(MPI_COMM_WORLD);	
 
 		int coords[2] = {};								 
-		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);
+		MPI_Cart_coords(g_topo_com, g_my_rank, ndims, coords);		// TODO provide vector immediately
 		if(g_my_rank == MASTER)
 		{
 			std::cout << "dims= (";
 			for(int i = 0; i < g_dim; i++) std::cout << dims[i] << ",";
 			std::cout << ")" << endl;
 		}
-		//g_topo_com = MPI_COMM_WORLD;
 
 		// calculate local grid size
 		vector<int> my_coords;
@@ -115,11 +130,13 @@ void solve(size_t resolution, size_t iterations)
 		{
 			my_coords = {coords[0], coords[1]};	// transform to vector
 		}
+
+		std::cout << "Rank=" << g_my_rank << "; coords =" << coords[0] <<std::endl;
 		
 		auto grid_size = local_grid_size(my_coords, true);
 		size_t NX = grid_size[COORD_X];
 		size_t NY = grid_size[COORD_Y];
-		FP_TYPE h = 1.0 / (NY - 1);	
+		FP_TYPE h = 1.0 / (g_resolution - 1);	
 	#else
 		// Serial
 		size_t NY = resolution;
@@ -135,9 +152,6 @@ void solve(size_t resolution, size_t iterations)
 		std::vector<int> domain(NX * NY, Cell::UNKNOWN);
 		MatrixView<int> domainView(domain, NX, NY);
 
-		int topProc;
-		int botProc;
-		MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
 		auto borders = border_types(my_coords);
 
 		for (size_t i = 0; i != NX; ++i) 
@@ -155,20 +169,7 @@ void solve(size_t resolution, size_t iterations)
 			if(borders[BOTTOM] == BORDER_DIR)
 				domainView.set(NX - 1, j) = Cell::DIR;			
 		}
-
-
-		// referenceSolution
-		std::vector<FP_TYPE> referenceSolution(NX * NY, 0);
-		MatrixView<FP_TYPE> referenceSolutionView(referenceSolution, NX, NY);
-
-		for (size_t j = 0; j != NY; ++j) 
-		{
-			for (size_t i = 0; i != NX; ++i) 
-			{
-				referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
-			}
-		}
-
+		
 		// right hand side
 		std::vector<FP_TYPE> rightHandSide(NX * NY, 0);
 		MatrixView<FP_TYPE> rightHandSideView(rightHandSide, NX, NY);
@@ -176,10 +177,16 @@ void solve(size_t resolution, size_t iterations)
 		{
 			for (size_t i = 0; i != NX; ++i) 
 			{
+				auto global_coords = to_global_grid_coords(my_coords, {(int) i, (int) j});
+//if(g_my_rank == DEBUG_RANK)
+	//cout << "(" << global_coords[0] << "|" << global_coords[1] << ")";
+
 				rightHandSideView.set(i, j) =
-						ParticularSolution(i * h, j * h) * 4 * M_PI * M_PI;
+						ParticularSolution(global_coords[0] * h, global_coords[1] * h) * 4 * M_PI * M_PI;	// TODO calculate fixed offset beforehand
 			}
+//if(g_my_rank == DEBUG_RANK) cout << endl;
 		}
+
 
 		auto SolverJacobi = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &sol2,
 													std::vector<FP_TYPE> &rhs, const Stencil &stencil,
@@ -191,24 +198,16 @@ void solve(size_t resolution, size_t iterations)
 			int topProc;
 			int botProc;
 
-			MPI_Cart_shift(g_topo_com, 1, 1, &topProc, &botProc);
+			//MPI_Cart_shift(g_topo_com, 0, 1, &g_my_rank, &botProc);
 
 			MPI_Request req;
 			MPI_Status status;
 
-			if(g_dim == DIM1)
-			{
-				if(topProc >= 0) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
-				if(botProc >= 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+			botProc = 0;
+			topProc = 1;
 
-				if(topProc >= 0) MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
-				if(botProc >= 0) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
-			}
-			else
-			{
-				// TODO 2D
-			}			
-
+	
+			MPI_Barrier(g_topo_com);
 			for (size_t j = 1; j != NY - 1; ++j) {
 				for (size_t i = 1; i != NX - 1; ++i) {
 					sol2View.set(i, j) =
@@ -219,7 +218,23 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
-			sol.swap(sol2);
+if(g_my_rank == DEBUG_RANK)
+print_matrixView(solView, "out/solution.txt", NX, NY);
+sol.swap(sol2);			
+
+			if(g_dim == DIM1)
+			{				
+				if(g_my_rank == 0) MPI_Isend(&solView.get(1, 1), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
+				if(g_my_rank == 1) MPI_Isend(&solView.get(1, NY-2), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
+				
+				if(g_my_rank == 0) MPI_Recv(&solView.get(1, 0), 		NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
+				if(g_my_rank == 1) MPI_Recv(&solView.get(1, NY-1), 		NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
+			}
+			else
+			{
+				// TODO 2D
+			}	
+	
 		};
 
 		auto ComputeResidual = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &rhs,
@@ -303,7 +318,7 @@ void solve(size_t resolution, size_t iterations)
 		
 		
 		int send_buf_size = send_buf.size();
-		cout << "rank " << g_my_rank << " send_buf_size="<<send_buf_size << endl;
+		cout << "rank " << g_my_rank << " send_buf_size=" << send_buf_size << endl;
 
 		vector<int> recvcounts(g_my_rank == MASTER ? g_n_processes : 0);	// only allocate memory on master
 		MPI_Gather(
@@ -324,20 +339,8 @@ void solve(size_t resolution, size_t iterations)
 			displs[i] = offset;
 			offset += recvcounts[i] + 0;
 		}
-		
-		/*
-		cout << "recvcounts={";
-		for(int i = 0; i < recvcounts.size(); i++)
-			cout << recvcounts[i] << ", ";
-		cout << "}" << endl;
 
-		cout << "displs={";
-		for(int i = 0; i < displs.size(); i++)
-			cout << displs[i] << ", ";
-		cout << "}" << endl;
-		*/
-
-		vector<int> rbuf(g_my_rank == MASTER ? offset*2 : 0);	// only allocate memory on master	// TODO> check rbuf size
+		vector<int> rbuf(g_my_rank == MASTER ? offset*2 : 0);	// only allocate memory on master	// TODO check rbuf size
 		
 		MPI_Gatherv(
 			send_buf.data(),// sendbuf
@@ -353,10 +356,10 @@ void solve(size_t resolution, size_t iterations)
 #endif	
 		if(g_my_rank == MASTER)
 		{	
+			// change to global coordinates
 			NY = resolution;
 			NX = (2.0 * NY) - 1;
 			h = 1.0 / (NY - 1);
-
 			
 			// Assemble solution
 			solution.clear();
@@ -375,6 +378,7 @@ void solve(size_t resolution, size_t iterations)
 				}
 			}
 
+//print_matrixView(solution_view, "out/solution.txt", NX,NY);
 						
 			// referenceSolution
 			std::vector<FP_TYPE> global_referenceSolution(NX * NY, 0);
@@ -387,19 +391,6 @@ void solve(size_t resolution, size_t iterations)
 					global_referenceSolutionView.set(i, j) = ParticularSolution( i * h, j * h);
 				}
 			}
-			
-			ofstream out("out/solution.txt");
-			for(size_t y = 0; y < NY; y++)
-			{
-				for(size_t x = 0; x < NX; x++)
-				{
-					double val = global_referenceSolutionView.get(x,y);
-					out  << val << "\t";
-				}
-				out << endl;
-			}
-			out.close();
-
 
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();

@@ -29,6 +29,7 @@
 
 // Misc
 #define MASTER 0
+#define DEBUG_RANK 0   // just for debugging
 
 // ---- Globals
 // globals according to command line
