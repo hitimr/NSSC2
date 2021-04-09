@@ -60,7 +60,7 @@ GDB_ARGS = -ex "break solver.hpp:388"
 GDB_RUN = -ex "run 4 10"
 # quick run to check if all programs work properly
 run:
-#./$(BUILD_DIR)/jacobiSERIAL 100 100 # | grep "|error|"
+#./$(BUILD_DIR)/jacobiSERIAL 20 100 # | grep "|error|"
 	mpirun -np 4 $(BUILD_DIR)/jacobiMPI 20 100
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
 	python3 ./scripts/plot_solution.py

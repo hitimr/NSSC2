@@ -245,16 +245,16 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
 
 std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std::vector<int> local_grid_coords)
 {
-    int offset_x = 0;
+    int offset_y = 0;
     switch(g_dim)
     {
     case DIM1:
         // add heigths of the grids below
-        for(int i = 0; i < topo_coords[0]; i++)
+        for(int i = 0; i < topo_coords[1]; i++)
         {
-            offset_x += local_grid_size(i, false)[COORD_Y];
+            offset_y += local_grid_size(i, false)[COORD_Y];
         }
-        local_grid_coords[COORD_Y] += offset_x;
+        local_grid_coords[COORD_Y] += offset_y;
         return local_grid_coords;
 
     default:
