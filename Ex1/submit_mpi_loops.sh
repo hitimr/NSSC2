@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=40
 #SBATCH --cpus-per-task=1
 #SBATCH --exclusive 
-#SBATCH --time=00:02:00
+#SBATCH --time=01:00:00
 if command -v sinfo  2>/dev/null # if on cluster
 then
     module load mpi/openmpi-x86_64
