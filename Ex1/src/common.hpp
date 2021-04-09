@@ -30,6 +30,7 @@
 // Misc
 #define MASTER 0
 #define DEBUG_RANK 0   // just for debugging
+#define NO_NEIGHBOUR -2
 
 // ---- Globals
 // globals according to command line
