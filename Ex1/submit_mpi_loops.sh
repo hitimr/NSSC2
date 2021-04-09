@@ -4,12 +4,12 @@
 #SBATCH --ntasks-per-node=40
 #SBATCH --cpus-per-task=1
 #SBATCH --exclusive 
-#SBATCH --time=01:00:00
+#SBATCH --time=00:02:00
 if command -v sinfo  2>/dev/null # if on cluster
 then
     module load mpi/openmpi-x86_64
     module load pmi/pmix-x86_64
-    mpiprocs=( 1 2 5 10 20 40 80 )
+    mpiprocs=( 1 2 5 8 10 12 15 20 30 40 50 60 70 80 )
     folder="out/datacluster"
     mkdir -p $folder    
 else  # if on local machine
