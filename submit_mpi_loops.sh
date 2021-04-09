@@ -26,7 +26,7 @@ for resolution in "${resolutions[@]}"
 do  
     for procs in "${mpiprocs[@]}"
     do  
-        mpirun -n $procs ./jacobiMPI $resolution $iterations |& tee "./${folder}/jacobiMPI_${resolution}_${iterations}_n_${procs}.log"
+        mpirun -n $procs ./out/build/jacobiMPI $resolution $iterations |& tee "./${folder}/jacobiMPI_${resolution}_${iterations}_n_${procs}.log"
     done
 done
 
