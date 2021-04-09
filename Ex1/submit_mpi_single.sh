@@ -15,3 +15,4 @@ else  # if on local machine
 fi
 
 mpirun -n $mpiproc ./out/build/jacobiMPI 128 1000
+mpirun -n $mpiproc ./out/build/jacobiMPI_float 128 1000
