@@ -29,8 +29,9 @@
 
 // Misc
 #define MASTER 0
-#define DEBUG_RANK 0   // just for debugging
+#define DEBUG_RANK -1   // just for debugging
 #define NO_NEIGHBOUR -2
+#define PRINT_LOCAL_SOLUTIONS false
 
 // ---- Globals
 // globals according to command line
