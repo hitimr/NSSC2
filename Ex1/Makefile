@@ -26,10 +26,15 @@ $(shell mkdir -p $(TEST_DIR)/out)
 # compiler settings
 CXX=g++
 MPICXX?=mpic++
-CXXFLAGS := -std=c++14 -O0 -g -pedantic -march=native -ffast-math -Wall
-CXXFLAGS += -ggdb3	# enable valgrind to show code
 
-all:  jacobiMPI jacobiMPI_float jacobiSERIAL run test
+# Flags for debugging
+#CXXFLAGS := -std=c++11 -O0 -g -pedantic -march=native -ffast-math -Wall
+#CXXFLAGS += -ggdb3	# enable valgrind to show code
+
+# Flags for release
+CXXFLAGS := -std=c++11 -O3 -pedantic -march=native -ffast-math -Wall
+
+all:  jacobiMPI jacobiMPI_float jacobiSERIAL test run 
 
 
 # Serial Baseline for comparision
@@ -55,16 +60,17 @@ test_mpi: $(TEST_DIR)/test_mpi.cpp $(HEADERS)
 
 test: test_splitting test_mpi	# Unit tests
 
-
+# debugging presets for gdb
 GDB_ARGS = -ex "break solver.hpp:388" 
 GDB_RUN = -ex "run 4 10"
+
 # quick run to check if all programs work properly
 run:
-#./$(BUILD_DIR)/jacobiSERIAL 20 100 # | grep "|error|"
-	mpirun -np 4 $(BUILD_DIR)/jacobiMPI 20 100
+	./$(BUILD_DIR)/jacobiSERIAL 20 100 # | grep "|error|"
+	mpirun -np 4 $(BUILD_DIR)/jacobiMPI 257 100
+	mpirun -np 4 $(BUILD_DIR)/jacobiMPI_float 257 100
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
-	python3 ./scripts/plot_solution.py
-#mpirun -np 2 $(BUILD_DIR)/jacobiMPI 100 10 | grep "|error|"
+#python3 ./scripts/plot_solution.py	# execute a small script to display a plot
 
 clean:
 	rm -rf $(OUT_DIR)

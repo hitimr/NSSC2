@@ -139,26 +139,26 @@ int test_to_global_grid_coords()
     g_n_processes = 3;
     g_dim = 1;
     g_resolution = 12;
-    //                          rank   x  y
-    assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
-    assert(to_global_grid_coords({1}, {2, 1})[1] == 5);
-    assert(to_global_grid_coords({2}, {3, 1})[1] == 9);
-    assert(to_global_grid_coords({0}, {1, 1})[0] == 1);
-    assert(to_global_grid_coords({1}, {2, 1})[0] == 2);
-    assert(to_global_grid_coords({2}, {3, 1})[0] == 3);
+    //                             rank   x  y
+    assert(to_global_grid_coords({0, 0}, {1, 1})[1] == 1);
+    assert(to_global_grid_coords({0, 1}, {1, 2})[1] == 6);
+    assert(to_global_grid_coords({0, 2}, {1, 3})[1] == 11);
+    assert(to_global_grid_coords({0, 0}, {1, 1})[0] == 1);
+    assert(to_global_grid_coords({0, 1}, {1, 2})[0] == 1);
+    assert(to_global_grid_coords({0, 2}, {1, 3})[0] == 1);
 
 
     // 1D different grid sizes
     g_n_processes = 3;
     g_dim = 1;
     g_resolution = 14;
-    //                          rank   x  y
-    assert(to_global_grid_coords({0}, {1, 1})[1] == 1);
-    assert(to_global_grid_coords({1}, {2, 1})[1] == 6);
-    assert(to_global_grid_coords({2}, {3, 1})[1] == 11);    
-    assert(to_global_grid_coords({0}, {1, 1})[0] == 1);
-    assert(to_global_grid_coords({1}, {2, 1})[0] == 2);
-    assert(to_global_grid_coords({2}, {3, 1})[0] == 3);
+    //                            rank   x  y
+    assert(to_global_grid_coords({0, 0}, {1, 1})[1] == 1);
+    assert(to_global_grid_coords({0, 1}, {1, 2})[1] == 7);
+    assert(to_global_grid_coords({0, 2}, {1, 3})[1] == 13);
+    assert(to_global_grid_coords({0, 0}, {1, 1})[0] == 1);
+    assert(to_global_grid_coords({0, 1}, {1, 2})[0] == 1);
+    assert(to_global_grid_coords({0, 2}, {1, 3})[0] == 1);
 
     cout << "OK" << endl;
     return SUCCESS;

@@ -21,10 +21,11 @@ int g_dim = 2;
 size_t g_resolution;
 MPI_Comm g_topo_com;
 
-/*
+
 int get_neighbours(vector<int> coords, int direction)
 {
-    int topProc, botProc, leftProc, rightProc, returnProc;
+    int topProc, botProc, leftProc, rightProc;
+    int returnProc = -1;
 	MPI_Cart_shift(g_topo_com, 1, 1, &botProc, &topProc);
 	MPI_Cart_shift(g_topo_com, 0, 1, &leftProc, &rightProc);
 	if (direction == TOP)
@@ -44,7 +45,7 @@ int get_neighbours(vector<int> coords, int direction)
         returnProc=rightProc;
     }
 	return returnProc;
-}*/
+}
 
 int test_getNeighbours_2D()
 {
@@ -53,37 +54,37 @@ int test_getNeighbours_2D()
 
     if(g_my_rank == 5)
     {
-    assert(get_neighbours({0,5}, TOP) == NO_NEIGHBOUR);
-    assert(get_neighbours({0,5}, BOTTOM) == 4);
+    assert(get_neighbours(TOP) == NO_NEIGHBOUR);
+    assert(get_neighbours(BOTTOM) == 4);
     }
 
     if(g_my_rank == 4)
     {   
-    assert(get_neighbours({0,4}, TOP) == 5);
-    assert(get_neighbours({0,4}, BOTTOM) == 3);
+    assert(get_neighbours(TOP) == 5);
+    assert(get_neighbours(BOTTOM) == 3);
     }
 
     if(g_my_rank == 3)
     {   
-    assert(get_neighbours({0,3}, TOP) == 4);
-    assert(get_neighbours({0,3}, BOTTOM) == 2);
+    assert(get_neighbours(TOP) == 4);
+    assert(get_neighbours(BOTTOM) == 2);
     }
 
     if(g_my_rank == 2)
     {
-    assert(get_neighbours({0,2}, TOP) == 3);
-    assert(get_neighbours({0,2}, BOTTOM) == 1);
+    assert(get_neighbours(TOP) == 3);
+    assert(get_neighbours(BOTTOM) == 1);
     }
 
     if(g_my_rank == 1)
     {
-    assert(get_neighbours({0,1}, TOP) == 2);
-    assert(get_neighbours({0,1}, BOTTOM) == 0);
+    assert(get_neighbours(TOP) == 2);
+    assert(get_neighbours(BOTTOM) == 0);
     }
     if(g_my_rank == 0)
     {
-    assert(get_neighbours({0,0}, TOP) == 1);
-    assert(get_neighbours({0,0}, BOTTOM) == NO_NEIGHBOUR);
+    assert(get_neighbours(TOP) == 1);
+    assert(get_neighbours(BOTTOM) == NO_NEIGHBOUR);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -101,48 +102,49 @@ int test_getNeighbours_1D()
 
 	if(g_my_rank == 5)
 	{
-    assert(get_neighbours({0,5}, TOP) == NO_NEIGHBOUR);
-    assert(get_neighbours({0,5}, BOTTOM) == 4);
+    assert(get_neighbours(TOP) == NO_NEIGHBOUR);
+    assert(get_neighbours(BOTTOM) == 4);
 	}
 
 	if(g_my_rank == 4)
     {   
-    assert(get_neighbours({0,4}, TOP) == 5);
-    assert(get_neighbours({0,4}, BOTTOM) == 3);
+    assert(get_neighbours(TOP) == 5);
+    assert(get_neighbours(BOTTOM) == 3);
 	}
 
     if(g_my_rank == 3)
     {   
-    assert(get_neighbours({0,3}, TOP) == 4);
-    assert(get_neighbours({0,3}, BOTTOM) == 2);
+    assert(get_neighbours(TOP) == 4);
+    assert(get_neighbours(BOTTOM) == 2);
 	}
 
 	if(g_my_rank == 2)
     {
-    assert(get_neighbours({0,2}, TOP) == 3);
+    assert(get_neighbours(TOP) == 3);
     assert(get_neighbours({0,2}, BOTTOM) == 1);
 	}
 	
 	if(g_my_rank == 1)
     {
-    assert(get_neighbours({0,1}, TOP) == 2);
-    assert(get_neighbours({0,1}, BOTTOM) == 0);
+    assert(get_neighbours(TOP) == 2);
+    assert(get_neighbours(BOTTOM) == 0);
 	}
 
 	if(g_my_rank == 0)
     {
-    assert(get_neighbours({0,0}, TOP) == 1);
-    assert(get_neighbours({0,0}, BOTTOM) == NO_NEIGHBOUR);
+    assert(get_neighbours(TOP) == 1);
+    assert(get_neighbours(BOTTOM) == NO_NEIGHBOUR);
 	}
 
     for(int i = 0; i < g_n_processes; i++)
     {
-        assert(get_neighbours({0,i}, LEFT) == NO_NEIGHBOUR);
-        assert(get_neighbours({0,i}, RIGHT) == NO_NEIGHBOUR);
+        assert(get_neighbours(LEFT) == NO_NEIGHBOUR);
+        assert(get_neighbours(RIGHT) == NO_NEIGHBOUR);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     if(g_my_rank == MASTER) cout << "OK" << endl;
+    
     return SUCCESS;
 }
 

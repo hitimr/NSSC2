@@ -103,8 +103,8 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
     std::vector<size_t> size = {0, 0};  // local grid size
     std::vector<int> borders;
     std::vector<int> prime_factors;
-    size_t x_dim;
-    size_t y_dim;
+    size_t x_dim = -1;
+    size_t y_dim = -1;
     int remainder;
     int base_size;
     int n_x;
@@ -266,7 +266,9 @@ std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std
 int get_neighbours(int direction)
 {
 #ifdef USEMPI
-    int topProc, botProc, leftProc, rightProc, returnProc;
+    int topProc, botProc, leftProc, rightProc;
+    int returnProc = -1;
+
 	MPI_Cart_shift(g_topo_com, 1, 1, &botProc, &topProc);
 	MPI_Cart_shift(g_topo_com, 0, 1, &leftProc, &rightProc);
 	if (direction == TOP)

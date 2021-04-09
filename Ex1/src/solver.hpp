@@ -22,8 +22,6 @@
 #include "common.hpp"
 
 
-
-
 template <typename Type> class MatrixView 
 {	
 public:
@@ -112,7 +110,7 @@ enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
 void solve(size_t resolution, size_t iterations) 
 {
-	//Logger log(g_my_rank);
+	Logger log(g_my_rank);
 
 #ifdef USEMPI	
 	// -------------------------------------------------------------------------
@@ -131,15 +129,8 @@ void solve(size_t resolution, size_t iterations)
 
 	vector<int> coords(2);								 
 	MPI_Cart_coords(g_topo_com, g_my_rank, 2, coords.data());		// TODO provide vector immediately
-	if(g_my_rank == MASTER)
-	{
-		std::cout << "dims= (";
-		for(int i = 0; i < g_dim; i++) std::cout << dims[i] << ",";
-		std::cout << ")" << endl;
-	}
 
-	std::cout << "Rank=" << g_my_rank << "; coords =(" << coords[0] << "|" << coords[1] << ")" << std::endl;
-	
+
 	auto grid_size = local_grid_size(coords, true);
 	size_t NX = grid_size[COORD_X];
 	size_t NY = grid_size[COORD_Y];
@@ -261,6 +252,11 @@ void solve(size_t resolution, size_t iterations)
 		return residual;
 	};
 
+	// -------------------------------------------------------------------------
+	// Jacobi Iteration Cycle 
+	// -------------------------------------------------------------------------
+
+
 	auto ComputeError = [](std::vector<FP_TYPE> &sol,
 												std::vector<FP_TYPE> &reference, size_t NX, size_t NY) {
 		MatrixView<FP_TYPE> solView(sol, NX, NY);
@@ -306,16 +302,25 @@ void solve(size_t resolution, size_t iterations)
 	// ------------------------------------------------------------------------- 
 
 
-	// compute local iterative solution
+
 	std::vector<FP_TYPE> solution2 = solution;
-	std::cout << "solve LSE using stencil jacobi" << std::endl;
+	std::vector<double> iteration_times(g_iterations, -1);	// containts the time for every iteration
+
+	if(g_my_rank == MASTER) std::cout << "solve LSE using stencil jacobi" << std::endl;
 	auto start = std::chrono::high_resolution_clock::now();		
 	for (size_t iter = 0; iter <= iterations; ++iter) 
 	{
+		auto iteration_start = std::chrono::high_resolution_clock::now();	
+
+		// computer iteraion
 		SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY, neighbours);
+
 #ifdef USEMPI			
 		MPI_Barrier(g_topo_com);
 #endif
+		auto iteration_end = std::chrono::high_resolution_clock::now();			
+		double seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(iteration_end - iteration_start).count();
+		iteration_times[iter] = seconds;
 	}
 		
 	if(PRINT_LOCAL_SOLUTIONS)
@@ -429,34 +434,74 @@ void solve(size_t resolution, size_t iterations)
 			}
 		}
 
-		// ---------------------------------------------------------------------
-		// Write results
-		// ---------------------------------------------------------------------
-		
-
 		auto stop = std::chrono::high_resolution_clock::now();
+		cout << "Calculations finished. collecting data for benchmark" << endl;
+
+		// ---------------------------------------------------------------------
+		// Computer Results
+		// ---------------------------------------------------------------------
+
+		// errors
+		auto residual = ComputeResidual(solution, global_rightHandSide, stencil, NX, NY);
+		auto error = ComputeError(solution, global_referenceSolution, NX, NY);
+		auto residualNorm = NormL2(residual);
+		auto residualMax = NormInf(residual);
+		auto errorNorm = NormL2(error);
+		auto errorMax = NormInf(error);
+		
+		// runtimes
+		
 		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();
-		std::cout << std::scientific << "runtime=" << seconds << std::endl;
+		double average_iteration_time = 0;
+		for(size_t i = 0; i < iteration_times.size(); i++)
+		{
+			average_iteration_time += iteration_times[i];
+		}
+		average_iteration_time = average_iteration_time / iteration_times.size();
 
 		
-		auto residual = ComputeResidual(solution, global_rightHandSide, stencil, NX, NY);
-		auto residualNorm = NormL2(residual);
-		std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;
-		auto residualMax = NormInf(residual);
-		std::cout << std::scientific << "|residualMax|=" << residualMax
-							<< std::endl;
-		auto error = ComputeError(solution, global_referenceSolution, NX, NY);
-		auto errorNorm = NormL2(error);
-		std::cout << std::scientific << "|error|2=" << errorNorm << std::endl;
-		auto errorMax = NormInf(error);
+		// ---------------------------------------------------------------------
+		// Write Results
+		// ---------------------------------------------------------------------
+
+		// console/log output
+#ifdef USEMPI
+		std::cout << "used MPI: true" <<  endl;
+		log.add("mpi", "true");
+#else
+		std::cout << "used MPI: false" <<  endl;
+		log.add("mpi", "false");
+#endif
+
+
+#ifdef USE_FLOAT
+		std::cout << "dtype = FLOAT" << endl;
+		log.add("dtype", "float");
+#else
+		std::cout << "dtype = DOUBLE" << endl;
+		log.add("dtype", "double");
+#endif
+		std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;		
+		std::cout << std::scientific << "|residualMax|=" << residualMax << std::endl;			
+		std::cout << std::scientific << "|error|2=" << errorNorm << std::endl;		
 		std::cout << std::scientific << "|errorMax|inf=" << errorMax << std::endl;
-		std::cout << "--------------solver.hpp----------------\n";
-		/*
+		std::cout << std::scientific << "runtime=" << seconds << std::endl;
+		std::cout << std::scientific << "average time/iteration=" << average_iteration_time << std::endl << endl;
+
 		log.add("n_processes", std::to_string(g_n_processes));
-		log.add("runtime", std::to_string(seconds));
+		log.add("total runtime", std::to_string(seconds));
 		log.add("error", std::to_string(errorNorm));
-		log.add("error", std::to_string(2308945720935784));
-		*/
+		log.add("errorMax", std::to_string(errorMax));
+		log.add("residual", std::to_string(residualNorm));
+		log.add("residualMax", std::to_string(residualMax));
+		log.add("average_iteration_time", std::to_string(average_iteration_time));
+
+#ifdef USE_FLOAT
+		
+#else
+		
+#endif
+		
 	}
 
 #ifdef USEMPI
