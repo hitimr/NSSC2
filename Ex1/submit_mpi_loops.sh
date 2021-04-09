@@ -10,7 +10,7 @@ if command -v sinfo  2>/dev/null # if on cluster
 then
     module load mpi/openmpi-x86_64
     module load pmi/pmix-x86_64
-    mpiprocs=( 1 2 5 10 20 40 80)
+    mpiprocs=( 1 2 5 10 20 40 60 80)
     folder="datacluster"
     mkdir -p $folder    
 else  # if on local machine
@@ -20,7 +20,7 @@ else  # if on local machine
 fi
 
 iterations=10
-resolutions=( 125 250 )
+resolutions=( 125 500 2000 4000 )
 
 for resolution in "${resolutions[@]}"
 do  
