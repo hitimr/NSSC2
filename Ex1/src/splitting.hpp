@@ -263,3 +263,34 @@ std::vector<int> to_global_grid_coords(const std::vector<int> & topo_coords, std
 }
 
 
+int get_neighbours(int direction)
+{
+#ifdef USEMPI
+    int topProc, botProc, leftProc, rightProc, returnProc;
+	MPI_Cart_shift(g_topo_com, 1, 1, &botProc, &topProc);
+	MPI_Cart_shift(g_topo_com, 0, 1, &leftProc, &rightProc);
+	if (direction == TOP)
+	{
+		returnProc=topProc;
+	}
+	else if (direction == BOTTOM)
+	{
+		returnProc=botProc;
+	}
+	else if (direction == LEFT)
+    {
+        returnProc=leftProc;
+    }
+	else if (direction == RIGHT)
+    {
+        returnProc=rightProc;
+    }
+	return returnProc;
+
+#else
+    return NO_NEIGHBOUR;    // serial has never neighbours
+#endif
+}
+
+
+

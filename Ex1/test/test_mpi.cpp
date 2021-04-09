@@ -21,7 +21,7 @@ int g_dim = 2;
 size_t g_resolution;
 MPI_Comm g_topo_com;
 
-
+/*
 int get_neighbours(vector<int> coords, int direction)
 {
     int topProc, botProc, leftProc, rightProc, returnProc;
@@ -44,7 +44,7 @@ int get_neighbours(vector<int> coords, int direction)
         returnProc=rightProc;
     }
 	return returnProc;
-}
+}*/
 
 int test_getNeighbours_2D()
 {

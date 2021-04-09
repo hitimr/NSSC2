@@ -194,17 +194,10 @@ void solve(size_t resolution, size_t iterations)
 
 		auto SolverJacobi = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &sol2,
 													std::vector<FP_TYPE> &rhs, const Stencil &stencil,
-													size_t NX, size_t NY) {
+													size_t NX, size_t NY, vector<int> & neighbours) {
 			MatrixView<FP_TYPE> solView(sol, NX, NY);
 			MatrixView<FP_TYPE> sol2View(sol2, NX, NY);
 			MatrixView<FP_TYPE> rhsView(rhs, NX, NY);
-
-			int topProc;
-			int botProc;
-
-			//MPI_Cart_shift(g_topo_com, 0, 1, &g_my_rank, &botProc);
-
-
 
 
 			for (size_t j = 1; j != NY - 1; ++j) {
@@ -221,21 +214,20 @@ void solve(size_t resolution, size_t iterations)
 			MPI_Request req;
 			MPI_Status status;
 
-			botProc = 0;
-			topProc = 1;
+			// TODO 2D
+			// sync edges
+			if(neighbours[BOTTOM] != NO_NEIGHBOUR) // send down
+				MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req);	
 
-			if(g_dim == DIM1)
-			{				
-				if(g_my_rank == 1) MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &req);	// send down
-				if(g_my_rank == 0) MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &req);	// send up
-				
-				if(g_my_rank == 1) MPI_Recv(&solView.get(1, 0), 	NX-2, MPI_FP_TYPE, botProc, 0, g_topo_com, &status);	// receivce from bot
-				if(g_my_rank == 0) MPI_Recv(&solView.get(1, NY-1), 	NX-2, MPI_FP_TYPE, topProc, 0, g_topo_com, &status);	// receivce from top
-			}
-			else
-			{
-				// TODO 2D
-			}	
+			if(neighbours[TOP] != NO_NEIGHBOUR) // send up
+				MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);	
+			
+			if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
+				MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status);	
+
+			if(neighbours[TOP] 	!= NO_NEIGHBOUR) // receivce from top
+				MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status);	
+
 			MPI_Barrier(g_topo_com);	
 #endif
 			sol.swap(sol2);		
@@ -294,14 +286,18 @@ print_matrixView(solView, "out/solution.txt");
 			}
 		}
 
+		// check who is my neigbhour
+		vector<int> neighbours(4);
+		for(size_t i = 0; i < neighbours.size(); i++)
+			neighbours[i] = get_neighbours(i);
 
 		// local solution
 		std::vector<FP_TYPE> solution2 = solution;
 		std::cout << "solve LSE using stencil jacobi" << std::endl;
-		auto start = std::chrono::high_resolution_clock::now();
+		auto start = std::chrono::high_resolution_clock::now();		
 		for (size_t iter = 0; iter <= iterations; ++iter) 
 		{
-			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY);
+			SolverJacobi(solution, solution2, rightHandSide, stencil, NX, NY, neighbours);
 #ifdef USEMPI			
 			MPI_Barrier(g_topo_com);
 #endif
