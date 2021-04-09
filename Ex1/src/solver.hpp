@@ -149,6 +149,7 @@ void solve(size_t resolution, size_t iterations)
 		size_t NY = resolution;
 		size_t NX = (2.0 * NY) - 1;
 		FP_TYPE h = 1.0 / (NY - 1);
+		vector<int> coords = {0,0};
 	#endif	
 
 
@@ -203,11 +204,7 @@ void solve(size_t resolution, size_t iterations)
 
 			//MPI_Cart_shift(g_topo_com, 0, 1, &g_my_rank, &botProc);
 
-			MPI_Request req;
-			MPI_Status status;
 
-			botProc = 0;
-			topProc = 1;
 
 
 			for (size_t j = 1; j != NY - 1; ++j) {
@@ -220,6 +217,12 @@ void solve(size_t resolution, size_t iterations)
 																		solView.get(i, j - 1) * stencil.N));
 				}
 			}
+#ifdef USEMPI
+			MPI_Request req;
+			MPI_Status status;
+
+			botProc = 0;
+			topProc = 1;
 
 			if(g_dim == DIM1)
 			{				
@@ -234,8 +237,8 @@ void solve(size_t resolution, size_t iterations)
 				// TODO 2D
 			}	
 			MPI_Barrier(g_topo_com);	
-
-sol.swap(sol2);		
+#endif
+			sol.swap(sol2);		
 if(g_my_rank == DEBUG_RANK)
 print_matrixView(solView, "out/solution.txt");	
 	
@@ -368,17 +371,16 @@ cout << "Rank " << g_my_rank << "sending"  << endl;
 #endif	
 		if(g_my_rank == MASTER)
 		{	
+#ifdef USEMPI
 			// change to global coordinates
 			NY = g_resolution;
 			NX = (2.0 * NY) - 1;
 			h = 1.0 / (NY - 1);
-
-
 		
 			// Assemble solution
 			solution.clear();
 			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);		
-
+#endif
 print_matrix(solution, "out/solution.txt", NX, NY);
 
 
@@ -439,7 +441,9 @@ print_matrix(solution, "out/solution.txt", NX, NY);
 		{
 			//MPI_Send(&send_buf[0], 95, MPI_FP_TYPE, 0, 0, g_topo_com);
 		}
+#ifdef USEMPI
 		MPI_Barrier(g_topo_com);
+#endif
 }
 
 
