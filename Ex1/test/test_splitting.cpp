@@ -166,7 +166,19 @@ int test_to_global_grid_coords()
 
 int test_get_topo_shape()
 {
-    cout << endl << "Testing get_topo_shape() ..." << endl;
+    cout  << "Testing get_topo_shape() ..." << endl;
+
+    g_n_processes = 6;
+    g_dim = 1;
+    assert(get_topo_shape()[COORD_X] == 1);    
+    assert(get_topo_shape()[COORD_Y] == 6);
+
+    g_n_processes = 5;
+    g_dim = 1;
+    assert(get_topo_shape()[COORD_X] == 1);    
+    assert(get_topo_shape()[COORD_Y] == 5);
+
+
     g_n_processes = 6;
     g_dim = 2;
 
