@@ -295,4 +295,41 @@ int get_neighbours(int direction)
 }
 
 
+std::vector<int> get_topo_shape()
+{
+    std::vector<int> topo_shape(2);
+
+    switch(g_dim)
+    {
+    case DIM1:
+        topo_shape[COORD_X] = 1;
+        topo_shape[COORD_Y] = g_n_processes;
+        break;
+
+    case DIM2: 
+        // calculate shape of 2D topology by using the prime factors of our number of procs
+        auto prime_factors = get_prime_factors(g_n_processes);
+
+        
+        if(prime_factors.size() == 1)
+        {
+            // g_n_processes is prime -> revert to 1D
+            topo_shape[COORD_X] = 1;
+            topo_shape[COORD_Y] = g_n_processes;
+        } 
+        else
+        {
+            // g_n_processes is not prime. make grid shape such that y is minimal
+            topo_shape[COORD_Y] = g_n_processes / prime_factors[COORD_X];
+            topo_shape[COORD_X] = g_n_processes / topo_shape[COORD_Y];
+            
+        }
+        break;
+        // TODO default case
+    }
+
+    assert(topo_shape[COORD_X] * topo_shape[COORD_Y] == g_n_processes);
+
+    return topo_shape;
+}
 

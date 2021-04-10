@@ -164,6 +164,27 @@ int test_to_global_grid_coords()
     return SUCCESS;
 }
 
+int test_get_topo_shape()
+{
+    cout << endl << "Testing get_topo_shape() ..." << endl;
+    g_n_processes = 6;
+    g_dim = 2;
+
+    assert(get_topo_shape()[COORD_X] == 2);
+    assert(get_topo_shape()[COORD_Y] == 3);
+
+    g_n_processes = 5;
+    assert(get_topo_shape()[COORD_X] == 1);
+    assert(get_topo_shape()[COORD_Y] == 5);
+
+    g_n_processes = 12;
+    assert(get_topo_shape()[COORD_X] == 2);
+    assert(get_topo_shape()[COORD_Y] == 6);
+
+    cout << "OK" << endl;
+    return SUCCESS;
+}
+
 
 int main()
 {
@@ -174,6 +195,7 @@ int main()
     assert(test_get_prime_factors() == SUCCESS);
     assert(test_split1D() == SUCCESS);
     assert(test_to_global_grid_coords() == SUCCESS);
+    assert(test_get_topo_shape() == SUCCESS);
 
     cout << "All Tests passed!" << endl;
 
