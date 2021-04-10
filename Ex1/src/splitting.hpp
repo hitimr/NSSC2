@@ -77,7 +77,6 @@ std::vector<int> border_types(int n)
     assert(n >= 0);
     std::vector<int> coords = {0,n};
     return border_types(coords);
-    
 }
 
 
