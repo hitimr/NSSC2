@@ -120,9 +120,7 @@ void solve(size_t resolution, size_t iterations)
 	// Create new communicator	
 	// TODO fix for 2D
 	//MPI_Dims_create(g_n_processes, 2, dims.data());	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-	vector<int> dims(2);
-	dims[0] = 1;
-	dims[1] = g_n_processes;
+	vector<int> dims = get_topo_shape();
 	vector<int> periods = {false, false};
 	MPI_Cart_create(MPI_COMM_WORLD, 2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 	MPI_Barrier(MPI_COMM_WORLD);	
