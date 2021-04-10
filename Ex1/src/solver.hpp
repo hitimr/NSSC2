@@ -120,7 +120,13 @@ void solve(size_t resolution, size_t iterations)
 	// Create new communicator	
 	// communicator is 2D by default. in 1D case x = 0 for all processes
 	// this ensures that processes are stacked vertically in 1D
-	vector<int> dims = get_topo_shape();	// shape of MKPI topology
+	vector<int> dims = get_topo_shape();	// shape of MPI topology
+	if(dims[COORD_X] == 1)
+	{
+		// number of processes is prime (x = 1 for all processes)
+		// -> revert to 1D
+		g_dim = 1;
+	}
 	vector<int> periods = {false, false};	// no periodic grid
 	MPI_Cart_create(MPI_COMM_WORLD, DIM2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 	MPI_Barrier(MPI_COMM_WORLD);	
@@ -128,7 +134,7 @@ void solve(size_t resolution, size_t iterations)
 	vector<int> coords(2); // coordinates of rank within the grid						 
 	MPI_Cart_coords(g_topo_com, g_my_rank, DIM2, coords.data());
 
-
+	
 	auto grid_size = local_grid_size(coords, true);
 	size_t NX = grid_size[COORD_X];
 	size_t NY = grid_size[COORD_Y];
@@ -140,12 +146,12 @@ void solve(size_t resolution, size_t iterations)
 	FP_TYPE h = 1.0 / (NY - 1);
 	vector<int> coords = {0,0};
 #endif	
-
+	
 	// -------------------------------------------------------------------------
 	// Prepare Stencil and Domain
 	// -------------------------------------------------------------------------
-
-
+	
+	
 	const auto stencil = Stencil(h);
 
 	// domain cell types
@@ -199,7 +205,7 @@ void solve(size_t resolution, size_t iterations)
 	// Jacobi Iteration Cycle 
 	// -------------------------------------------------------------------------
 
-
+	
 	auto SolverJacobi = [](std::vector<FP_TYPE> &sol, std::vector<FP_TYPE> &sol2,
 												std::vector<FP_TYPE> &rhs, const Stencil &stencil,
 												size_t NX, size_t NY, vector<int> & neighbours) {

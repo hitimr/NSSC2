@@ -36,6 +36,7 @@ size_t g_resolution = 0;
  
 int main(int argc, char *argv[]) 
 {
+
 #ifdef USEMPI
   MPI_Init(NULL,NULL);
   MPI_Comm_size(MPI_COMM_WORLD, &g_n_processes);

@@ -34,7 +34,7 @@ MPICXX?=mpic++
 # Flags for release
 CXXFLAGS := -std=c++11 -O3 -pedantic -march=native -ffast-math -Wall
 
-all:  jacobiMPI jacobiMPI_float jacobiSERIAL test run 
+all:  jacobiMPI jacobiMPI_float jacobiSERIAL run test
 
 
 # Serial Baseline for comparision
@@ -66,11 +66,12 @@ GDB_RUN = -ex "run 4 10"
 
 # quick run to check if all programs work properly
 run:
-	./$(BUILD_DIR)/jacobiSERIAL 100 10
-	mpirun -np 4 $(BUILD_DIR)/jacobiMPI 100 10
-	mpirun -np 4 $(BUILD_DIR)/jacobiMPI_float 100 10
+#./$(BUILD_DIR)/jacobiSERIAL 100 10
+#mpirun -np 4 $(BUILD_DIR)/jacobiMPI 100 10
+#mpirun -np 4 $(BUILD_DIR)/jacobiMPI_float 100 10
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
 #python3 ./scripts/plot_solution.py	# execute a small script to display a plot
+	mpirun -np 2 $(BUILD_DIR)/jacobiMPI_float 2D 100 10
 
 clean:
 	rm -rf $(OUT_DIR)

@@ -32,6 +32,7 @@
 #define DEBUG_RANK -1   // just for debugging
 #define NO_NEIGHBOUR -2
 #define PRINT_LOCAL_SOLUTIONS false
+#define CHECKPOINT std::cout << "Rank " << g_my_rank << " made it here!" << endl;
 
 // ---- Globals
 // globals according to command line

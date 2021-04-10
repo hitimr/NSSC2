@@ -132,19 +132,21 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         if(add_ghost_layers == true)
         {
             y_dim += std::count(borders.begin(), borders.end(), BORDER_GHOST);
-        }
-        
+        }        
         
         break;
 
     case DIM2:  // 2D
-
         prime_factors = get_prime_factors(g_n_processes);
         if(prime_factors.size() < 2)
         {
             // number of processes is a prime number. no splits possible
             // use 1D-split instead
+            // HACK: local_grid_size doies not take g_dim as an arguiment so we 
+            // retend to be in 1D for a moment to prevent an endless recursion
+            g_dim = 1;  
             size = local_grid_size(coords, true);
+            g_dim = 2;
             return size;
         }
 
