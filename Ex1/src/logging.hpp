@@ -30,24 +30,23 @@ public:
         std::string dtype,
         std::string mpi)
     {
-        if(master)
-        {
-            m_outStream.open(m_logFile, fstream::app);
-            m_outStream 
-                << res << ";" 
-                << nprocs << ";" 
-                << runtimeval << ";" 
-                << errorval << ";" 
-                << errorMax << ";" 
-                << residualNorm << ";" 
-                << residualMax << ";" 
-                << average_iteration_time << ";" 
-                << iterations << ";" 
-                << dtype << ";" 
-                << mpi
-                << std::endl;
-            m_outStream.close();
-        }
+
+        m_outStream.open(m_logFile, fstream::app);
+        m_outStream 
+            << res << ";" 
+            << nprocs << ";" 
+            << runtimeval << ";" 
+            << errorval << ";" 
+            << errorMax << ";" 
+            << residualNorm << ";" 
+            << residualMax << ";" 
+            << average_iteration_time << ";" 
+            << iterations << ";" 
+            << dtype << ";" 
+            << mpi
+            << std::endl;
+        m_outStream.close();
+    }
 };
 
 Logger::Logger(int rank)
