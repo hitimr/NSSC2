@@ -28,5 +28,6 @@ do
         mpirun -n $procs ./out/build/jacobiMPI $resolution $iterations |& tee "./${folder}/jacobiMPI_${resolution}_${iterations}_n_${procs}.log"
         mpirun -n $procs ./out/build/jacobiMPI_float $resolution $iterations |& tee "./${folder}/jacobiMPI_float_${resolution}_${iterations}_n_${procs}.log"
     done
+    ./out/build/jacobiSERIAL $resolution $iterations |& tee "./${folder}/jacobiSERIAL_${resolution}_${iterations}_n_${procs}.log"
 done
 

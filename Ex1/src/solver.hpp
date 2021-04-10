@@ -467,19 +467,15 @@ void solve(size_t resolution, size_t iterations)
 		// console/log output
 #ifdef USEMPI
 		std::cout << "used MPI: true" <<  endl;
-		log.add("mpi", "true");
 #else
 		std::cout << "used MPI: false" <<  endl;
-		log.add("mpi", "false");
 #endif
 
 
 #ifdef USE_FLOAT
 		std::cout << "dtype = FLOAT" << endl;
-		log.add("dtype", "float");
 #else
 		std::cout << "dtype = DOUBLE" << endl;
-		log.add("dtype", "double");
 #endif
 		std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;		
 		std::cout << std::scientific << "|residualMax|=" << residualMax << std::endl;			
@@ -488,13 +484,29 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << std::scientific << "runtime=" << seconds << std::endl;
 		std::cout << std::scientific << "average time/iteration=" << average_iteration_time << std::endl << endl;
 
-		log.add("n_processes", std::to_string(g_n_processes));
-		log.add("total runtime", std::to_string(seconds));
-		log.add("error", std::to_string(errorNorm));
-		log.add("errorMax", std::to_string(errorMax));
-		log.add("residual", std::to_string(residualNorm));
-		log.add("residualMax", std::to_string(residualMax));
-		log.add("average_iteration_time", std::to_string(average_iteration_time));
+
+		log.add(
+			std::to_string(g_resolution),
+			std::to_string(g_n_processes),
+			std::to_string(seconds),
+			std::to_string(errorNorm),
+			std::to_string(errorMax),
+			std::to_string(residualNorm),
+			std::to_string(residualMax),
+			std::to_string(average_iteration_time),
+			std::to_string(iterations),
+#ifdef USE_FLOAT
+			std::string("float"),
+# else
+			std::string("double"),
+#endif
+#ifdef USEMPI
+			std::string("true")
+#else
+			std::string("false")
+#endif
+			);
+
 
 #ifdef USE_FLOAT
 		
