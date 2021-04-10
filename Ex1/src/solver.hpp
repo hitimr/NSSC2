@@ -38,14 +38,17 @@ public:
 	Type &get(size_t i, size_t j) { return v[i + N * j]; }
 	Type &set(size_t n) { return v[n]; }
 	Type &get(size_t n) { return v[n]; }
-	std::vector<Type> get_col(size_t m)
+
+	// N -> width
+	// M -> height
+	std::vector<Type> get_col(size_t n)
 	{
-		assert(m < M);
+		assert(n < N);
 		std::vector<FP_TYPE> col(M);
 
-		for(size_t y = 0; y < M; y++)
+		for(size_t m = 0; m < M; m++)
 		{
-			col[y] = get(m, y);
+			col[m] = get(n, m);
 		}
 		return col;
 	}
@@ -252,7 +255,7 @@ void solve(size_t resolution, size_t iterations)
 			MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req[LEFT]);
 
 		if(neighbours[RIGHT] != NO_NEIGHBOUR) // send right
-			MPI_Isend(&solView.get_col(NX-1)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &req[RIGHT]);
+			MPI_Isend(&solView.get_col(NX-2)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &req[RIGHT]);
 		
 
 		// ----- receive
@@ -266,7 +269,7 @@ void solve(size_t resolution, size_t iterations)
 			MPI_Recv(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &status[LEFT]);
 
 		if(neighbours[RIGHT] != NO_NEIGHBOUR) // receivce from right
-			MPI_Recv(&solView.get_col(NX-1)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &status[RIGHT]);
+			MPI_Recv(&solView.get_col(NX-2)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &status[RIGHT]);
 
 
 		// Barrier should do the trick but guides say this is required
@@ -511,7 +514,7 @@ void solve(size_t resolution, size_t iterations)
 		// ---------------------------------------------------------------------
 		// Write Results
 		// ---------------------------------------------------------------------
-
+		print_matrixView(solution_view, "out/solution.txt");
 		// console/log output
 #ifdef USEMPI
 		std::cout << "used MPI: true" <<  endl;
