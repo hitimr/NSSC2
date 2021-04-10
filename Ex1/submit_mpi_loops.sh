@@ -10,16 +10,18 @@ then
     module load mpi/openmpi-x86_64
     module load pmi/pmix-x86_64
     mpiprocs=( 1 2 5 8 10 12 15 20 30 40 50 60 70 80 )
+    resolutions=( 125 500 2000 4000 )
     folder="out/datacluster"
     mkdir -p $folder    
 else  # if on local machine
     folder="out/datalocal"
     mkdir -p $folder    
-    mpiprocs=( 1 2 )
+    mpiprocs=( 1 2 3 4)
+    resolutions=( 125 500 2000 )
 fi
 
 iterations=10
-resolutions=( 125 500 2000 4000 )
+
 
 for resolution in "${resolutions[@]}"
 do  
@@ -28,5 +30,6 @@ do
         mpirun -n $procs ./out/build/jacobiMPI $resolution $iterations |& tee "./${folder}/jacobiMPI_${resolution}_${iterations}_n_${procs}.log"
         mpirun -n $procs ./out/build/jacobiMPI_float $resolution $iterations |& tee "./${folder}/jacobiMPI_float_${resolution}_${iterations}_n_${procs}.log"
     done
+    ./out/build/jacobiSERIAL $resolution $iterations |& tee "./${folder}/jacobiMPI_${resolution}_${iterations}_n_${procs}.log"
 done
 

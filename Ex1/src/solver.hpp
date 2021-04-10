@@ -38,6 +38,15 @@ public:
 	Type &get(size_t i, size_t j) { return v[i + N * j]; }
 	Type &set(size_t n) { return v[n]; }
 	Type &get(size_t n) { return v[n]; }
+	Type &getCol(size_t m)
+	{
+		assert(m < m && m >= 0);
+		std::vector<FP_TYPE> col(M);
+		for(int y = 0; y < M; y++)
+		{
+			//col[]
+		}
+	}
 };
 
 void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName)
@@ -158,7 +167,7 @@ void solve(size_t resolution, size_t iterations)
 	std::vector<int> domain(NX * NY, Cell::UNKNOWN);
 	MatrixView<int> domainView(domain, NX, NY);
 
-	// Fill borders depending on neigfbhours
+	// Fill borders depending on neighbours
 	auto borders = border_types(coords);
 	for (size_t i = 0; i != NX; ++i) 	
 	{
@@ -234,7 +243,7 @@ void solve(size_t resolution, size_t iterations)
 		MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req);	
 
 	if(neighbours[TOP] != NO_NEIGHBOUR) // send up
-		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);	
+		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);		
 	
 	if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
 		MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status);	
@@ -497,6 +506,7 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << "dtype = DOUBLE" << endl;
 		log.add("dtype", "double");
 #endif
+		std::cout << "n_processes=" << g_n_processes << endl;
 		std::cout << std::scientific << "|residual|=" << residualNorm << std::endl;		
 		std::cout << std::scientific << "|residualMax|=" << residualMax << std::endl;			
 		std::cout << std::scientific << "|error|2=" << errorNorm << std::endl;		
