@@ -236,28 +236,31 @@ void solve(size_t resolution, size_t iterations)
 			}
 		}
 #ifdef USEMPI
-	MPI_Request req;
-	MPI_Status status;
+		MPI_Request req[4];
+		MPI_Status status[4];
 
-	// TODO 2D
-	// sync borders
-	if(neighbours[BOTTOM] != NO_NEIGHBOUR) // send down
-		MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req);	
+		// TODO 2D
+		// sync borders
+		if(neighbours[BOTTOM] != NO_NEIGHBOUR) // send down
+			MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req[BOTTOM]);	
 
-	if(neighbours[TOP] != NO_NEIGHBOUR) // send up
-		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);	
-	/*
-	if(neighbours[LEFT] != NO_NEIGHBOUR) // send left
-		MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
+		if(neighbours[TOP] != NO_NEIGHBOUR) // send up
+			MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req[TOP]);	
+		/*
+		if(neighbours[LEFT] != NO_NEIGHBOUR) // send left
+			MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
 
-	if(neighbours[RIGHT] != NO_NEIGHBOUR) // send left
-		MPI_Isend(&solView.get_col(NX)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
-	*/
-	if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
-		MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status);	
+		if(neighbours[RIGHT] != NO_NEIGHBOUR) // send left
+			MPI_Isend(&solView.get_col(NX)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
+		*/
+		if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
+			MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status[BOTTOM]);	
 
-	if(neighbours[TOP] 	!= NO_NEIGHBOUR) // receivce from top
-		MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status);	
+		if(neighbours[TOP] 	!= NO_NEIGHBOUR) // receivce from top
+			MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status[TOP]);	
+
+
+		MPI_Barrier(g_topo_com);
 #endif
 		sol.swap(sol2);		
 	};
