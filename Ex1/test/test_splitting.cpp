@@ -226,6 +226,30 @@ int test_to_global_grid_coords()
     assert(to_global_grid_coords({0, 1}, {1, 2})[0] == 1);
     assert(to_global_grid_coords({0, 2}, {1, 3})[0] == 1);
 
+
+    // 2D different grid sizes
+    g_dim = 2;
+    g_resolution = 14;
+    g_n_processes = 6;
+
+    // check x
+    assert(to_global_grid_coords({0,0}, {1,1})[0] == 1);
+    assert(to_global_grid_coords({1,0}, {1,1})[0] == 15);
+    assert(to_global_grid_coords({0,1}, {1,1})[0] == 1);
+    assert(to_global_grid_coords({1,1}, {1,1})[0] == 15);
+    assert(to_global_grid_coords({0,2}, {1,1})[0] == 1);
+    assert(to_global_grid_coords({1,2}, {1,1})[0] == 15);
+
+
+    //check y
+    assert(to_global_grid_coords({0,0}, {1,1})[1] == 1);
+    assert(to_global_grid_coords({1,0}, {1,1})[1] == 1);
+    assert(to_global_grid_coords({0,1}, {1,1})[1] == 6);
+    assert(to_global_grid_coords({1,1}, {1,1})[1] == 6);
+    assert(to_global_grid_coords({0,2}, {1,1})[1] == 11);
+    assert(to_global_grid_coords({1,2}, {1,1})[1] == 11);
+
+
     cout << "OK" << endl;
     return SUCCESS;
 }

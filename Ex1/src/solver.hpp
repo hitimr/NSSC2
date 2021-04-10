@@ -241,25 +241,36 @@ void solve(size_t resolution, size_t iterations)
 
 		// TODO 2D
 		// sync borders
+		// ----- send
 		if(neighbours[BOTTOM] != NO_NEIGHBOUR) // send down
 			MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req[BOTTOM]);	
 
 		if(neighbours[TOP] != NO_NEIGHBOUR) // send up
 			MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req[TOP]);	
-		/*
+		
 		if(neighbours[LEFT] != NO_NEIGHBOUR) // send left
-			MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
+			MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req[LEFT]);
 
-		if(neighbours[RIGHT] != NO_NEIGHBOUR) // send left
-			MPI_Isend(&solView.get_col(NX)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
-		*/
+		if(neighbours[RIGHT] != NO_NEIGHBOUR) // send right
+			MPI_Isend(&solView.get_col(NX-1)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &req[RIGHT]);
+		
+
+		// ----- receive
 		if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
 			MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status[BOTTOM]);	
 
 		if(neighbours[TOP] 	!= NO_NEIGHBOUR) // receivce from top
 			MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status[TOP]);	
 
-		
+		if(neighbours[LEFT] != NO_NEIGHBOUR) // receivce from left
+			MPI_Recv(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &status[LEFT]);
+
+		if(neighbours[RIGHT] != NO_NEIGHBOUR) // receivce from right
+			MPI_Recv(&solView.get_col(NX-1)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &status[RIGHT]);
+
+
+		// Barrier should do the trick but guides say this is required
+		// TODO check if necessary
 		for(int direction = 0; direction < 4; direction++)
 		{
 			if(neighbours[direction] != NO_NEIGHBOUR)
@@ -292,9 +303,6 @@ void solve(size_t resolution, size_t iterations)
 		return residual;
 	};
 
-	// -------------------------------------------------------------------------
-	// Jacobi Iteration Cycle 
-	// -------------------------------------------------------------------------
 
 
 	auto ComputeError = [](std::vector<FP_TYPE> &sol,
@@ -373,7 +381,7 @@ void solve(size_t resolution, size_t iterations)
 	// -------------------------------------------------------------------------
 	// Collect results on root
 	// -------------------------------------------------------------------------
-
+	CHECKPOINT
 #ifdef USEMPI	
 	// check if we need to remove the ghost layer before sending it
 	int x_start = borders[LEFT] 	== BORDER_GHOST ? 1 : 0;
@@ -444,7 +452,7 @@ void solve(size_t resolution, size_t iterations)
 
 		// Assemble solution
 		solution.clear();
-		solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);		
+		solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);
 #endif
 
 		MatrixView<FP_TYPE> solution_view(solution, NX, NY);
