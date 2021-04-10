@@ -54,13 +54,9 @@ public:
 	}
 };
 
-void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName, bool append=false)
+void print_matrixView(MatrixView<FP_TYPE> & mv, std::string fileName)
 {
-	ofstream out;
-	if(append == true)
-		out.open(fileName, std::ofstream::app);
-	else
-		out.open(fileName);
+	ofstream out(fileName);
 	for(size_t y = 0; y < mv.M; y++)
 	{
 		for(size_t x = 0; x < mv.N; x++)
@@ -87,10 +83,10 @@ void print_matrixView(MatrixView<FP_TYPE> & mv)
 }
 
 
-void print_matrix(std::vector<FP_TYPE> &v, std::string fileName, size_t NX, size_t NY, bool append=false)
+void print_matrix(std::vector<FP_TYPE> &v, std::string fileName, size_t NX, size_t NY)
 {
 	MatrixView<FP_TYPE> mv(v, NX, NY);
-	print_matrixView(mv, fileName, append);
+	print_matrixView(mv, fileName);
 }
 
 FP_TYPE ParticularSolution(FP_TYPE x, FP_TYPE y) 
@@ -383,7 +379,8 @@ void solve(size_t resolution, size_t iterations)
 		cout << "writing local solution of rank " << g_my_rank << endl;
 		std::string fileName = "out/solution" + std::to_string(g_my_rank) + ".txt";
 		print_matrix(solution, "fileName", NX, NY);	
-	}			
+	}	
+	CHECKPOINT		
 
 	// -------------------------------------------------------------------------
 	// Collect results on root
@@ -442,42 +439,7 @@ void solve(size_t resolution, size_t iterations)
 		g_topo_com			// communicator
 	);
 
-	string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
-	auto real_grid_size = local_grid_size(coords, false);	// grid size without borders
-	if(coords[COORD_Y] == 0)
-	{
-		// create file and write my local grid 
-		print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], false);
-
-		// tell the rank above me to continue
-		int counter = 0;	
-		int top_neighbour = get_neighbours(TOP);	
-		if(top_neighbour != NO_NEIGHBOUR)
-		{
-			// tell my top neighbour iots now his turn
-			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
-		}
-	}
-	else
-	{
-		MPI_Status status;
-		int counter = 0;
-		int bottom_neighbour = get_neighbours(BOTTOM);
-		int top_neighbour = get_neighbours(TOP);
-
-		// Wait until my bottom neighbour tells me to go
-		MPI_Recv(&counter, 1, MPI_INT, bottom_neighbour, 0, g_topo_com, &status);	
-		counter++;
-
-		// now its my turn. append local grid to file
-		print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], true);
-
-		if(top_neighbour != NO_NEIGHBOUR)
-		{
-			// tell my top neighbour iots now his turn
-			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
-		}
-	}
+	if(coords[2])
 
 #endif	
 	if(g_my_rank == MASTER)
@@ -504,6 +466,7 @@ void solve(size_t resolution, size_t iterations)
 			
 		}		
 #endif
+		CHECKPOINT
 		MatrixView<FP_TYPE> solution_view(solution, NX, NY);
 		
 		print_matrixView(solution_view, "out/solution.txt");

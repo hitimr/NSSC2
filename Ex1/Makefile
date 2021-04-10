@@ -28,7 +28,7 @@ CXX=g++
 MPICXX?=mpic++
 
 # Flags for debugging
-CXXFLAGS := -std=c++11 -O0 -g -pedantic -march=native -ffast-math -Wall
+CXXFLAGS := -std=c++11 -O0 -g -pedantic -march=native -ffast-math -Wall -I /usr/include/eigen3
 CXXFLAGS += -ggdb3	# enable valgrind to show code
 
 # Flags for release
@@ -67,7 +67,7 @@ GDB_RUN = -ex "run 4 10"
 # quick run to check if all programs work properly
 run:
 #./$(BUILD_DIR)/jacobiSERIAL 100 10
-	mpirun -np 15 -oversubscribe $(BUILD_DIR)/jacobiMPI 2D 90 100
+	mpirun -np 4 -oversubscribe $(BUILD_DIR)/jacobiMPI 2D 20 10
 #mpirun -np 4 $(BUILD_DIR)/jacobiMPI_float 100 10
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
 	python3 ./scripts/plot_solution.py	# execute a small script to display a plot

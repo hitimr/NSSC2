@@ -6,6 +6,10 @@ Report: https://www.overleaf.com/project/604e4e82499c472f16008a0b
 
 Release Notes:
 
+Requirements
+- C++11
+- eigen3 (sudo apt install libeigen3-dev)
+
 curently implemented for 1D, any number of processes:
 - jacobiSERIAL
 - jacobiMPI
