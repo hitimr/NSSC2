@@ -64,14 +64,20 @@ int test_local_grid_size()
 
 
     // 2D
-    g_n_processes = 4;
+    g_n_processes = 6;
     g_dim = DIM2;
-    g_resolution = 8;
+    g_resolution = 13;
 
-    //assert(local_grid_size({0,0}, false)[COORD_X] == 5);
-    //assert(local_grid_size({0,0}, false)[COORD_Y] == 4);
-    //assert(local_grid_size({0,0}, true)[COORD_Y] == 5);
+    assert(local_grid_size({0,2}, false)[COORD_X] == 13);    assert(local_grid_size({1,2}, false)[COORD_X] == 12);
+    assert(local_grid_size({0,2}, false)[COORD_Y] == 4);    assert(local_grid_size({1,2}, false)[COORD_Y] == 4);
 
+    assert(local_grid_size({0,1}, false)[COORD_X] == 13);    assert(local_grid_size({1,1}, false)[COORD_X] == 12);
+    assert(local_grid_size({0,1}, false)[COORD_Y] == 4);    assert(local_grid_size({1,1}, false)[COORD_Y] == 4);
+
+    assert(local_grid_size({0,0}, false)[COORD_X] == 13);    assert(local_grid_size({1,0}, false)[COORD_X] == 12);
+    assert(local_grid_size({0,0}, false)[COORD_Y] == 5);    assert(local_grid_size({1,0}, false)[COORD_Y] == 5);
+    
+ 
     
 
     cout << "OK" << endl;
@@ -139,6 +145,14 @@ int test_split1D()
 
     assert(split_1D(21, 5, 0, true) == 5);
     assert(split_1D(21, 5, 4, true) == 4);
+
+
+    assert(split_1D(25, 2, 0, false) == 13);
+    assert(split_1D(25, 2, 1, false) == 12);
+
+    assert(split_1D(13, 3, 2, false) == 4);
+    assert(split_1D(13, 3, 1, false) == 4);
+    assert(split_1D(13, 3, 0, false) == 5);
 
     cout << "OK" << endl;
     return SUCCESS;
@@ -217,7 +231,7 @@ int main()
 {
     cout << endl << "Starting unit tests..." << endl;
 
-    assert(test_local_grid_size() == SUCCESS);
+    //assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
     assert(test_get_prime_factors() == SUCCESS);
     assert(test_split1D() == SUCCESS);

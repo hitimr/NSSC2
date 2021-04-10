@@ -17,6 +17,7 @@
 std::vector<int> border_types(int rank, int dim);
 std::vector<int> get_prime_factors(int n);
 size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers);
+std::vector<int> get_topo_shape();
 
 
 /* calculate the type of borders for a given rank
@@ -107,8 +108,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
     size_t y_dim = -1;
     int remainder;
     int base_size;
-    int n_x;
-    int n_y;
+    std::vector<int> topo_shape;
 
     switch(g_dim)
     {
@@ -150,15 +150,18 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
             return size;
         }
 
-        n_x = prime_factors[0]; // Number of splits in x-Direction
-        n_y = g_n_processes / n_x; // Number of splits in y-Direction
+        topo_shape = get_topo_shape();
+        x_dim = split_1D(g_resolution, topo_shape[COORD_X], coords[COORD_X], add_ghost_layers);
+        y_dim = split_1D(g_resolution, topo_shape[COORD_Y], coords[COORD_Y], add_ghost_layers);
 
-        x_dim = split_1D(g_resolution, n_x, coords[COORD_X], add_ghost_layers);
-        y_dim = split_1D(g_resolution, n_y, coords[COORD_Y], add_ghost_layers);
-
+        // add ghost layers if necessary
+        borders = border_types(coords);
         if(add_ghost_layers == true)
         {
-            
+            if(borders[TOP] == BORDER_GHOST)    y_dim++;
+            if(borders[BOTTOM] == BORDER_GHOST) y_dim++;
+            if(borders[LEFT] == BORDER_GHOST)   x_dim++;
+            if(borders[RIGHT] == BORDER_GHOST)  x_dim++;
         }
 
         break;
