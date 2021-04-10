@@ -38,14 +38,16 @@ public:
 	Type &get(size_t i, size_t j) { return v[i + N * j]; }
 	Type &set(size_t n) { return v[n]; }
 	Type &get(size_t n) { return v[n]; }
-	Type &getCol(size_t m)
+	std::vector<Type> get_col(size_t m)
 	{
-		assert(m < m && m >= 0);
+		assert(m < M && m >= 0);
 		std::vector<FP_TYPE> col(M);
-		for(int y = 0; y < M; y++)
+
+		for(size_t y = 0; y < M; y++)
 		{
-			//col[]
+			col[y] = get(m, y);
 		}
+		return col;
 	}
 };
 
@@ -243,7 +245,10 @@ void solve(size_t resolution, size_t iterations)
 		MPI_Isend(&solView.get(1, 1),	NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &req);	
 
 	if(neighbours[TOP] != NO_NEIGHBOUR) // send up
-		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);		
+		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);	
+
+	if(neighbours[LEFT] != NO_NEIGHBOUR) // send left
+		MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);
 	
 	if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
 		MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status);	
