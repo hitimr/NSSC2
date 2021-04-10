@@ -318,6 +318,13 @@ std::vector<int> get_topo_shape()
         break;
 
     case DIM2: 
+        // special case for a single proc
+        if(g_n_processes == 1)
+        {
+            topo_shape[COORD_X] = 1;
+            topo_shape[COORD_Y] = 1;
+            break;
+        }
         // calculate shape of 2D topology by using the prime factors of our number of procs
         prime_factors = get_prime_factors(g_n_processes);
 
