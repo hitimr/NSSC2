@@ -119,7 +119,7 @@ enum Cell { UNKNOWN = 0, DIR = 1, NEU = 2, ROB = 0 };
 
 void solve(size_t resolution, size_t iterations) 
 {
-	Logger log(g_my_rank);
+	//Logger log(g_my_rank);
 
 #ifdef USEMPI	
 	// -------------------------------------------------------------------------
@@ -510,7 +510,7 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << std::scientific << "runtime=" << seconds << std::endl;
 		std::cout << std::scientific << "average time/iteration=" << average_iteration_time << std::endl << endl;
 
-
+/*
 		log.add(
 			std::to_string(g_resolution),
 			std::to_string(g_n_processes),
@@ -531,14 +531,7 @@ void solve(size_t resolution, size_t iterations)
 #else
 			std::string("false")
 #endif
-			);
-
-
-#ifdef USE_FLOAT
-		
-#else
-		
-#endif
+			);*/
 		
 	}
 
