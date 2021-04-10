@@ -44,7 +44,6 @@ int test_local_grid_size()
     assert(local_grid_size(0, true)[COORD_Y] == g_resolution);
 
 
-
     // test if total is correct
     g_resolution = 500;
     g_n_processes = 31;
