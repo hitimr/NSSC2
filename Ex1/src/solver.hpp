@@ -118,15 +118,15 @@ void solve(size_t resolution, size_t iterations)
 	// -------------------------------------------------------------------------
 
 	// Create new communicator	
-	// TODO fix for 2D
-	//MPI_Dims_create(g_n_processes, 2, dims.data());	// https://www.mpich.org/static/docs/v3.3.x/www3/MPI_Dims_create.html 
-	vector<int> dims = get_topo_shape();
-	vector<int> periods = {false, false};
-	MPI_Cart_create(MPI_COMM_WORLD, 2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
+	// communicator is 2D by default. in 1D case x = 0 for all processes
+	// this ensures that processes are stacked vertically in 1D
+	vector<int> dims = get_topo_shape();	// shape of MKPI topology
+	vector<int> periods = {false, false};	// no periodic grid
+	MPI_Cart_create(MPI_COMM_WORLD, DIM2, dims.data(), periods.data(), true, &g_topo_com);	// https://www.mpich.org/static/docs/v3.3/www3/MPI_Cart_create.html
 	MPI_Barrier(MPI_COMM_WORLD);	
 
-	vector<int> coords(2);								 
-	MPI_Cart_coords(g_topo_com, g_my_rank, 2, coords.data());		// TODO provide vector immediately
+	vector<int> coords(2); // coordinates of rank within the grid						 
+	MPI_Cart_coords(g_topo_com, g_my_rank, DIM2, coords.data());
 
 
 	auto grid_size = local_grid_size(coords, true);
@@ -156,7 +156,7 @@ void solve(size_t resolution, size_t iterations)
 	auto borders = border_types(coords);
 	for (size_t i = 0; i != NX; ++i) 	
 	{
-		if(borders[TOP] == BORDER_DIR)	// TOP Border
+		if(borders[TOP] == BORDER_DIR)	// top Border
 			domainView.set(i, NY-1) = Cell::DIR;
 
 		if(borders[BOTTOM] == BORDER_DIR)	// Bottom Border
@@ -164,10 +164,22 @@ void solve(size_t resolution, size_t iterations)
 	}
 
 	// left/right border
-	for (size_t j = 0; j != NY; ++j) // TODO fix for 2D
+	for (size_t j = 0; j != NY; ++j)
 	{		
-		domainView.set(0, j) = Cell::DIR;	// left
-		domainView.set(NX - 1, j) = Cell::DIR;	// right
+		if(borders[LEFT] == BORDER_DIR)	// left border
+			domainView.set(0, j) = Cell::DIR;
+
+		if(borders[RIGHT] == BORDER_DIR) // righty border
+			domainView.set(NX - 1, j) = Cell::DIR;
+	}
+
+	// quick sanity check
+	if(g_my_rank == MASTER) 
+	{	// Master is alway at bottom left
+		assert(domainView.get(0,0) == Cell::DIR);
+		assert(domainView.get(1,0) == Cell::DIR);	
+		assert(domainView.get(0,1) == Cell::DIR);	
+		assert(domainView.get(1,1) == Cell::UNKNOWN);		
 	}
 	
 	// right hand side
