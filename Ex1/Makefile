@@ -28,11 +28,11 @@ CXX=g++
 MPICXX?=mpic++
 
 # Flags for debugging
-#CXXFLAGS := -std=c++11 -O0 -g -pedantic -march=native -ffast-math -Wall
-#CXXFLAGS += -ggdb3	# enable valgrind to show code
+CXXFLAGS := -std=c++11 -O0 -g -pedantic -march=native -ffast-math -Wall
+XXFLAGS += -ggdb3	# enable valgrind to show code
 
 # Flags for release
-CXXFLAGS := -std=c++11 -O3 -pedantic -march=native -ffast-math -Wall
+#CXXFLAGS := -std=c++11 -O3 -pedantic -march=native -ffast-math -Wall
 
 all:  jacobiMPI jacobiMPI_float jacobiSERIAL run test
 
