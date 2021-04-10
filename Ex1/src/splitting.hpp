@@ -61,6 +61,33 @@ std::vector<int> border_types(const std::vector<int> & coords)
 
     case DIM2:  // 2D
         std::cerr <<  "2D is not implemented yet!" << std::endl;
+
+
+        boundaries[LEFT] =   BORDER_GHOST;
+        boundaries[RIGHT] =  BORDER_GHOST;
+        boundaries[BOTTOM] = BORDER_GHOST;
+        boundaries[TOP] =    BORDER_GHOST;
+        //std::cout << get_topo_shape()[COORD_Y]  <<"\n";
+        //std::cout << coords[COORD_Y] << "\n";
+        if (coords[COORD_X] == 0)
+        {
+            boundaries[LEFT] = BORDER_DIR;
+        }
+        if (coords[COORD_X] == get_topo_shape()[COORD_X]-1)
+        {
+            boundaries[RIGHT] = BORDER_DIR;
+        }
+        if(coords[COORD_Y] == 0)
+        {
+            boundaries[BOTTOM] = BORDER_DIR;
+        }
+
+        if(coords[COORD_Y] == get_topo_shape()[COORD_Y]-1)
+        {
+            boundaries[TOP] = BORDER_DIR;
+        }
+    
+
         break;
 
     default:

@@ -117,6 +117,30 @@ int test_border_types()
     assert(border_types(1) == mid);
     assert(border_types(0) == bot);
 
+    vector<int> ZeroZero = {BORDER_DIR, BORDER_GHOST, BORDER_GHOST, BORDER_DIR};
+    vector<int> ZeroOne = {BORDER_GHOST, BORDER_GHOST, BORDER_GHOST, BORDER_DIR};
+    vector<int> ZeroTwo = {BORDER_GHOST, BORDER_GHOST, BORDER_DIR, BORDER_DIR};
+    vector<int> OneZero = {BORDER_DIR, BORDER_GHOST, BORDER_GHOST, BORDER_GHOST};
+    vector<int> OneOne = {BORDER_GHOST, BORDER_GHOST, BORDER_GHOST, BORDER_GHOST};
+    vector<int> OneTwo = {BORDER_GHOST, BORDER_GHOST, BORDER_DIR, BORDER_GHOST};
+    vector<int> TwoZero = {BORDER_DIR, BORDER_DIR, BORDER_GHOST, BORDER_GHOST};
+    vector<int> TwoOne = {BORDER_GHOST, BORDER_DIR, BORDER_GHOST, BORDER_GHOST};
+    vector<int> TwoTwo = {BORDER_GHOST, BORDER_DIR, BORDER_DIR, BORDER_GHOST};
+    
+
+    g_n_processes = 9;
+    g_dim = DIM2;
+    assert(border_types({0,0}) == ZeroZero);
+    assert(border_types({0,1}) == ZeroOne);
+    assert(border_types({0,2}) == ZeroTwo);
+    assert(border_types({1,0}) == OneZero);
+    assert(border_types({1,1}) == OneOne);
+    assert(border_types({1,2}) == OneTwo);
+    assert(border_types({2,0}) == TwoZero);
+    assert(border_types({2,1}) == TwoOne);
+    assert(border_types({2,2}) == TwoTwo);
+
+
     cout << "OK" << endl;
     return SUCCESS;
 }
