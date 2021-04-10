@@ -16,6 +16,8 @@ int test_local_grid_size()
 {
     cout << "Testing local_grid_size()" << endl;
 
+    // 1D
+
     // check specific case
     g_n_processes = 3;
     g_dim = DIM1;
@@ -57,6 +59,20 @@ int test_local_grid_size()
     sum -= (g_n_processes * 2);   // substract two ghost layers for evey grid
     sum += 2;    // add 1 ghost layer for top and bottom grid
     assert(sum == g_resolution);
+
+
+
+
+    // 2D
+    g_n_processes = 4;
+    g_dim = DIM2;
+    g_resolution = 8;
+
+    //assert(local_grid_size({0,0}, false)[COORD_X] == 5);
+    //assert(local_grid_size({0,0}, false)[COORD_Y] == 4);
+    //assert(local_grid_size({0,0}, true)[COORD_Y] == 5);
+
+    
 
     cout << "OK" << endl;
     return SUCCESS;

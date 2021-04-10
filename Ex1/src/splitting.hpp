@@ -156,6 +156,11 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         x_dim = split_1D(g_resolution, n_x, coords[COORD_X], add_ghost_layers);
         y_dim = split_1D(g_resolution, n_y, coords[COORD_Y], add_ghost_layers);
 
+        if(add_ghost_layers == true)
+        {
+            
+        }
+
         break;
 
     default:
@@ -236,7 +241,7 @@ size_t split_1D(int global_size, int splits, int pos, bool add_ghost_layers)
 
     // bigger grids are allocated in ascending order
     // i.e. if 2 grids are bigger rank 0 and 1 have increased sizes
-    if((pos < remainder) && (add_ghost_layers == true))
+    if(pos < remainder)
     {
         size++;
     }
