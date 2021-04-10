@@ -44,4 +44,37 @@ extern int g_my_rank;
 #ifdef USEMPI
     extern MPI_Comm g_topo_com;
 #endif
+
+
+#include <string>
+#include <array>
+// taken from https://dev.to/aggsol/calling-shell-commands-from-c-8ej
+std::string execCommand(const std::string cmd, int& out_exitStatus)
+{
+    out_exitStatus = 0;
+    auto pPipe = ::popen(cmd.c_str(), "r");
+    if(pPipe == nullptr)
+    {
+        throw std::runtime_error("Cannot open pipe");
+    }
+
+    std::array<char, 256> buffer;
+
+    std::string result;
+
+    while(not std::feof(pPipe))
+    {
+        auto bytes = std::fread(buffer.data(), 1, buffer.size(), pPipe);
+        result.append(buffer.data(), bytes);
+    }
+
+    auto rc = ::pclose(pPipe);
+
+    if(WIFEXITED(rc))
+    {
+        out_exitStatus = WEXITSTATUS(rc);
+    }
+
+    return result;
+}
     

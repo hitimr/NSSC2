@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 
 #ifdef USEMPI
@@ -404,82 +405,89 @@ void solve(size_t resolution, size_t iterations)
 		std::vector<FP_TYPE> next_line(&solution[x_start + NX * y], &solution[x_end + NX* y]); // exract line without ghost layers
 		send_buf.insert(send_buf.end(), next_line.begin(), next_line.end());	// add to send buffer
 	}
-	
-	// Gather length of all send buffers
-	int send_buf_size = send_buf.size();
-	vector<int> recvcounts(g_my_rank == MASTER ? g_n_processes : 0);	// only allocate memory on master
-	MPI_Gather(
-		&send_buf_size,		// send_data
-		1,			// send_count
-		MPI_INT,	// send_datatype
-		g_my_rank == MASTER ? recvcounts.data() : nullptr,		// recv_data
-		g_my_rank == MASTER ? 1 : 0,		// recv_count
-		MPI_INT,		// send_datatype
-		MASTER,			// root (rank of the receiver)
-		g_topo_com		// communicator
-	);				
 
-	// Create disaplcement vector on root
 	int offset = 0;
-	vector<int> displs(g_n_processes);
-	for(size_t i = 0; i < recvcounts.size(); i++)	// recvcounts.size() > 0 only on root
+	vector<FP_TYPE> rbuf;
+	if(g_dim == DIM1)
 	{
-		displs[i] = offset;
-		offset += recvcounts[i] + 0;
-	}
+		// Gather length of all send buffers
+		int send_buf_size = send_buf.size();
+		vector<int> recvcounts(g_my_rank == MASTER ? g_n_processes : 0);	// only allocate memory on master
+		MPI_Gather(
+			&send_buf_size,		// send_data
+			1,			// send_count
+			MPI_INT,	// send_datatype
+			g_my_rank == MASTER ? recvcounts.data() : nullptr,		// recv_data
+			g_my_rank == MASTER ? 1 : 0,		// recv_count
+			MPI_INT,		// send_datatype
+			MASTER,			// root (rank of the receiver)
+			g_topo_com		// communicator
+		);				
 
-	// Gather all solutions. Gatherv required because grid sizes differ between ranks
-	vector<FP_TYPE> rbuf(g_my_rank == MASTER ? offset : 0);	// only allocate memory on master		
-	MPI_Gatherv(
-		send_buf.data(),// sendbuf
-		send_buf.size(),// sendcount
-		MPI_FP_TYPE,	// MPI_Datatype
-		g_my_rank == MASTER ? rbuf.data() : nullptr,	// recvbuf
-		recvcounts.data(), 	// recvcounts
-		displs.data(),		// displs
-		MPI_FP_TYPE,
-		MASTER,				// root (rank of the receiver)
-		g_topo_com			// communicator
-	);
-
-	// 2D communication
-	string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
-	auto real_grid_size = local_grid_size(coords, false);	// grid size without borders
-	if(coords[COORD_Y] == 0)
-	{
-		// create file and write my local grid 
-		print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], false);
-
-		// tell the rank above me to continue
-		int counter = 0;	
-		int top_neighbour = get_neighbours(TOP);	
-		if(top_neighbour != NO_NEIGHBOUR)
+		// Create disaplcement vector on root
+		vector<int> displs(g_n_processes);
+		for(size_t i = 0; i < recvcounts.size(); i++)	// recvcounts.size() > 0 only on root
 		{
-			// tell my top neighbour its now his turn
-			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
+			displs[i] = offset;
+			offset += recvcounts[i] + 0;
 		}
+
+		// Gather all solutions. Gatherv required because grid sizes differ between ranks
+		rbuf.resize(g_my_rank == MASTER ? offset : 0);	// only allocate memory on master		
+		MPI_Gatherv(
+			send_buf.data(),// sendbuf
+			send_buf.size(),// sendcount
+			MPI_FP_TYPE,	// MPI_Datatype
+			g_my_rank == MASTER ? rbuf.data() : nullptr,	// recvbuf
+			recvcounts.data(), 	// recvcounts
+			displs.data(),		// displs
+			MPI_FP_TYPE,
+			MASTER,				// root (rank of the receiver)
+			g_topo_com			// communicator
+		);
 	}
 	else
 	{
-		MPI_Status status;
-		int counter = 0;
-		int bottom_neighbour = get_neighbours(BOTTOM);
-		int top_neighbour = get_neighbours(TOP);
-
-		// Wait until my bottom neighbour tells me to go
-		MPI_Recv(&counter, 1, MPI_INT, bottom_neighbour, 0, g_topo_com, &status);	
-		counter++;
-
-		// now its my turn. append local grid to file
-		print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], true);
-		if(top_neighbour != NO_NEIGHBOUR)
+		// 2D communication
+		string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
+		auto real_grid_size = local_grid_size(coords, false);	// grid size without borders
+		if(coords[COORD_Y] == 0)
 		{
-			// tell my top neighbour iots now his turn
-			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
+			// create file and write my local grid 
+			print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], false);
+
+			// tell the rank above me to continue
+			int counter = 0;	
+			int top_neighbour = get_neighbours(TOP);	
+			if(top_neighbour != NO_NEIGHBOUR)
+			{
+				// tell my top neighbour its now his turn
+				MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
+			}
+		}
+		else
+		{
+			MPI_Status status;
+			int counter = 0;
+			int bottom_neighbour = get_neighbours(BOTTOM);
+			int top_neighbour = get_neighbours(TOP);
+
+			// Wait until my bottom neighbour tells me to go
+			MPI_Recv(&counter, 1, MPI_INT, bottom_neighbour, 0, g_topo_com, &status);	
+			counter++;
+
+			// now its my turn. append local grid to file
+			print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], true);
+			if(top_neighbour != NO_NEIGHBOUR)
+			{
+				// tell my top neighbour iots now his turn
+				MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
+			}
 		}
 	}
-	MPI_Barrier(g_topo_com);
 
+	
+	MPI_Barrier(g_topo_com);
 #endif	
 	if(g_my_rank == MASTER)
 	{	
@@ -498,11 +506,20 @@ void solve(size_t resolution, size_t iterations)
 		solution.clear();
 		if(g_dim == DIM1)
 		{
+			// for 1D gather already provides us with the fihnal solution
 			solution.insert(solution.begin(), rbuf.begin(), rbuf.begin() + offset);
 		}
 		else
 		{
+			int cmd_status;
+			string cmd("paste ");
+			for(int x = 0; x < get_topo_shape()[COORD_X]; x++)
+				cmd += "out/submatrix_col" + std::to_string(x) + ".txt ";
 			
+			stringstream ss(execCommand(cmd, cmd_status));
+			FP_TYPE next_val;
+			while(ss >> next_val)
+				solution.push_back(next_val);
 		}		
 #endif
 		MatrixView<FP_TYPE> solution_view(solution, NX, NY);
@@ -548,7 +565,7 @@ void solve(size_t resolution, size_t iterations)
 		auto residualMax = NormInf(residual);
 		auto errorNorm = NormL2(error);
 		auto errorMax = NormInf(error);
-		
+	
 		// runtimes
 		
 		auto seconds = std::chrono::duration_cast<std::chrono::duration<FP_TYPE>>(stop - start).count();

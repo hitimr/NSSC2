@@ -5,11 +5,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from itertools import chain
 import os
 import subprocess
+import sys
 
 from common import *
 
 
-fileName = "out/submatrix_col0.txt"
+fileName = sys.argv[1]
 data = np.genfromtxt(WORKSPACE_DIR + fileName)
 
 x = np.linspace(0, 1, len(data[0]))
