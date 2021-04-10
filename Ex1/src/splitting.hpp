@@ -276,7 +276,7 @@ int get_neighbours(int direction)
 {
 #ifdef USEMPI
     int topProc, botProc, leftProc, rightProc;
-    int returnProc = -1;
+    int returnProc = NO_NEIGHBOUR;
 
 	MPI_Cart_shift(g_topo_com, 1, 1, &botProc, &topProc);
 	MPI_Cart_shift(g_topo_com, 0, 1, &leftProc, &rightProc);

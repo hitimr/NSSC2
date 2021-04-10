@@ -259,8 +259,12 @@ void solve(size_t resolution, size_t iterations)
 		if(neighbours[TOP] 	!= NO_NEIGHBOUR) // receivce from top
 			MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status[TOP]);	
 
-
-		MPI_Barrier(g_topo_com);
+		/*
+		for(int direction = 0; i < 4; i++)
+		{
+			if(neighbours[direction] != NO_NEIGHBOUR)
+				MPI_Wait(req[direction])
+		}*/
 #endif
 		sol.swap(sol2);		
 	};
