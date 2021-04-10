@@ -117,7 +117,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         base_size = (int) g_resolution / (int) g_n_processes;   // integer divinsion required
         remainder = g_resolution % g_n_processes; // number of grids with size + 1
 
-        x_dim = g_resolution;
+        x_dim = 2*g_resolution-1;
         y_dim = base_size;
 
         // bigger grids are allocated in ascending order
@@ -151,7 +151,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         }
 
         topo_shape = get_topo_shape();
-        x_dim = split_1D(g_resolution, topo_shape[COORD_X], coords[COORD_X], add_ghost_layers);
+        x_dim = split_1D(2*g_resolution-1, topo_shape[COORD_X], coords[COORD_X], add_ghost_layers);
         y_dim = split_1D(g_resolution, topo_shape[COORD_Y], coords[COORD_Y], add_ghost_layers);
 
         // add ghost layers if necessary
@@ -170,7 +170,7 @@ std::vector<size_t> local_grid_size(const std::vector<int> & coords, bool add_gh
         std::cerr <<  "Invalid dimension: " << g_dim << std::endl; 
     }   
 
-    size = {2 * x_dim - 1, y_dim};
+    size = {x_dim, y_dim};
 
     return size;
 }

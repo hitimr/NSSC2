@@ -68,7 +68,9 @@ int test_local_grid_size()
     g_dim = DIM2;
     g_resolution = 13;
 
-    assert(local_grid_size({0,2}, false)[COORD_X] == 13);    assert(local_grid_size({1,2}, false)[COORD_X] == 12);
+    // without ghost layers
+    assert(local_grid_size({0,2}, false)[COORD_X] == 13);    
+    assert(local_grid_size({1,2}, false)[COORD_X] == 12);
     assert(local_grid_size({0,2}, false)[COORD_Y] == 4);    assert(local_grid_size({1,2}, false)[COORD_Y] == 4);
 
     assert(local_grid_size({0,1}, false)[COORD_X] == 13);    assert(local_grid_size({1,1}, false)[COORD_X] == 12);
@@ -76,6 +78,17 @@ int test_local_grid_size()
 
     assert(local_grid_size({0,0}, false)[COORD_X] == 13);    assert(local_grid_size({1,0}, false)[COORD_X] == 12);
     assert(local_grid_size({0,0}, false)[COORD_Y] == 5);    assert(local_grid_size({1,0}, false)[COORD_Y] == 5);
+
+
+    // with ghost layers
+    assert(local_grid_size({0,2}, true)[COORD_X] == 13+1);    assert(local_grid_size({1,2}, true)[COORD_X] == 12+1);
+    assert(local_grid_size({0,2}, true)[COORD_Y] == 4+1);    assert(local_grid_size({1,2}, true)[COORD_Y] == 4+1);
+
+    assert(local_grid_size({0,1}, true)[COORD_X] == 13+1);    assert(local_grid_size({1,1}, true)[COORD_X] == 12+1);
+    assert(local_grid_size({0,1}, true)[COORD_Y] == 4+2);    assert(local_grid_size({1,1}, true)[COORD_Y] == 4+2);
+
+    assert(local_grid_size({0,0}, true)[COORD_X] == 13+1);    assert(local_grid_size({1,0}, true)[COORD_X] == 12+1);
+    assert(local_grid_size({0,0}, true)[COORD_Y] == 5+1);    assert(local_grid_size({1,0}, true)[COORD_Y] == 5+1);
     
  
     
@@ -231,7 +244,7 @@ int main()
 {
     cout << endl << "Starting unit tests..." << endl;
 
-    //assert(test_local_grid_size() == SUCCESS);
+    assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
     assert(test_get_prime_factors() == SUCCESS);
     assert(test_split1D() == SUCCESS);
