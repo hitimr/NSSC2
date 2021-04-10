@@ -246,13 +246,13 @@ void solve(size_t resolution, size_t iterations)
 
 	if(neighbours[TOP] != NO_NEIGHBOUR) // send up
 		MPI_Isend(&solView.get(1, NY-2), NX-2, MPI_FP_TYPE, neighbours[TOP], 0, g_topo_com, &req);	
-
+	/*
 	if(neighbours[LEFT] != NO_NEIGHBOUR) // send left
 		MPI_Isend(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
 
 	if(neighbours[RIGHT] != NO_NEIGHBOUR) // send left
 		MPI_Isend(&solView.get_col(NX)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &req);
-	
+	*/
 	if(neighbours[BOTTOM] != NO_NEIGHBOUR) // receivce from bot
 		MPI_Recv(&solView.get(1, 0), NX-2, MPI_FP_TYPE, neighbours[BOTTOM], 0, g_topo_com, &status);	
 
