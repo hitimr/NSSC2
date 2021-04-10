@@ -9,7 +9,7 @@ import subprocess
 from common import *
 
 
-fileName = "out/solution.txt"
+fileName = "out/submatrix_col0.txt"
 data = np.genfromtxt(WORKSPACE_DIR + fileName)
 
 x = np.linspace(0, 1, len(data[0]))

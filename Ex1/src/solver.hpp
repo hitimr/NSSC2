@@ -442,6 +442,7 @@ void solve(size_t resolution, size_t iterations)
 		g_topo_com			// communicator
 	);
 
+	// 2D communication
 	string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
 	auto real_grid_size = local_grid_size(coords, false);	// grid size without borders
 	if(coords[COORD_Y] == 0)
@@ -454,7 +455,7 @@ void solve(size_t resolution, size_t iterations)
 		int top_neighbour = get_neighbours(TOP);	
 		if(top_neighbour != NO_NEIGHBOUR)
 		{
-			// tell my top neighbour iots now his turn
+			// tell my top neighbour its now his turn
 			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
 		}
 	}
@@ -471,13 +472,13 @@ void solve(size_t resolution, size_t iterations)
 
 		// now its my turn. append local grid to file
 		print_matrix(send_buf, fileName, real_grid_size[COORD_X], real_grid_size[COORD_Y], true);
-
 		if(top_neighbour != NO_NEIGHBOUR)
 		{
 			// tell my top neighbour iots now his turn
 			MPI_Send(&counter, 1, MPI_INT, top_neighbour, 0,g_topo_com);
 		}
 	}
+	MPI_Barrier(g_topo_com);
 
 #endif	
 	if(g_my_rank == MASTER)
@@ -582,31 +583,7 @@ void solve(size_t resolution, size_t iterations)
 		std::cout << std::scientific << "|error|2=" << errorNorm << std::endl;		
 		std::cout << std::scientific << "|errorMax|inf=" << errorMax << std::endl;
 		std::cout << std::scientific << "runtime=" << seconds << std::endl;
-		std::cout << std::scientific << "average time/iteration=" << average_iteration_time << std::endl << endl;
-
-/*
-		log.add(
-			std::to_string(g_resolution),
-			std::to_string(g_n_processes),
-			std::to_string(seconds),
-			std::to_string(errorNorm),
-			std::to_string(errorMax),
-			std::to_string(residualNorm),
-			std::to_string(residualMax),
-			std::to_string(average_iteration_time),
-			std::to_string(iterations),
-#ifdef USE_FLOAT
-			std::string("float"),
-# else
-			std::string("double"),
-#endif
-#ifdef USEMPI
-			std::string("true")
-#else
-			std::string("false")
-#endif
-			);*/
-		
+		std::cout << std::scientific << "average time/iteration=" << average_iteration_time << std::endl << endl;		
 	}
 
 #ifdef USEMPI
