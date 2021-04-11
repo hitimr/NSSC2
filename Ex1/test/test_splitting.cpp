@@ -222,9 +222,11 @@ int test_to_global_grid_coords()
     assert(to_global_grid_coords({0, 0}, {1, 1})[1] == 1);
     assert(to_global_grid_coords({0, 1}, {1, 2})[1] == 7);
     assert(to_global_grid_coords({0, 2}, {1, 3})[1] == 13);
+    assert(to_global_grid_coords({0, 2}, {26, 3})[1] == 13);
     assert(to_global_grid_coords({0, 0}, {1, 1})[0] == 1);
     assert(to_global_grid_coords({0, 1}, {1, 2})[0] == 1);
     assert(to_global_grid_coords({0, 2}, {1, 3})[0] == 1);
+    assert(to_global_grid_coords({0, 2}, {26, 3})[0] == 26);
 
 
     // 2D different grid sizes
@@ -238,7 +240,9 @@ int test_to_global_grid_coords()
     assert(to_global_grid_coords({0,1}, {1,1})[0] == 1);
     assert(to_global_grid_coords({1,1}, {1,1})[0] == 15);
     assert(to_global_grid_coords({0,2}, {1,1})[0] == 1);
-    assert(to_global_grid_coords({1,2}, {1,1})[0] == 15);
+    assert(to_global_grid_coords({1,2}, {1,1})[0] == 15);    
+    assert(to_global_grid_coords({1,2}, {12,3})[0] == 26);
+
 
 
     //check y
@@ -248,6 +252,7 @@ int test_to_global_grid_coords()
     assert(to_global_grid_coords({1,1}, {1,1})[1] == 6);
     assert(to_global_grid_coords({0,2}, {1,1})[1] == 11);
     assert(to_global_grid_coords({1,2}, {1,1})[1] == 11);
+    assert(to_global_grid_coords({1,2}, {12,3})[1] == 13);
 
 
     cout << "OK" << endl;
@@ -301,7 +306,7 @@ int main()
 {
     cout << endl << "Starting unit tests..." << endl;
 
-    //assert(test_local_grid_size() == SUCCESS);
+    assert(test_local_grid_size() == SUCCESS);
     assert(test_border_types() == SUCCESS);
     assert(test_get_prime_factors() == SUCCESS);
     assert(test_split1D() == SUCCESS);
