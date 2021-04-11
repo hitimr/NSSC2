@@ -409,7 +409,8 @@ void solve(size_t resolution, size_t iterations)
 	int offset = 0;
 	vector<FP_TYPE> rbuf;
 	if(g_dim == DIM1)
-	{
+	{	
+		// ----- 1D Use Gather/Gatherv to collect all data in root. This way data is already ordered
 		// Gather length of all send buffers
 		int send_buf_size = send_buf.size();
 		vector<int> recvcounts(g_my_rank == MASTER ? g_n_processes : 0);	// only allocate memory on master
@@ -448,9 +449,11 @@ void solve(size_t resolution, size_t iterations)
 	}
 	else
 	{
-		// 2D communication
+		// ---- 2D communication
+		// every (x,0) process collect its data and the data of every process above.
+		// this way
 		string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
-		auto real_grid_size = local_grid_size(coords, false);	// grid size without borders
+		auto real_grid_size = local_grid_size(coords, false);	// grid size without ghost layers
 		if(coords[COORD_Y] == 0)
 		{
 			// create file and write my local grid 
