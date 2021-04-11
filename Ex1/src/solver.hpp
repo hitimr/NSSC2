@@ -451,7 +451,6 @@ void solve(size_t resolution, size_t iterations)
 	{
 		// ---- 2D communication
 		// every (x,0) process collect its data and the data of every process above.
-		// this way
 		string fileName = "out/submatrix_col" + to_string(coords[COORD_X]) + ".txt";
 		auto real_grid_size = local_grid_size(coords, false);	// grid size without ghost layers
 		if(coords[COORD_Y] == 0)
