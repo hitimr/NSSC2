@@ -69,8 +69,7 @@ int test_local_grid_size()
     g_resolution = 13;
 
     // without ghost layers
-    assert(local_grid_size({0,2}, false)[COORD_X] == 13);    
-    assert(local_grid_size({1,2}, false)[COORD_X] == 12);
+    assert(local_grid_size({0,2}, false)[COORD_X] == 13);    assert(local_grid_size({1,2}, false)[COORD_X] == 12);
     assert(local_grid_size({0,2}, false)[COORD_Y] == 4);    assert(local_grid_size({1,2}, false)[COORD_Y] == 4);
 
     assert(local_grid_size({0,1}, false)[COORD_X] == 13);    assert(local_grid_size({1,1}, false)[COORD_X] == 12);
