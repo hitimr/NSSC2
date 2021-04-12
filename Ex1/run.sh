@@ -1,1 +1,0 @@
-mpirun -np 2 ./out/jacobiMPI 1D 1000 10
