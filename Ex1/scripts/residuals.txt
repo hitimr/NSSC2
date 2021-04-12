@@ -1,0 +1,14 @@
+iter=2
+|residual|=2.356629e+07
+iter=3
+iter=4
+|residual|=1.726380e+07
+iter=5
+iter=6
+|residual|=1.387296e+07
+iter=7
+iter=8
+|residual|=1.171965e+07
+iter=9
+iter=10
+|residual|=1.021607e+07

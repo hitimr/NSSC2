@@ -67,8 +67,8 @@ GDB_RUN = -ex "run 4 10"
 # quick run to check if all programs work properly
 run:
 	./$(BUILD_DIR)/jacobiSERIAL 200 200	| grep "error"
-	mpirun -np 2 -oversubscribe $(BUILD_DIR)/jacobiMPI 200 200	| grep "error"
-	mpirun -np 9 -oversubscribe $(BUILD_DIR)/jacobiMPI 2D 200 200 | grep "error"
+	mpirun -np 2 -oversubscribe $(BUILD_DIR)/jacobiMPI 200 8	| grep "error"
+#mpirun -np 9 -oversubscribe $(BUILD_DIR)/jacobiMPI 2D 200 3 | grep "error"
 #mpirun -np 2 xterm -e gdb $(GDB_ARGS) $(GDB_RUN) $(BUILD_DIR)/jacobiMPI 10 10	# debugging
 #python3 ./scripts/plot_solution.py "out/solution.txt" # execute a small script to display a plot
 #mpirun -np 2 $(BUILD_DIR)/jacobiMPI_float 2D 100 10
