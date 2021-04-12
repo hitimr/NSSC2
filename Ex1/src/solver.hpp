@@ -271,10 +271,10 @@ void solve(size_t resolution, size_t iterations)
 			MPI_Recv(&solView.get(1, NY-1), NX-2, MPI_FP_TYPE, neighbours[TOP] , 0, g_topo_com, &status[TOP]);	
 
 		if(neighbours[LEFT] != NO_NEIGHBOUR) // receivce from left
-			MPI_Recv(&solView.get_col(1)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &status[LEFT]);
+			MPI_Recv(&solView.get_col(0)[1], NY-2, MPI_FP_TYPE, neighbours[LEFT], 0, g_topo_com, &status[LEFT]);
 
 		if(neighbours[RIGHT] != NO_NEIGHBOUR) // receivce from right
-			MPI_Recv(&solView.get_col(NX-2)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &status[RIGHT]);
+			MPI_Recv(&solView.get_col(NX-1)[1], NY-2, MPI_FP_TYPE, neighbours[RIGHT], 0, g_topo_com, &status[RIGHT]);
 
 
 		// Barrier should do the trick but guides say this is required
