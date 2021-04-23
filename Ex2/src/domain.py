@@ -42,6 +42,8 @@ class Domain:
         self.pos = np.random.rand(self.particle_count, 3)   # TODO: replace with custom distribution. see description
         self.vel = np.random.rand(self.particle_count, 3)   # TODO: replace gaussian distribution
 
+        assert(self.pos.shape == self.vel.shape)
+
 
     def read_from_file(self, fileName):
         """Fill the domain with data from a file
@@ -50,13 +52,19 @@ class Domain:
             fileName (str): path to file
         """
 
+        assert(particle_count > 0)
+        assert(length > 0)
+        assert(self.pos.shape == self.vel.shape)
+
         return
 
-    def write_to_file(self, fileName):
+
+    def write_to_file(self, fileName, comment=""):
         """Write domain data to a file
 
         Args:
             fileName (str): path to file
+            comment (str): arbitrary comment/description for Line 2
         """       
 
         return
