@@ -6,3 +6,4 @@ matplotlib
 jax
 jaxlib
 yapf
+pytest
