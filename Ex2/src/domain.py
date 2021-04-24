@@ -33,7 +33,7 @@ class Domain:
         assert (isinstance(particle_count, int))
         assert (particle_count > 0)
         assert (length > 0)
-        assert (std_dev > 0)
+        assert (std_dev >= 0)
 
         self.particle_count = particle_count
         self.length = length
@@ -41,9 +41,33 @@ class Domain:
 
         # TODO: replace with custom distribution. see description
         self.pos = np.random.rand(self.particle_count, 3)
-        self.vel = np.random.rand(self.particle_count, 3)
+        self.vel = np.random.rand(self.particle_count, 3) * 2.0 - 1
 
         assert (self.pos.shape == self.vel.shape)
+
+    def minimize(self):
+        
+
+    def E_pot(self):
+
+        E = 0
+        for i in range(self.particle_count - 1):
+            for j in range(i+1):
+                E += self.V_LJ(np.linalg.norm(self.pos[i] - self.pos[j], 2))
+
+        return E
+
+
+    # Potential in natural system of units
+    def V_LJ(self, r):      
+        # With a uniform distribution its possible that r is almost 0
+        # So for now we just ignore that case
+        # TODO: remove once we have a better distribution  
+        if r < EPS: r = EPS
+
+        return 4 * (pow(0.25 / r, 12) - pow(1 / r, 6))
+
+
 
     def read_from_file(self, fileName):
         """Fill the domain with data from a file
@@ -82,3 +106,5 @@ if __name__ == "__main__":
     print(domain.vel)
     print(f"Velocity of second particle:")
     print(domain.vel[1])
+
+    print(domain.E_pot())
