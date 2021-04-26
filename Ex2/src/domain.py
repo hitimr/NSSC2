@@ -60,7 +60,7 @@ class Domain:
             for b in range(0,2):
                 self.pos[a][b]=float(line_tmp[b])
                 self.vel[a][b]=float(line_tmp[b+2])
-
+        f.close()
         assert (self.particle_count > 0)
         assert (self.length > 0)
         assert (self.pos.shape == self.vel.shape)
