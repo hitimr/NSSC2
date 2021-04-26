@@ -12,6 +12,7 @@ import jax
 from jax import grad, jit
 from config import *
 from scipy.optimize import minimize
+import scipy
 
 
 class Domain:
@@ -76,30 +77,40 @@ class Domain:
 
     def E_pot(self, pos):
         # TODO: optimize this routine
-        E = 0
-
-        # pos has MxN dimensions
-        if len(pos.shape) == 2:
-            for i in range(len(pos)):
-                for j in range(i+1):
-                    E += self.V_LJ(np.linalg.norm(pos[i] - pos[j], 2))
-            return E
-
-        # pos is 1D array
+        
+        # scipy optimize passes flattened array to E_pot. If pos is 1D transform
+        # it to 3D and back again after the calculation has finished
         if len(pos.shape) == 1:
             pos.shape = ( int(pos.shape[0] / 3), 3)
-            for i in range(len(pos)):
-                for j in range(i+1):
-                    E += self.V_LJ(np.linalg.norm(pos[i] - pos[j], 2))
-            pos.shape = (pos.shape[0]*3)
+
+        # No Flatting required
+        else:
+            return_flattened = False
+
+
+        # Calculate the potential energy for all pairs of molecules. Skip cases
+        # where i=j and distances that have already been calculated
+
+
+        E = np.triu(scipy.spatial.distance.cdist(pos, pos, metric=self.V_LJ)).sum() # LOL that actually works :D
+        return E
+
+        """ 
+        # previous way to calculate the potential
+        E = 0
+        for i in range(len(pos)):
+            for j in range(i+1, len(pos)):
+                E += self.V_LJ(pos[i], pos[j])
+        """
         return E      
 
 
     # Potential in natural system of units
-    def V_LJ(self, r):      
+    def V_LJ(self, v, w):      
         # With a uniform distribution its possible that r is almost 0
         # So for now we just ignore that case
-
+        r = np.linalg.norm(v-w)
+        if(r == 0): return 0
         return 4 * (pow(0.25 / r, 12) - pow(1 / r, 6))
 
 
@@ -149,12 +160,7 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(5, 1, 1)
-    domain.write_to_file("test","bla")
-    domain.read_from_file("test")
-
-
-    print("generated positions:")
+    domain.fill(4, 1, 1)   
     print(domain.pos)
-    print(f"Position of first particle:")
-    print(domain.pos[0])
+    print(domain.E_pot(domain.pos))
+    #domain.minimizeEnergy()
