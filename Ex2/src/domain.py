@@ -15,6 +15,44 @@ from scipy.optimize import minimize
 import scipy
 
 
+
+def E_pot(domain):
+    # TODO: optimize this routine
+    
+    # scipy optimize passes flattened array to E_pot. If pos is 1D transform
+    # it to 3D and back again after the calculation has finished
+    if len(domain.pos.shape) == 1:
+        pos.shape = ( int(pos.shape[0] / 3), 3)
+
+    # No Flatting required
+    else:
+        return_flattened = False
+
+
+    # Calculate the potential energy for all pairs of molecules. Skip cases
+    # where i=j and distances that have already been calculated
+
+
+    E = np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos, metric=V_LJ)).sum() # LOL that actually works :D
+
+    """
+    # previous way to calculate the potential
+    E = 0
+    for i in range(len(domain.pos)):
+        for j in range(i + 1, len(domain.pos)):
+            E += V_LJ(domain.pos[i], domain.pos[j])
+    """
+    return E   
+
+
+# Leonnard-Jones Potential in natural system of units
+def V_LJ(v, w):   
+    r = np.linalg.norm(v-w) # euclidian distance between points
+    if(r == 0): return 0
+    return 4 * (pow(0.25 / r, 12) - pow(2 / r, 6))
+
+
+
 class Domain:
     particle_count = int  # Number of particles in the box
     length = float  # length of the box
@@ -73,46 +111,7 @@ class Domain:
         new_pos.shape = (int(len(new_pos) / 3), 3)
         self.pos = new_pos
 
-        return new_pos
-
-    def E_pot(self, pos):
-        # TODO: optimize this routine
-        
-        # scipy optimize passes flattened array to E_pot. If pos is 1D transform
-        # it to 3D and back again after the calculation has finished
-        if len(pos.shape) == 1:
-            pos.shape = ( int(pos.shape[0] / 3), 3)
-
-        # No Flatting required
-        else:
-            return_flattened = False
-
-
-        # Calculate the potential energy for all pairs of molecules. Skip cases
-        # where i=j and distances that have already been calculated
-
-
-        E = np.triu(scipy.spatial.distance.cdist(pos, pos, metric=self.V_LJ)).sum() # LOL that actually works :D
-        return E
-
-        """ 
-        # previous way to calculate the potential
-        E = 0
-        for i in range(len(pos)):
-            for j in range(i+1, len(pos)):
-                E += self.V_LJ(pos[i], pos[j])
-        """
-        return E      
-
-
-    # Potential in natural system of units
-    def V_LJ(self, v, w):      
-        # With a uniform distribution its possible that r is almost 0
-        # So for now we just ignore that case
-        r = np.linalg.norm(v-w)
-        if(r == 0): return 0
-        return 4 * (pow(0.25 / r, 12) - pow(1 / r, 6))
-
+        return new_pos  
 
 
     def read_from_file(self, fileName):
@@ -162,5 +161,5 @@ if __name__ == "__main__":
     domain = Domain()
     domain.fill(4, 1, 1)   
     print(domain.pos)
-    print(domain.E_pot(domain.pos))
+    print(E_pot(domain))
     #domain.minimizeEnergy()
