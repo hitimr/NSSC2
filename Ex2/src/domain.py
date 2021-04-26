@@ -103,9 +103,18 @@ class Domain:
         Args:
             fileName (str): path to file
         """
-
-        assert (particle_count > 0)
-        assert (length > 0)
+        f = open(fileName+".txt", "r")
+        self.particle_count=int(f.readline())
+        comment=f.readline()
+        self.length=float(f.readline())
+        for a in range(0,self.particle_count):
+            line_tmp=f.readline().split(" ")
+            for b in range(0,2):
+                self.pos[a][b]=float(line_tmp[b])
+                self.vel[a][b]=float(line_tmp[b+2])
+        f.close()
+        assert (self.particle_count > 0)
+        assert (self.length > 0)
         assert (self.pos.shape == self.vel.shape)
 
         return
@@ -117,6 +126,13 @@ class Domain:
             fileName (str): path to file
             comment (str): arbitrary comment/description for Line 2
         """
+        f = open(fileName+".txt", "w")
+        f.write(str(self.particle_count)+"\n")
+        f.write(comment+"\n")
+        f.write(str(self.length)+"\n")
+        for a in range(0,self.particle_count):
+            f.write(str(self.pos[a][0])+" "+str(self.pos[a][1])+" "+str(self.pos[a][2])+" "+str(self.vel[a][0])+" "+str(self.vel[a][1])+" "+str(self.vel[a][2])+"\n")
+        f.close()		
 
         return
 
@@ -124,7 +140,12 @@ class Domain:
 if __name__ == "__main__":
     domain = Domain()
     domain.fill(10, 1, 1)
-
+    domain.write_to_file("test","bla")
+    domain.read_from_file("test")
+    print("generated positions:")
+    print(domain.pos)
+    print(f"Position of first particle:")
+    print(domain.pos[0])
 
     print(domain.E_pot(domain.pos))
     domain.minimizeEnergy()
