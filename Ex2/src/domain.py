@@ -6,8 +6,12 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import numpy as np
+import numpy
+import jax.numpy as np
+import jax
+from jax import grad, jit
 from config import *
+from scipy.optimize import minimize
 
 
 class Domain:
@@ -39,31 +43,55 @@ class Domain:
         self.length = length
         self.std_dev = std_dev
 
-        # TODO: replace with custom distribution. see description
-        self.pos = np.random.rand(self.particle_count, 3)
-        self.vel = np.random.rand(self.particle_count, 3) * 2.0 - 1
+        # TODO: replace with custom distribution. see description -> Reno
+        self.pos = numpy.random.rand(self.particle_count, 3)
+        self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
 
         assert (self.pos.shape == self.vel.shape)
 
-    def minimize(self):
-        
+    
 
-    def E_pot(self):
+    def minimizeEnergy(self):
+        grad_Epot = jit(grad(self.E_pot), static_argnums=(1,1))
+        result = minimize(
+            self.E_pot, 
+            self.pos,
+            method='CG',
+            jac=grad_Epot
+            )
+        new_pos = result.x
+        new_pos.shape = (int(len(new_pos) / 3), 3)
+        self.pos = new_pos
 
+        return new_pos
+
+    def E_pot(self, pos):
+        # TODO: optimize this routine
         E = 0
-        for i in range(self.particle_count - 1):
-            for j in range(i+1):
-                E += self.V_LJ(np.linalg.norm(self.pos[i] - self.pos[j], 2))
+        pos=self.pos
+        # pos is has MxN dimensions
+        if len(pos.shape) == 2:
+            for i in range(len(pos)):
+                for j in range(i+1):
+                    E += self.V_LJ(np.linalg.norm(pos[i] - pos[j], 2))
+            return E
 
-        return E
+        # pos is 1D array
+        if len(pos.shape) == 1:
+            pos.shape = ( int(pos.shape[0] / 3), 3)
+            for i in range(len(pos)):
+                for j in range(i+1):
+                    E += self.V_LJ(np.linalg.norm(pos[i] - pos[j], 2))
+            pos.shape = (pos.shape[0]*3)
+        return E      
 
 
     # Potential in natural system of units
     def V_LJ(self, r):      
         # With a uniform distribution its possible that r is almost 0
         # So for now we just ignore that case
-        # TODO: remove once we have a better distribution  
-        if r < EPS: r = EPS
+        # TODO: remove once we have a better distribution -> Reno
+        if r < 0.01: r = 0.01
 
         return 4 * (pow(0.25 / r, 12) - pow(1 / r, 6))
 
@@ -97,14 +125,7 @@ if __name__ == "__main__":
     domain = Domain()
     domain.fill(10, 1, 1)
 
-    print("generated positions:")
-    print(domain.pos)
-    print(f"Position of first particle:")
-    print(domain.pos[0])
 
-    print("\ngenerated velocities:")
-    print(domain.vel)
-    print(f"Velocity of second particle:")
-    print(domain.vel[1])
-
-    print(domain.E_pot())
+    print(domain.E_pot(domain.pos))
+    domain.minimizeEnergy()
+    print(domain.E_pot(domain.pos))
