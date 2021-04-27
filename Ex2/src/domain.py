@@ -6,8 +6,9 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import numpy
-import jax.numpy as np
+
+import numpy as np
+import jax.numpy as jnp
 import jax
 from jax import grad, jit
 from config import *
@@ -15,43 +16,45 @@ from scipy.optimize import minimize
 import scipy
 
 
-
-def E_pot(domain):
-    # TODO: optimize this routine
-    
+def Epot(pos):    
     # scipy optimize passes flattened array to E_pot. If pos is 1D transform
     # it to 3D and back again after the calculation has finished
-    if len(domain.pos.shape) == 1:
-        pos.shape = ( int(pos.shape[0] / 3), 3)
+    #if len(pos.shape) == 1:
+    print(type(pos))
+    pass
+    #if not isinstance(pos, np.ndarray):
+        #print(type(pos))
+        #print(pos[0])
+        #pos.shape = ( int(pos.shape[0] / 3), 3)
+    if (len(pos.shape)):
+        pos = jax.numpy.reshape(pos, ())
 
-    # No Flatting required
-    else:
-        return_flattened = False
+    E = np.triu(scipy.spatial.distance.cdist(pos, pos, metric=VLJ)).sum() # LOL that actually works :D
 
-
-    # Calculate the potential energy for all pairs of molecules. Skip cases
-    # where i=j and distances that have already been calculated
-
-
-    E = np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos, metric=V_LJ)).sum() # LOL that actually works :D
+    pos.shape = (pos.shape[0]*3)
 
     """
-    # previous way to calculate the potential
+    # Old way to calculate the potential. Still left in here to verify results
+    # Calculate the potential energy for all pairs of molecules. Skip cases
+    # where i=j and distances that have already been calculated
     E = 0
     for i in range(len(domain.pos)):
         for j in range(i + 1, len(domain.pos)):
-            E += V_LJ(domain.pos[i], domain.pos[j])
+            E += VLJ(domain.pos[i], domain.pos[j])
     """
     return E   
 
 
 # Leonnard-Jones Potential in natural system of units
-def V_LJ(v, w):   
+def VLJ(v, w):   
     r = np.linalg.norm(v-w) # euclidian distance between points
     if(r == 0): return 0
     return 4 * (pow(0.25 / r, 12) - pow(2 / r, 6))
 
-
+# TODO remove unnecessry ones whern done
+grad_Epot = grad(Epot)  # https://jax.readthedocs.io/en/latest/jax.html#jax.grad
+Epot_jit = jit(Epot)
+VLJ_jit = jit(VLJ)
 
 class Domain:
     particle_count = int  # Number of particles in the box
@@ -101,12 +104,13 @@ class Domain:
         self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
 
     def minimizeEnergy(self):
-        grad_Epot = jit(grad(self.E_pot), static_argnums=(1,1))
         result = minimize(
-            self.E_pot, 
-            self.pos,
-            method='CG'
-            )
+            Epot, 
+            self.pos.ravel(),
+            jac=grad_Epot,
+            method='CG'            
+        )
+
         new_pos = result.x
         new_pos.shape = (int(len(new_pos) / 3), 3)
         self.pos = new_pos
@@ -159,7 +163,9 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(4, 1, 1)   
+    domain.fill(10, 1, 1)   
     print(domain.pos)
-    print(E_pot(domain))
-    #domain.minimizeEnergy()
+
+    print(Epot(domain.pos))
+    domain.minimizeEnergy()
+    #print(E_pot(domain.pos))
