@@ -44,7 +44,7 @@ def Epot(pos):
 def VLJ(v, w):   
     r = np.linalg.norm(v-w) # euclidian distance between points
     if(r == 0): return 0
-    return 4 * (pow(0.25 / r, 12) - pow(2 / r, 6))
+    return 4 * (4*pow(1 / r, 12) - 2*pow(1 / r, 6)) # TODO: check if this is actually correct
 
 # TODO remove unnecessry ones whern done
 grad_Epot = jit(grad(Epot))  # https://jax.readthedocs.io/en/latest/jax.html#jax.grad
@@ -108,7 +108,6 @@ class Domain:
 
         new_pos = to3D(result.x)
         self.pos = new_pos
-
         return new_pos  
 
 
@@ -157,9 +156,10 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(3, 1, 1)   
+    domain.fill(2, 1, 1)   
     print(domain.pos)
 
-    print(Epot(domain.pos))
+    old_energy = Epot(domain.pos))
+    old_pos = 
     domain.minimizeEnergy()
     print(Epot(domain.pos))
