@@ -8,32 +8,27 @@ sys.path.insert(0, parentdir)
 
 
 import numpy as np
-import jax.numpy as jnp
-import jax
-from jax import grad, jit
-from config import *
-from scipy.optimize import minimize
 import scipy
+from scipy.optimize import minimize
+
+import jax
+import jax.numpy as jnp
+from jax import grad, jit
+
+from config import *
+from misc import *
 
 
 def Epot(pos):    
     # scipy optimize passes flattened array to E_pot. If pos is 1D transform
     # it to 3D and back again after the calculation has finished
     #if len(pos.shape) == 1:
-    print(type(pos))
-    pass
-    #if not isinstance(pos, np.ndarray):
-        #print(type(pos))
-        #print(pos[0])
-        #pos.shape = ( int(pos.shape[0] / 3), 3)
-    if (len(pos.shape)):
-        pos = jax.numpy.reshape(pos, ())
+    v = to3D(pos)
 
-    E = np.triu(scipy.spatial.distance.cdist(pos, pos, metric=VLJ)).sum() # LOL that actually works :D
+    #E = jnp.triu(scipy.spatial.distance.cdist(v, v, metric=VLJ)).sum() # LOL that actually works :D
 
-    pos.shape = (pos.shape[0]*3)
 
-    """
+    
     # Old way to calculate the potential. Still left in here to verify results
     # Calculate the potential energy for all pairs of molecules. Skip cases
     # where i=j and distances that have already been calculated
@@ -41,7 +36,7 @@ def Epot(pos):
     for i in range(len(domain.pos)):
         for j in range(i + 1, len(domain.pos)):
             E += VLJ(domain.pos[i], domain.pos[j])
-    """
+    
     return E   
 
 
@@ -52,7 +47,7 @@ def VLJ(v, w):
     return 4 * (pow(0.25 / r, 12) - pow(2 / r, 6))
 
 # TODO remove unnecessry ones whern done
-grad_Epot = grad(Epot)  # https://jax.readthedocs.io/en/latest/jax.html#jax.grad
+grad_Epot = jit(grad(Epot))  # https://jax.readthedocs.io/en/latest/jax.html#jax.grad
 Epot_jit = jit(Epot)
 VLJ_jit = jit(VLJ)
 
@@ -92,16 +87,16 @@ class Domain:
 
     def initialize_pos(self):
         # TODO, Reno: replace with custom distribution from Task 2.1
-        self.pos = numpy.ndarray((self.particle_count, 3))
+        self.pos = np.ndarray((self.particle_count, 3))
 
         spacing = self.length / (self.particle_count)
         for i in range(self.particle_count):
             for j in range(3):
-                self.pos[i][j] = spacing / 2 + i*spacing # + 1/2 to avoid placing particles at (0|0)
+                self.pos[i][j] = spacing / 2 + i*spacing/10 # + 1/2 to avoid placing particles at (0|0)
 
     def initialize_vel(self):
         # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
-        self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
+        self.vel = np.random.rand(self.particle_count, 3) * 2.0 - 1
 
     def minimizeEnergy(self):
         result = minimize(
@@ -111,8 +106,7 @@ class Domain:
             method='CG'            
         )
 
-        new_pos = result.x
-        new_pos.shape = (int(len(new_pos) / 3), 3)
+        new_pos = to3D(result.x)
         self.pos = new_pos
 
         return new_pos  
@@ -163,9 +157,9 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(10, 1, 1)   
+    domain.fill(3, 1, 1)   
     print(domain.pos)
 
     print(Epot(domain.pos))
     domain.minimizeEnergy()
-    #print(E_pot(domain.pos))
+    print(Epot(domain.pos))

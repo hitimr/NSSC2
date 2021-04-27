@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 
 
 def to3D(v):
@@ -7,7 +8,7 @@ def to3D(v):
     Args:
         v (array-like): vector to transform
     """    
-    v = np.array(v) 
+    v = jnp.array(v) 
     if (len(v.shape) == 2) and (v.shape[1] == 3): return v  # data is already 3D
 
     assert(len(v.shape) == 1)
