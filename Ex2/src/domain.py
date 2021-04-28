@@ -33,18 +33,25 @@ def Epot(pos):
     # Calculate the potential energy for all pairs of molecules. Skip cases
     # where i=j and distances that have already been calculated
     E = 0
-    for i in range(len(domain.pos)):
-        for j in range(i + 1, len(domain.pos)):
-            E += VLJ(domain.pos[i], domain.pos[j])
+    for i in range(len(v)):
+        for j in range(i + 1, len(v)):
+            E += VLJ(v[i], v[j])
     
     return E   
 
 
 # Leonnard-Jones Potential in natural system of units
 def VLJ(v, w):   
-    r = np.linalg.norm(v-w) # euclidian distance between points
+    r = jnp.linalg.norm(v-w) # euclidian distance between points
+    #if(r == 0): return 0
+    return 4 * (4*pow(1 / r, 12) - 2*pow(1 / r, 6)) # TODO: check if this is actually correct
+
+# Leonard Jones with distance as argument
+def VLJ_r(r):   
     if(r == 0): return 0
     return 4 * (4*pow(1 / r, 12) - 2*pow(1 / r, 6)) # TODO: check if this is actually correct
+
+
 
 # TODO remove unnecessry ones whern done
 grad_Epot = jit(grad(Epot))  # https://jax.readthedocs.io/en/latest/jax.html#jax.grad
@@ -64,6 +71,7 @@ class Domain:
         self.std_dev = -1
 
     def fill(self, particle_count, length, std_dev):
+        # TODO: Move length arguemnt to constructor
         """Fill the domain with particles as specified in Task 2
 
         Args:
@@ -89,10 +97,12 @@ class Domain:
         # TODO, Reno: replace with custom distribution from Task 2.1
         self.pos = np.ndarray((self.particle_count, 3))
 
-        spacing = self.length / (self.particle_count)
-        for i in range(self.particle_count):
-            for j in range(3):
-                self.pos[i][j] = spacing / 2 + i*spacing/10 # + 1/2 to avoid placing particles at (0|0)
+        #spacing = self.length / (self.particle_count)
+        #for i in range(self.particle_count):
+            #for j in range(3):
+                #self.pos[i][j] = (spacing / 2 + i*spacing/10) / 5 # + 1/2 to avoid placing particles at (0|0)
+
+        self.pos = self.vel = np.random.rand(self.particle_count, 3) * self.length
 
     def initialize_vel(self):
         # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
@@ -103,7 +113,8 @@ class Domain:
             Epot, 
             self.pos.ravel(),
             jac=grad_Epot,
-            method='CG'            
+            method='CG',
+            options={"disp" : True, "maxiter" : 5}           
         )
 
         new_pos = to3D(result.x)
@@ -153,13 +164,42 @@ class Domain:
 
         return
 
+    def average_distance(self):
+        distances = np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos)) # calculate distances but throws away lower triangle
+        average = distances.sum() / (2*self.particle_count**2)
+        return average
+
 
 if __name__ == "__main__":
-    domain = Domain()
-    domain.fill(2, 1, 1)   
-    print(domain.pos)
+    import matplotlib.pyplot as plt
 
-    old_energy = Epot(domain.pos))
-    old_pos = 
+    np.random.seed(1)
+    domain = Domain()
+    domain.fill(6, 9, 1)   
+
+    old_energy = Epot(domain.pos)
+    old_pos = domain.pos
+    old_average_distance = domain.average_distance()
+
     domain.minimizeEnergy()
-    print(Epot(domain.pos))
+
+    new_energy = Epot(domain.pos)
+    new_pos = domain.pos
+    new_average_distance = domain.average_distance()
+    print(old_pos)
+    print(new_pos)
+    print(old_energy)
+    print(new_energy)
+    #print(f"average distance={np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos)).sum()/ (2*domain.particle_count**2)}")
+    print(old_average_distance)
+    print(new_average_distance)
+
+
+    x_vals = np.linspace(1.0, 2, 1000)
+    y_vals = [VLJ_r(x) for x in x_vals]
+
+    #plt.plot(x_vals, y_vals)
+    #plt.show()
+
+
+
