@@ -35,7 +35,7 @@ def Epot(pos):
     E = 0
     for i in range(len(v)):
         for j in range(i + 1, len(v)):
-            E += VLJ_jit(v[i], v[j])    # using jit actually shaved off 20% of runtime
+            E += VLJ_jit(v[i], v[j])    # using jit actually shaved off 20% form runtime
     
     return E   
 
@@ -64,7 +64,7 @@ class Domain:
     length = float  # length of the box
     std_dev = float  # standard deviation of the velocities
     pos = np.ndarray  # positional data of the particles
-    vel = np.ndarray  # velocity data of the particles
+    vel = np.ndarray  # velocity data of the particle
 
     # Stats
     time_minimizeEnergy = float
