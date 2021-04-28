@@ -6,7 +6,7 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-
+import time
 import numpy as np
 import scipy
 from scipy.optimize import minimize
@@ -16,7 +16,7 @@ import jax.numpy as jnp
 from jax import grad, jit
 
 from config import *
-from misc import *
+from src.misc import *
 
 
 def Epot(pos):    
@@ -35,7 +35,7 @@ def Epot(pos):
     E = 0
     for i in range(len(v)):
         for j in range(i + 1, len(v)):
-            E += VLJ(v[i], v[j])
+            E += VLJ_jit(v[i], v[j])    # using jit actually shaved off 20% of runtime
     
     return E   
 
@@ -59,16 +59,23 @@ Epot_jit = jit(Epot)
 VLJ_jit = jit(VLJ)
 
 class Domain:
+    # Domain settings
     particle_count = int  # Number of particles in the box
     length = float  # length of the box
     std_dev = float  # standard deviation of the velocities
     pos = np.ndarray  # positional data of the particles
     vel = np.ndarray  # velocity data of the particles
 
+    # Stats
+    time_minimizeEnergy = float
+
     def __init__(self):
         self.particle_count = -1
         self.length = -1
         self.std_dev = -1
+
+        # Benchmark stats
+        self.time_minimizeEnergy = -1
 
     def fill(self, particle_count, length, std_dev):
         # TODO: Move length arguemnt to constructor
@@ -109,6 +116,7 @@ class Domain:
         self.vel = np.random.rand(self.particle_count, 3) * 2.0 - 1
 
     def minimizeEnergy(self):
+        start = time.time()
         result = minimize(
             Epot, 
             self.pos.ravel(),
@@ -119,6 +127,9 @@ class Domain:
 
         new_pos = to3D(result.x)
         self.pos = new_pos
+
+        end = time.time()
+        self.time_minimizeEnergy = end - start
         return new_pos  
 
 
@@ -181,18 +192,17 @@ if __name__ == "__main__":
     old_pos = domain.pos
     old_average_distance = domain.average_distance()
 
+    print(old_energy)
+    print("Minimizing Energy..")
     domain.minimizeEnergy()
+    print("Done")
+    print(f"Operation took {domain.time_minimizeEnergy}s")
+
 
     new_energy = Epot(domain.pos)
     new_pos = domain.pos
     new_average_distance = domain.average_distance()
-    print(old_pos)
-    print(new_pos)
-    print(old_energy)
-    print(new_energy)
-    #print(f"average distance={np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos)).sum()/ (2*domain.particle_count**2)}")
-    print(old_average_distance)
-    print(new_average_distance)
+
 
 
     x_vals = np.linspace(1.0, 2, 1000)
