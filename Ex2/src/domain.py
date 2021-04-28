@@ -158,3 +158,18 @@ if __name__ == "__main__":
     print(domain.pos)
     print(f"Position of first particle:")
     print(domain.pos[0])
+    
+    """avg_xvel = 0
+    avg_yvel = 0
+    avg_zvel = 0
+    
+    for i in range(len(domain.vel)):
+        avg_xvel += domain.vel[i][0]
+        avg_yvel += domain.vel[i][1]
+        avg_zvel += domain.vel[i][2]
+
+    avg_xvel = avg_xvel/len(domain.vel)
+    avg_yvel = avg_yvel/len(domain.vel)
+    avg_zvel = avg_zvel/len(domain.vel)
+
+    print("-------\n","xvel:",avg_xvel,"yvel:",avg_yvel,"zvel:",avg_zvel)"""
