@@ -8,6 +8,7 @@ sys.path.insert(0, parentdir)
 
 import numpy as np
 import pytest
+import jax
 
 from src.domain import *
 
@@ -24,7 +25,14 @@ def test_Epot():
     assert(Epot(pos) == E)
 
 
+def test_minimize():
+    domain = Domain()
+    domain.fill(5, 9, 1)
+    E_old = Epot(domain.pos)
+    domain.minimizeEnergy()
+    E_new = Epot(domain.pos)
+    assert(E_new < E_old)  
 
 
 if __name__ == "__main__":
-    test_Epot()
+    test_minimize()

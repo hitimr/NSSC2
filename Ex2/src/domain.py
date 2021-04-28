@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
     np.random.seed(1)
     domain = Domain()
-    domain.fill(6, 9, 1)   
+    domain.fill(5, 9, 1)   
 
     old_energy = Epot(domain.pos)
     old_pos = domain.pos
