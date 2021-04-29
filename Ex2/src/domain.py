@@ -7,45 +7,40 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 import time
+import math
 import numpy as np
+numpy = np    # to be compatible with
 import scipy
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+
 
 import jax
 import jax.numpy as jnp
 from jax import grad, jit
 
+
 from config import *
 from src.misc import *
 
-def Epot(x):
-    x = to3D(x)
-    n = len(x)
-    broadcasted = x[:, jnp.newaxis, :] - x   # calculate the distance between all particles while utilizing jnp.broadcast
-    broadcasted = broadcasted.reshape(n*n,3)
-    r = jnp.linalg.norm(broadcasted, axis=1)  # calculate the euclidian norm of all distances
-    r6 =  jnp.nan_to_num(jnp.power(r, -6), posinf=0.0)
-    return 4*(2*jnp.dot(r6,r6) - r6.sum())
+def Epot(positions):
+    """Lennard-Jones potential in reduced units.
+    In this system of units, epsilon=1 and sigma=2**(-1. / 6.).
+    """
+    positions = to3D(positions)
+    if positions.ndim != 2 or positions.shape[1] != 3:
+        raise ValueError("positions must be an Mx3 array")
+    # Compute all squared distances between pairs without iterating.
+    delta = positions[:, np.newaxis, :] - positions
+    r2 = (delta * delta).sum(axis=2)
+    # Take only the upper triangle (combinations of two atoms).
+    indices = np.triu_indices(r2.shape[0], k=1)
+    rm2 = 1. / r2[indices]
+    # Compute the potental energy recycling as many calculations as possible.
+    rm6 = rm2 * rm2 * rm2
+    rm12 = rm6 * rm6
+    return (rm12 - 2. * rm6).sum()
 
-
-
-# Leonnard-Jones Potential in natural system of units
-def VLJ(v, w):   
-    r = jnp.linalg.norm(v-w) # euclidian distance between points
-    #if(r == 0): return 0
-    return 4 * (4*pow(1 / r, 12) - 2*pow(1 / r, 6)) # TODO: check if this is actually correct
-
-# Leonard Jones with distance as argument
-def VLJ_r(r):   
-    if(r == 0): return 0
-    return 4 * (4*pow(1 / r, 12) - 2*pow(1 / r, 6)) # TODO: check if this is actually correct
-
-
-
-# https://jax.readthedocs.io/en/latest/jax.html#jax.grad
-Epot_jit = jax.jit(Epot)
-grad_Epot = grad(Epot)
-grad_Epot_jit = jit(grad(Epot))  
 
 class Domain:
     # Domain settings
@@ -62,7 +57,7 @@ class Domain:
     Epot = object
     grad_Epot = object
 
-    def __init__(self, fEpot=Epot_jit, fGradEpot=grad_Epot_jit):
+    def __init__(self, fEpot=Epot):
         self.particle_count = -1
         self.length = -1
         self.std_dev = -1
@@ -70,8 +65,8 @@ class Domain:
         # Benchmark stats
         self.time_minimizeEnergy = -1
 
-        self.Epot = fEpot
-        self.grad_Epot = fEpot
+        self.Epot = jax.jit(fEpot)
+        self.grad_Epot = jax.grad(self.Epot)
 
     def fill(self, particle_count, length, std_dev):
         # TODO: Move length arguemnt to constructor
@@ -176,7 +171,7 @@ class Domain:
     def initialize_vel_old(self):
         self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
 
-    def visualize_pos(self):
+    def visualize_pos(self, show=True, fileName=""):
         x=[];y=[];z=[]
         for i in range(len(self.pos)):
             x.append(self.pos[i][0])
@@ -186,11 +181,17 @@ class Domain:
         fig = plt.figure(figsize = (10, 7))
         ax = plt.axes(projection ="3d")
         ax.scatter3D(x, y, z, color = "blue")
+        # TODO: set dynamically to box size
         ax.set_xlim(0,1)
         ax.set_ylim(0,1)
         ax.set_zlim(0,1)
         plt.title("domain")
-        plt.show()
+
+        if(show == True):
+            plt.show()
+
+        if(fileName != ""):
+            plt.savefig(fileName)
 
     def minimizeEnergy(self):
         start = time.time()
@@ -201,7 +202,6 @@ class Domain:
             method='CG',
             options={"disp" : True, "maxiter" : 10}           
         )
-
         new_pos = to3D(result.x)
         self.pos = new_pos
 
@@ -258,29 +258,12 @@ class Domain:
         return average
 
 
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    N = 20
-    rho = 0.8
-
-    L = ((float(N)/rho))**(1.0/3.0)
-    np.random.seed(1)
-    domain = Domain(Epot_jit, grad_Epot_jit)
-
-
-    domain.fill(100, 20, 1)   
-
-    print(domain.vel)
-    pos = domain.pos.T
-    vel = domain.vel.T
-
-
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.quiver(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], length=3)
-    plt.show()
-
+def playgroud_reno():
+    domain = Domain()
+    domain.fill(27, 1, 0.1)
+    #domain.visualize_pos()
+    domain.integrate(1,10)
+    #domain.visualize_pos()
 
 
     def integrate(self,dt,N):
@@ -296,10 +279,39 @@ if __name__ == "__main__":
         # it would be nice, if read_to_file() would add the new positions,
         # insted of overwriting the old ones
 
+def playground_hiti():
+
+    N = 20
+    rho = 0.8
+
+    L = ((float(N)/rho))**(1.0/3.0)
+    np.random.seed(1)
+
+    domain = Domain(Epot)
+    domain.fill(10, 1, 1)   
+    #domain.visualize_pos(show=False, fileName="out/plot1.png")
+    domain.minimizeEnergy()
+    #domain.visualize_pos(show=True, fileName="out/plot2.png")
+
+    #print(domain.vel)
+    pos = domain.pos.T
+    vel = domain.vel.T
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.quiver(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], length=3)
+    #plt.show()
+
+
+
+    
+
+def playground_hickel():
+    print("Grillenzirpen...")
+    
+
 
 if __name__ == "__main__":
-    domain = Domain()
-    domain.fill(27, 1, 0.1)
-    #domain.visualize_pos()
-    domain.integrate(1,10)
-    #domain.visualize_pos()
+    #playgroud_reno()
+    #playground_hickel()
+    playground_hiti()
