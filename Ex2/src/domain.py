@@ -1,8 +1,6 @@
+#!/usr/bin/env python3
 #include parent folder
 import os, sys, inspect
-import math
-
-
 currentdir = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -14,6 +12,9 @@ import jax
 from jax import grad, jit
 from config import *
 from scipy.optimize import minimize
+import math
+from mpl_toolkits import mplot3d
+import matplotlib.pyplot as plt
 
 
 class Domain:
@@ -53,33 +54,81 @@ class Domain:
     def initialize_pos(self):
         #dimensions of domain
         self.pos = numpy.ndarray((self.particle_count, 3))
-        nr_edge = math.ceil(self.particle_count**(1/3))
-        spacing = self.length/nr_edge
+        nr_edge = math.ceil(self.particle_count**(1/3)) #set cube size
+        spacing = self.length/nr_edge #distance between neighbours on same axis
+        
+        #fill cubic domain
+        
         nr_particles = 0
+        for i in range(nr_edge): #z coordinate in domain
+            for j in range(nr_edge): #y coordinate in domain
+                for k in range(nr_edge): #x coordinate in domain
 
-        #fill square shaped domain
-        for i in range(nr_edge): #z-coordinate
-            for j in range(nr_edge): #y
-                for k in range(nr_edge): #x
-                    for c in range(3):
-                        if(nr_particles < self.particle_count):
-                            if (c%3==0):
-                                self.pos[nr_particles][0] = k/nr_edge
-                            elif ((c+1)%3==0):
-                                self.pos[nr_particles][1] = j/nr_edge
-                            elif ((c+2)%3==0):
-                                self.pos[nr_particles][2] = i/nr_edge
+                    for c in range(3): #2nd axis of self.pos array
+                        if(nr_particles < self.particle_count): #check part countprint(nr_particles,c,"----",i,j,k)
+                            if (c==0): #multiply by self.length missing
+                                self.pos[nr_particles][0] = k/nr_edge + spacing/2
+                            elif (c==1):
+                                self.pos[nr_particles][1] = j/nr_edge + spacing/2
+                            elif (c==2):
+                                self.pos[nr_particles][2] = i/nr_edge + spacing/2
+                    
+                    #this iteration over nr_particles 
+                    #cant be replaced by for-loop, for some reason
                     nr_particles += 1
-                        
-        # old code:
-        # spacing = self.length / (self.particle_count)
-        # for i in range(self.particle_count):
-        #     for j in range(3):
-        #         self.pos[i][j] = spacing / 2 + i*spacing # + 1/2 to avoid placing particles at (0|0)
 
+    def initizalize_pos_old(self):
+        #this is the old initializer
+        #places particles on space diagonal
+        spacing = self.length / (self.particle_count)
+        for i in range(self.particle_count):
+            for j in range(3):
+                self.pos[i][j] = spacing / 2 + i*spacing
+                # + 1/2 to avoid placing particles at (0|0)
+    
     def initialize_vel(self):
-        # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
+        self.vel = numpy.ndarray((self.particle_count, 3))
+        vel = numpy.random.normal(0, self.std_dev, self.particle_count*3)
+        
+        for i in range(self.particle_count):
+            for c in range(3): #2nd axis of self.vel array
+                self.vel[i][c] = vel[0]
+                vel = numpy.delete(vel,0)
+
+        #set velocity mean to 0
+        xmean = numpy.average(numpy.transpose(self.vel)[0])
+        ymean = numpy.average(numpy.transpose(self.vel)[1])
+        zmean = numpy.average(numpy.transpose(self.vel)[2])
+
+        for i in range(self.particle_count):
+            for c in range(3): #2nd axis of self.vel array
+                if (c==0):
+                    self.vel[i][c] -= xmean
+                elif (c==1):
+                    #print(c)
+                    self.vel[i][c] -= ymean
+                elif (c==2):
+                    #print(c)
+                    self.vel[i][c] -= zmean
+
+    def initialize_vel_old(self):
         self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
+
+    def visualize_pos(self):
+        x=[];y=[];z=[]
+        for i in range(len(self.pos)):
+            x.append(self.pos[i][0])
+            y.append(self.pos[i][1])
+            z.append(self.pos[i][2])
+        
+        fig = plt.figure(figsize = (10, 7))
+        ax = plt.axes(projection ="3d")
+        ax.scatter3D(x, y, z, color = "blue")
+        ax.set_xlim(0,1)
+        ax.set_ylim(0,1)
+        ax.set_zlim(0,1)
+        plt.title("domain")
+        plt.show()
 
     def minimizeEnergy(self):
         grad_Epot = jit(grad(self.E_pot), static_argnums=(1,1))
@@ -114,15 +163,12 @@ class Domain:
             pos.shape = (pos.shape[0]*3)
         return E      
 
-
-    # Potential in natural system of units
     def V_LJ(self, r):      
+        # Potential in natural system of units
         # With a uniform distribution its possible that r is almost 0
         # So for now we just ignore that case
 
         return 4 * (pow(0.25 / r, 12) - pow(1 / r, 6))
-
-
 
     def read_from_file(self, fileName):
         """Fill the domain with data from a file
@@ -169,28 +215,9 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(27, 1, 1)
-    domain.write_to_file("test","bla")
-    domain.read_from_file("test")
-
-
-    #print("generated positions:")
+    domain.fill(27, 1, 0.1)
+    #domain.visualize_pos()
+    #domain.write_to_file("test","bla")
+    #domain.read_from_file("test")
     print(domain.pos)
-    #print(f"Position of first particle:")
-    #print(domain.pos[0])
-    #print(domain.vel)
-    
-    """avg_xvel = 0
-    avg_yvel = 0
-    avg_zvel = 0
-    
-    for i in range(len(domain.vel)):
-        avg_xvel += domain.vel[i][0]
-        avg_yvel += domain.vel[i][1]
-        avg_zvel += domain.vel[i][2]
-
-    avg_xvel = avg_xvel/len(domain.vel)
-    avg_yvel = avg_yvel/len(domain.vel)
-    avg_zvel = avg_zvel/len(domain.vel)
-
-    print("-------\n","xvel:",avg_xvel,"yvel:",avg_yvel,"zvel:",avg_zvel)"""
+    print(domain.vel)
