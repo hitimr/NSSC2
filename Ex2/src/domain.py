@@ -58,7 +58,6 @@ class Domain:
         spacing = self.length/nr_edge #distance between neighbours on same axis
         
         #fill cubic domain
-        
         nr_particles = 0
         for i in range(nr_edge): #z coordinate in domain
             for j in range(nr_edge): #y coordinate in domain
@@ -72,10 +71,15 @@ class Domain:
                                 self.pos[nr_particles][1] = j/nr_edge + spacing/2
                             elif (c==2):
                                 self.pos[nr_particles][2] = i/nr_edge + spacing/2
+                        else: break #after all particles are set: break
                     
                     #this iteration over nr_particles 
                     #cant be replaced by for-loop, for some reason
                     nr_particles += 1
+
+        #randomize positions
+        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)/5
+        self.pos += randomize
 
     def initizalize_pos_old(self):
         #this is the old initializer
