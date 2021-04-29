@@ -13,9 +13,12 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 
+N = 100
+L = N*5
+
 app = pg.mkQApp("GLScatterPlotItem Example")
 w = gl.GLViewWidget()
-w.opts['distance'] = 20
+w.opts['distance'] = 50
 w.show()
 w.setWindowTitle('pyqtgraph example: GLScatterPlotItem')
 
@@ -29,12 +32,15 @@ w.addItem(g)
 ## 
 
 domain = Domain(Epot)
-domain.fill(40, 10, 1)
+domain.fill(N, L, 1)
 domain.minimizeEnergy()
 
 pos3 = domain.pos
-sp3 = gl.GLScatterPlotItem(pos=pos3, color=(1,1,1,10), size=1, pxMode=False)
+colors = np.random.rand(N,4)
+for c in colors: c[3] = 1
+sp3 = gl.GLScatterPlotItem(pos=pos3, color=colors, size=0.3, pxMode=False)
 w.addItem(sp3)
+
 
  
 
@@ -42,14 +48,16 @@ def update():
     ## update surface positions and colors
     global sp3
     
-    domain.verlet_advance(0.1)
+    domain.verlet_advance(0.01)
     pos3 = np.array(domain.pos)
     #print(domain.Epot(domain.pos))
     sp3.setData(pos=pos3)
+    #w.orbit(0.2,0)
+
     
 t = QtCore.QTimer()
 t.timeout.connect(update)
-t.start(50)
+t.start(100)
 
 if __name__ == '__main__':
     np.random.seed(1)

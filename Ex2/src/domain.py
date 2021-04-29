@@ -98,13 +98,15 @@ class Domain:
 
         # TODO: optimize, maybe switch to jax
         f = -self.grad_Epot(self.pos)        
-
         new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
+        
         new_f = -self.grad_Epot(new_pos)
         new_vel = self.vel + 0.5 * (f + new_f ) * dt
 
-        self.pos = new_pos
-        self.vel = new_vel
+        new_pos = new_pos - self.length * np.round(new_pos/self.length)
+        
+        self.pos = new_pos 
+        self.vel = new_vel 
 
     def initialize_pos(self):
         #dimensions of domain
@@ -291,9 +293,9 @@ def playground_hiti():
 
     domain = Domain(Epot)
     domain.fill(10, 10, 1)   
-    domain.visualize_pos(show=False, fileName="out/plot1.png")
+    #domain.visualize_pos(show=False, fileName="out/plot1.png")
     domain.minimizeEnergy()
-    domain.visualize_pos(show=True, fileName="out/plot2.png")
+    #domain.visualize_pos(show=True, fileName="out/plot2.png")
 
     #print(domain.vel)
     pos = domain.pos.T

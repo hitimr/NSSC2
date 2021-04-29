@@ -11,4 +11,4 @@ pandas
 tqdm
 PyQt5
 PyOpenGL
-pyqrgraph
+pyqtgraph
