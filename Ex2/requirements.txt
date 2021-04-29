@@ -8,3 +8,7 @@ jaxlib
 yapf
 pytest
 pandas
+tqdm
+PyQt5
+PyOpenGL
+pyqrgraph

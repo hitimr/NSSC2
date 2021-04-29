@@ -96,27 +96,27 @@ class Domain:
 
         assert (self.pos.shape == self.vel.shape)
 
+    def verlet_advance(self, dt):
+        if(dt == 0): return
+
+        # TODO: optimize, maybe switch to jax
+        f = -self.grad_Epot(self.pos)        
+        new_pos = self.pos + self.vel * dt + 0.5 * f *dt**2
+        new_f = -self.grad_Epot(new_pos)
+        new_vel = self.vel + 0.5 * (f + new_f * dt)
+
+        self.pos = new_pos
+        self.vel = new_vel
+
     def initialize_pos(self):
         # TODO, Reno: replace with custom distribution from Task 2.1
-        self.pos = np.ndarray((self.particle_count, 3))
-
-        #spacing = self.length / (self.particle_count)
-        #for i in range(self.particle_count):
-            #for j in range(3):
-                #self.pos[i][j] = (spacing / 2 + i*spacing/10) / 5 # + 1/2 to avoid placing particles at (0|0)
-
         self.pos =  np.random.rand(self.particle_count, 3) * self.length
-        #posx = np.linspace(0, self.length, self.particle_count)
-        #posy = np.linspace(0, self.length, self.particle_count)
-        #posz = np.linspace(0, self.length, self.particle_count)
 
-        #pos = np.array([posx, posy, posz])
-        #self.pos = pos.T
 
 
     def initialize_vel(self):
         # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
-        self.vel = np.random.rand(self.particle_count, 3) * 2.0 - 1
+        self.vel = np.random.rand(self.particle_count, 3) - 0.5
 
     def minimizeEnergy(self):
         start = time.time()
@@ -193,30 +193,19 @@ if __name__ == "__main__":
     L = ((float(N)/rho))**(1.0/3.0)
     np.random.seed(1)
     domain = Domain(Epot_jit, grad_Epot_jit)
-    domain.fill(20, 20, 1)   
-
-    old_energy = Epot(domain.pos)
-    old_pos = domain.pos
-    old_average_distance = domain.average_distance()
-
-    print(old_energy)
-    print("Minimizing Energy..")
-    domain.minimizeEnergy()
-    print("Done")
-    print(f"Operation took {domain.time_minimizeEnergy}s")
 
 
-    new_energy = Epot(domain.pos)
-    new_pos = domain.pos
-    new_average_distance = domain.average_distance()
+    domain.fill(100, 20, 1)   
+
+    print(domain.vel)
+    pos = domain.pos.T
+    vel = domain.vel.T
 
 
-
-    x_vals = np.linspace(1.0, 2, 1000)
-    y_vals = [VLJ_r(x) for x in x_vals]
-
-    #plt.plot(x_vals, y_vals)
-    #plt.show()
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.quiver(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], length=3)
+    plt.show()
 
 
 
