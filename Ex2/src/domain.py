@@ -58,15 +58,17 @@ class Domain:
     grad_Epot = object
 
     def __init__(self, fEpot=Epot):
+        # Domain parameters
         self.particle_count = -1
         self.length = -1
         self.std_dev = -1
 
+        # Domain Physics
+        self.Epot = jax.jit(fEpot)
+        self.grad_Epot = jax.jit(jax.grad(self.Epot))
+
         # Benchmark stats
         self.time_minimizeEnergy = -1
-
-        self.Epot = jax.jit(fEpot)
-        self.grad_Epot = jax.grad(self.Epot)
 
     def fill(self, particle_count, length, std_dev):
         # TODO: Move length arguemnt to constructor
@@ -182,9 +184,9 @@ class Domain:
         ax = plt.axes(projection ="3d")
         ax.scatter3D(x, y, z, color = "blue")
         # TODO: set dynamically to box size
-        ax.set_xlim(0,1)
-        ax.set_ylim(0,1)
-        ax.set_zlim(0,1)
+        ax.set_xlim(0,self.length)
+        ax.set_ylim(0,self.length)
+        ax.set_zlim(0,self.length)
         plt.title("domain")
 
         if(show == True):
@@ -200,7 +202,7 @@ class Domain:
             self.pos.ravel(),
             jac=self.grad_Epot,
             method='CG',
-            options={"disp" : True, "maxiter" : 10}           
+            #options={"disp" : True, "maxiter" : 10}  # Uncomment for Debug stats
         )
         new_pos = to3D(result.x)
         self.pos = new_pos
@@ -288,10 +290,10 @@ def playground_hiti():
     np.random.seed(1)
 
     domain = Domain(Epot)
-    domain.fill(10, 1, 1)   
-    #domain.visualize_pos(show=False, fileName="out/plot1.png")
+    domain.fill(10, 10, 1)   
+    domain.visualize_pos(show=False, fileName="out/plot1.png")
     domain.minimizeEnergy()
-    #domain.visualize_pos(show=True, fileName="out/plot2.png")
+    domain.visualize_pos(show=True, fileName="out/plot2.png")
 
     #print(domain.vel)
     pos = domain.pos.T

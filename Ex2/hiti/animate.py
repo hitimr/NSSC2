@@ -6,7 +6,7 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from src.domain import Domain
+from src.domain import *
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
@@ -28,22 +28,21 @@ w.addItem(g)
 ##  These demonstrate the ability to have points with real size down to a very small scale 
 ## 
 
-domain = Domain()
-domain.fill(20, 10, 1)
-
-
+domain = Domain(Epot)
+domain.fill(40, 10, 1)
+domain.minimizeEnergy()
 
 pos3 = domain.pos
-sp3 = gl.GLScatterPlotItem(pos=pos3, color=(1,1,1,.5), size=1, pxMode=False)
+sp3 = gl.GLScatterPlotItem(pos=pos3, color=(1,1,1,10), size=1, pxMode=False)
 w.addItem(sp3)
 
-
+ 
 
 def update():    
     ## update surface positions and colors
     global sp3
     
-    domain.verlet_advance(0.01)
+    domain.verlet_advance(0.1)
     pos3 = np.array(domain.pos)
     #print(domain.Epot(domain.pos))
     sp3.setData(pos=pos3)
