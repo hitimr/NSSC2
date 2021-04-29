@@ -43,16 +43,17 @@ phase = 0.
 ##  Third example shows a grid of points with rapidly updating position
 ##  and pxMode = False
 ##
-
-pos3 = np.zeros((100,100,3))
-pos3[:,:,:2] = np.mgrid[:100, :100].transpose(1,2,0) * [-0.1,0.1]
-pos3 = pos3.reshape(10000,3)
+domain = Domain()
+domain.fill(10, 20, 1)
+#pos3 = np.zeros((100,100,3))
+#pos3[:,:,:2] = np.mgrid[:100, :100].transpose(1,2,0) * [-0.1,0.1]
+#pos3 = pos3.reshape(10000,3)
+pos3 = domain.pos
 d3 = (pos3**2).sum(axis=1)**0.5
 sp3 = gl.GLScatterPlotItem(pos=pos3, color=(1,1,1,.3), size=0.1, pxMode=False)
 w.addItem(sp3)
 
-domain = Domain()
-domain.fill(10, 20, 1)
+
 
 def update():
     ## update volume colors
@@ -61,11 +62,10 @@ def update():
     phase -= 0.1
     
     ## update surface positions and colors
-    global sp3, d3, pos3
-    z = -np.cos(d3*2+phase)
-    pos3[:,2] = z
+    global sp3
     
     domain.verlet_advance(0.1)
+    pos3 = np.array(domain.pos)
     sp3.setData(pos=pos3)
     
 t = QtCore.QTimer()
