@@ -101,9 +101,10 @@ class Domain:
 
         # TODO: optimize, maybe switch to jax
         f = -self.grad_Epot(self.pos)        
-        new_pos = self.pos + self.vel * dt + 0.5 * f *dt**2
+
+        new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
         new_f = -self.grad_Epot(new_pos)
-        new_vel = self.vel + 0.5 * (f + new_f * dt)
+        new_vel = self.vel + 0.5 * (f + new_f ) * dt
 
         self.pos = new_pos
         self.vel = new_vel
@@ -116,7 +117,8 @@ class Domain:
 
     def initialize_vel(self):
         # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
-        self.vel = np.random.rand(self.particle_count, 3) - 0.5
+        #self.vel = np.random.rand(self.particle_count, 3) - 0.5
+        self.vel = np.zeros((self.particle_count, 3))
 
     def minimizeEnergy(self):
         start = time.time()
