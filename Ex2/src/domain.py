@@ -216,12 +216,23 @@ class Domain:
 
         return
 
+    def integrate(self,dt,N):
+        # integrates over N steps within a time inverval of lenght dt
+        # force = grad(E) is set to 0 at the moment
+
+        force = 0
+        for i in range(N):
+            self.pos = self.pos + self.vel*(dt/N) + 0.5*force*(dt/N)**2
+            self.pos = self.vel + (force+force)*dt/(2*N)
+            self.write_to_file("trajectory","testcomment")
+
+        # it would be nice, if read_to_file() would add the new positions,
+        # insted of overwriting the old ones
+
 
 if __name__ == "__main__":
     domain = Domain()
     domain.fill(27, 1, 0.1)
     #domain.visualize_pos()
-    #domain.write_to_file("test","bla")
-    #domain.read_from_file("test")
-    print(domain.pos)
-    print(domain.vel)
+    domain.integrate(1,10)
+    #domain.visualize_pos()
