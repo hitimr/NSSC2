@@ -1,5 +1,7 @@
 #include parent folder
 import os, sys, inspect
+import math
+
 
 currentdir = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -49,13 +51,31 @@ class Domain:
         assert (self.pos.shape == self.vel.shape)
 
     def initialize_pos(self):
-        # TODO, Reno: replace with custom distribution from Task 2.1
+        #dimensions of domain
         self.pos = numpy.ndarray((self.particle_count, 3))
+        nr_edge = math.ceil(self.particle_count**(1/3))
+        spacing = self.length/nr_edge
+        nr_particles = 0
 
-        spacing = self.length / (self.particle_count)
-        for i in range(self.particle_count):
-            for j in range(3):
-                self.pos[i][j] = spacing / 2 + i*spacing # + 1/2 to avoid placing particles at (0|0)
+        #fill square shaped domain
+        for i in range(nr_edge): #z-coordinate
+            for j in range(nr_edge): #y
+                for k in range(nr_edge): #x
+                    for c in range(3):
+                        if(nr_particles < self.particle_count):
+                            if (c%3==0):
+                                self.pos[nr_particles][0] = k/nr_edge
+                            elif ((c+1)%3==0):
+                                self.pos[nr_particles][1] = j/nr_edge
+                            elif ((c+2)%3==0):
+                                self.pos[nr_particles][2] = i/nr_edge
+                    nr_particles += 1
+                        
+        # old code:
+        # spacing = self.length / (self.particle_count)
+        # for i in range(self.particle_count):
+        #     for j in range(3):
+        #         self.pos[i][j] = spacing / 2 + i*spacing # + 1/2 to avoid placing particles at (0|0)
 
     def initialize_vel(self):
         # TODO, Reno: replace with custom distriburtion from Task 2.3 and 2.4
@@ -149,15 +169,16 @@ class Domain:
 
 if __name__ == "__main__":
     domain = Domain()
-    domain.fill(5, 1, 1)
+    domain.fill(27, 1, 1)
     domain.write_to_file("test","bla")
     domain.read_from_file("test")
 
 
-    print("generated positions:")
+    #print("generated positions:")
     print(domain.pos)
-    print(f"Position of first particle:")
-    print(domain.pos[0])
+    #print(f"Position of first particle:")
+    #print(domain.pos[0])
+    #print(domain.vel)
     
     """avg_xvel = 0
     avg_yvel = 0
