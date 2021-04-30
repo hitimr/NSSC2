@@ -137,7 +137,10 @@ class Domain:
                     nr_particles += 1
 
         #randomize positions
-        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)/5
+        
+        # spread factor!!!
+
+        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)*self.spread
         self.pos += randomize
 
     def initizalize_pos_old(self):
@@ -152,6 +155,8 @@ class Domain:
     def initialize_vel(self):
         self.vel = numpy.ndarray((self.particle_count, 3))
         vel = numpy.random.normal(0, self.std_dev, self.particle_count*3)
+
+        # multivariate_normal .. method in numpy?
         
         for i in range(self.particle_count):
             for c in range(3): #2nd axis of self.vel array

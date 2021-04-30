@@ -13,8 +13,13 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 
+<<<<<<< HEAD
 N = 50
 L = 1
+=======
+N = 75
+L = 10
+>>>>>>> ca3cdee092a6bf5fe2afcc698686db8f8eebb09b
 speed = 0.02
 
 app = pg.mkQApp("GLScatterPlotItem Example")
@@ -53,12 +58,12 @@ def update():
     pos3 = np.array(domain.pos)
     #print(domain.Epot(domain.pos))
     sp3.setData(pos=pos3)
-    #w.orbit(0.2,0)
+    w.orbit(0.2,0)
 
     
 t = QtCore.QTimer()
 t.timeout.connect(update)
-t.start(30)
+t.start(15)
 
 if __name__ == '__main__':
     np.random.seed(1)
