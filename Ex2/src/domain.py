@@ -23,6 +23,7 @@ from jax import grad, jit
 from config import *
 from src.misc import *
 
+
 def Epot(positions):
     """Lennard-Jones potential in reduced units.
     In this system of units, epsilon=1 and sigma=2**(-1. / 6.).
@@ -66,6 +67,7 @@ class Domain:
         # Domain Physics
         self.Epot = jax.jit(fEpot)
         self.grad_Epot = jax.jit(jax.grad(self.Epot))
+        #self.grad_Epot = jax.grad(self.Epot)
 
         # Benchmark stats
         self.time_minimizeEnergy = -1
@@ -103,7 +105,7 @@ class Domain:
         new_f = -self.grad_Epot(new_pos)
         new_vel = self.vel + 0.5 * (f + new_f ) * dt
 
-        new_pos = new_pos - self.length * np.round(new_pos/self.length)
+        #new_pos = new_pos - self.length * np.round(new_pos/self.length)
         
         self.pos = new_pos 
         self.vel = new_vel 
@@ -174,6 +176,7 @@ class Domain:
 
     def initialize_vel_old(self):
         self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
+
 
     def visualize_pos(self, show=True, fileName=""):
         x=[];y=[];z=[]
@@ -296,6 +299,7 @@ def playground_hiti():
     #domain.visualize_pos(show=False, fileName="out/plot1.png")
     domain.minimizeEnergy()
     #domain.visualize_pos(show=True, fileName="out/plot2.png")
+    domain.verlet_advance(0.1)
 
     #print(domain.vel)
     pos = domain.pos.T

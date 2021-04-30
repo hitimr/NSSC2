@@ -13,12 +13,13 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 
-N = 100
-L = N*5
+N = 50
+L = 1
+speed = 0.02
 
 app = pg.mkQApp("GLScatterPlotItem Example")
 w = gl.GLViewWidget()
-w.opts['distance'] = 50
+w.opts['distance'] = L*1.
 w.show()
 w.setWindowTitle('pyqtgraph example: GLScatterPlotItem')
 
@@ -48,7 +49,7 @@ def update():
     ## update surface positions and colors
     global sp3
     
-    domain.verlet_advance(0.01)
+    domain.verlet_advance(speed)
     pos3 = np.array(domain.pos)
     #print(domain.Epot(domain.pos))
     sp3.setData(pos=pos3)
@@ -57,7 +58,7 @@ def update():
     
 t = QtCore.QTimer()
 t.timeout.connect(update)
-t.start(100)
+t.start(30)
 
 if __name__ == '__main__':
     np.random.seed(1)
