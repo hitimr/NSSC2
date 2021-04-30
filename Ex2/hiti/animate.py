@@ -13,14 +13,9 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 import numpy as np
 
-<<<<<<< HEAD
-N = 50
-L = 1
-=======
-N = 75
-L = 10
->>>>>>> ca3cdee092a6bf5fe2afcc698686db8f8eebb09b
-speed = 0.02
+N = 40
+L = 20
+speed = 0.01
 
 app = pg.mkQApp("GLScatterPlotItem Example")
 w = gl.GLViewWidget()

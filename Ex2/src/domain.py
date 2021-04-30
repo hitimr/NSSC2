@@ -55,7 +55,7 @@ class Domain:
     time_minimizeEnergy = float
 
     # Physics
-    Epot = object
+    fEpot = object
     grad_Epot = object
 
     def __init__(self, fEpot=Epot):
@@ -65,9 +65,8 @@ class Domain:
         self.std_dev = -1
 
         # Domain Physics
-        self.Epot = jax.jit(fEpot)
-        self.grad_Epot = jax.jit(jax.grad(self.Epot))
-        #self.grad_Epot = jax.grad(self.Epot)
+        self.fEpot = jax.jit(fEpot)
+        self.grad_Epot = jax.jit(jax.grad(self.fEpot))
 
         # Benchmark stats
         self.time_minimizeEnergy = -1
@@ -94,6 +93,22 @@ class Domain:
         self.initialize_vel()
 
         assert (self.pos.shape == self.vel.shape)
+
+    def Epot(self):
+        """Returns the potential Energy of the whole domain
+
+        Returns:
+            float: Potential Energy
+        """        
+        return self.fEpot(self.pos)
+
+    def Ekin(self):
+        """Returns the kinetic energy of the domain
+
+        Returns:
+            [type]: [description]
+        """        
+        return 0.5 * np.dot(self.vel, self.vel.T).sum()
 
     def verlet_advance(self, dt):
         if(dt == 0): return
@@ -140,7 +155,7 @@ class Domain:
         
         # spread factor!!!
 
-        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)*self.spread
+        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)
         self.pos += randomize
 
     def initizalize_pos_old(self):
@@ -208,7 +223,7 @@ class Domain:
     def minimizeEnergy(self):
         start = time.time()
         result = minimize(
-            self.Epot, 
+            self.fEpot, 
             self.pos.ravel(),
             jac=self.grad_Epot,
             method='CG',
@@ -305,6 +320,9 @@ def playground_hiti():
     domain.minimizeEnergy()
     #domain.visualize_pos(show=True, fileName="out/plot2.png")
     domain.verlet_advance(0.1)
+
+    print(domain.Epot())
+    print(domain.Ekin())
 
     #print(domain.vel)
     pos = domain.pos.T

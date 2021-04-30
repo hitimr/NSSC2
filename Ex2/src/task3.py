@@ -32,6 +32,6 @@ if __name__ == "__main__":
     domain = Domain(Epot)
     domain.fill(10,1,1)
     print(Epot(domain.pos))
-    domain.verlet_advance(0.1)  # repeat N-1
+    domain.verlet_advance(0.1)  # TODO: repeat N-1
 
     print(Epot(domain.pos))
