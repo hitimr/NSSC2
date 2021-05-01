@@ -47,6 +47,7 @@ class Domain:
     # Domain settings
     particle_count = int  # Number of particles in the box
     length = float  # length of the box
+    spread = float  # spread of randomizing factor of initial position
     std_dev = float  # standard deviation of the velocities
     pos = np.ndarray  # positional data of the particles
     vel = np.ndarray  # velocity data of the particle
@@ -71,7 +72,7 @@ class Domain:
         # Benchmark stats
         self.time_minimizeEnergy = -1
 
-    def fill(self, particle_count, length, std_dev):
+    def fill(self, particle_count, length, spread, std_dev):
         # TODO: Move length arguemnt to constructor
         """Fill the domain with particles as specified in Task 2
 
@@ -87,6 +88,7 @@ class Domain:
 
         self.particle_count = particle_count
         self.length = length
+        self.spread = spread
         self.std_dev = std_dev
 
         self.initialize_pos()
@@ -127,10 +129,10 @@ class Domain:
 
     def initialize_pos(self):
         #dimensions of domain
-        self.pos = numpy.ndarray((self.particle_count, 3))
-        nr_edge = math.ceil(self.particle_count**(1/3)) #set cube size
-        spacing = self.length/nr_edge #distance between neighbours on same axis
-        
+        self.pos = numpy.ndarray((self.particle_count, 3)) #store positions
+        nr_edge = math.ceil(self.particle_count**(1/3)) #particle nr per dimension/axis
+        spacing = self.length/(nr_edge+1) #distance between neighbours on same axis
+
         #fill cubic domain
         nr_particles = 0
         for i in range(nr_edge): #z coordinate in domain
@@ -138,13 +140,18 @@ class Domain:
                 for k in range(nr_edge): #x coordinate in domain
 
                     for c in range(3): #2nd axis of self.pos array
-                        if(nr_particles < self.particle_count): #check part countprint(nr_particles,c,"----",i,j,k)
-                            if (c==0): #multiply by self.length missing
-                                self.pos[nr_particles][0] = k/nr_edge + spacing/2
+                        if(nr_particles < self.particle_count): #check part count
+                            
+                            #place atom like this, e.g. for 3 atoms:
+                            # | spacing atom spacing atom spacing atom spacing |
+                            # here, each atom is spaced by 1/5 of self.length
+                            
+                            if (c==0): #place atom 
+                                self.pos[nr_particles][0] = k*spacing + spacing
                             elif (c==1):
-                                self.pos[nr_particles][1] = j/nr_edge + spacing/2
+                                self.pos[nr_particles][1] = j*spacing + spacing
                             elif (c==2):
-                                self.pos[nr_particles][2] = i/nr_edge + spacing/2
+                                self.pos[nr_particles][2] = i*spacing + spacing
                         else: break #after all particles are set: break
                     
                     #this iteration over nr_particles 
@@ -152,10 +159,13 @@ class Domain:
                     nr_particles += 1
 
         #randomize positions
-        
-        # spread factor!!!
+        mean = [0, 0, 0]
+        matrix = [[1, 0, 0], [0, 1, 0],[0,0,1]]
+        randomize = np.random.multivariate_normal(mean, matrix, self.particle_count)*self.spread
 
-        randomize = (numpy.random.rand(self.particle_count, 3)-0.5)
+        #old code
+        # randomize = ((numpy.random.rand(self.particle_count, 3)-0.5)*self.spread)
+        # print(randomize)
         self.pos += randomize
 
     def initizalize_pos_old(self):
@@ -197,7 +207,6 @@ class Domain:
     def initialize_vel_old(self):
         self.vel = numpy.random.rand(self.particle_count, 3) * 2.0 - 1
 
-
     def visualize_pos(self, show=True, fileName=""):
         x=[];y=[];z=[]
         for i in range(len(self.pos)):
@@ -235,7 +244,6 @@ class Domain:
         end = time.time()
         self.time_minimizeEnergy = end - start
         return new_pos  
-
 
     def read_from_file(self, fileName):
         """Fill the domain with data from a file
@@ -287,12 +295,15 @@ class Domain:
 
 def playgroud_reno():
     domain = Domain()
-    domain.fill(27, 1, 0.1)
+    domain.fill(10**3, 1, 0.1, 0.1)
+
+    print(domain.pos)
+    # print(domain.vel)
     #domain.visualize_pos()
-    domain.integrate(1,10)
+    # domain.integrate(1,10)
     #domain.visualize_pos()
 
-
+    """
     def integrate(self,dt,N):
         # integrates over N steps within a time inverval of lenght dt
         # force = grad(E) is set to 0 at the moment
@@ -301,7 +312,7 @@ def playgroud_reno():
         for i in range(N):
             self.pos = self.pos + self.vel*(dt/N) + 0.5*force*(dt/N)**2
             self.pos = self.vel + (force+force)*dt/(2*N)
-            self.write_to_file("trajectory","testcomment")
+            self.write_to_file("trajectory","testcomment")"""
 
         # it would be nice, if read_to_file() would add the new positions,
         # insted of overwriting the old ones
@@ -333,16 +344,11 @@ def playground_hiti():
     ax.quiver(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], length=3)
     #plt.show()
 
-
-
-    
-
 def playground_hickel():
     print("Grillenzirpen...")
     
 
-
 if __name__ == "__main__":
-    #playgroud_reno()
+    playgroud_reno()
     #playground_hickel()
-    playground_hiti()
+    # playground_hiti()
