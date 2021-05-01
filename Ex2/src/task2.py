@@ -14,6 +14,8 @@ if __name__ == "__main__":
     domain = Domain(Epot)   # Create domain. Epot (Argument) is the function that is used to calculate the potential
     domain.fill(8, 10, 1)  # Set size to 10 and fill it with 8 particles
 
+    epot = domain.Epot()
+    ekin = domain.Ekin()
     E = domain.Epot() + domain.Ekin()
     print(f"Total Energy = {E}")
 

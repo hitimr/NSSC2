@@ -100,7 +100,7 @@ class Domain:
         Returns:
             float: Potential Energy
         """        
-        return self.fEpot(self.pos)
+        return float(self.fEpot(self.pos))
 
     def Ekin(self):
         """Returns the kinetic energy of the domain
@@ -108,7 +108,7 @@ class Domain:
         Returns:
             [type]: [description]
         """        
-        return 0.5 * np.dot(self.vel, self.vel.T).sum()
+        return float(0.5 * np.dot(self.vel, self.vel.T).sum())
 
     def verlet_advance(self, dt):
         if(dt == 0): return
