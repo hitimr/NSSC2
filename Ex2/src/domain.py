@@ -245,7 +245,7 @@ class Domain:
         self.time_minimizeEnergy = end - start
         return new_pos  
 
-    def read_from_file(self, fileName):
+    def read_from_file(self, fileName, block=0):
         """Fill the domain with data from a file
         #TODO, Hickel: read n-th block 
 
@@ -256,11 +256,21 @@ class Domain:
         self.particle_count=int(f.readline())
         comment=f.readline()
         self.length=float(f.readline())
-        for a in range(0,self.particle_count):
-            line_tmp=f.readline().split(" ")
-            for b in range(0,2):
-                self.pos[a][b]=float(line_tmp[b])
-                self.vel[a][b]=float(line_tmp[b+2])
+        self.pos = numpy.ndarray((self.particle_count, 3))
+        self.vel = numpy.ndarray((self.particle_count, 3))
+        if block==0:
+            for a in range(0,self.particle_count):
+                line_tmp=f.readline().split(" ")
+                for b in range(0,3):
+                    self.pos[a][b]=float(line_tmp[b])
+                    self.vel[a][b]=float(line_tmp[b+3])
+        else:
+            all_lines=f.readlines()
+            for a in range(0,self.particle_count):
+                line_tmp=all_lines[block*(self.particle_count+3)+a].split(" ")
+                for b in range(0,3):
+                    self.pos[a][b]=float(line_tmp[b])
+                    self.vel[a][b]=float(line_tmp[b+3])
         f.close()
         assert (self.particle_count > 0)
         assert (self.length > 0)
@@ -268,7 +278,7 @@ class Domain:
 
         return
 
-    def write_to_file(self, fileName, comment=""):
+    def write_to_file(self, fileName, comment="", append=0):
         """Write domain data to a file
 
         #TODO, Hickel: Append Blocks
@@ -277,13 +287,18 @@ class Domain:
             fileName (str): path to file
             comment (str): arbitrary comment/description for Line 2
         """
-        f = open(fileName+".txt", "w")
+        if append==1:
+            f = open(fileName+".txt", "a")
+        else:
+            f = open(fileName+".txt", "w")
         f.write(str(self.particle_count)+"\n")
         f.write(comment+"\n")
         f.write(str(self.length)+"\n")
         for a in range(0,self.particle_count):
-            f.write(str(self.pos[a][0])+" "+str(self.pos[a][1])+" "+str(self.pos[a][2])+" "+str(self.vel[a][0])+" "+str(self.vel[a][1])+" "+str(self.vel[a][2])+"\n")
-        f.close()		
+            f.write(str(self.pos[a][0])+" "+str(self.pos[a][1])+" "+str(self.pos[a][2])+" "+str(self.vel[a][0])+" "+str(self.vel[a][1])+" "+str(self.vel[a][2]))
+            f.write("\n")
+        f.close()    
+
 
         return
 
@@ -345,10 +360,21 @@ def playground_hiti():
     #plt.show()
 
 def playground_hickel():
-    print("Grillenzirpen...")
+    domain = Domain()
+    domain.fill(5, 9, 1, 0.1)
+    domain.write_to_file("test", "test")
+    print("appended lines")
+    #domain.fill(10, 10, 1, 0.1)
+    domain.write_to_file("test", "test",1)
+    domain_new = Domain()
+    domain_new.read_from_file("test",0)
+    print(domain.pos)
+    print(domain_new.pos)
+    print(domain.vel)
+    print(domain_new.vel)
     
 
 if __name__ == "__main__":
-    playgroud_reno()
-    #playground_hickel()
+    #playgroud_reno()
+    playground_hickel()
     # playground_hiti()
