@@ -110,19 +110,22 @@ class Domain:
         Returns:
             [type]: [description]
         """        
-        return float(0.5 * np.dot(self.vel, self.vel.T).sum())
+        return float(0.5 * np.dot(self.vel.T, self.vel).sum())
 
     def verlet_advance(self, dt):
         if(dt == 0): return
 
         # TODO: optimize, maybe switch to jax
+        self.pos = self.pos - self.length * np.round(new_pos/self.length)
         f = -self.grad_Epot(self.pos)        
         new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
         
+        #new_pos = new_pos - self.length * np.round(new_pos/self.length)    # TODO: use delta x -> lecture 6 slaides page 33
+
         new_f = -self.grad_Epot(new_pos)
         new_vel = self.vel + 0.5 * (f + new_f ) * dt
 
-        #new_pos = new_pos - self.length * np.round(new_pos/self.length)
+        
         
         self.pos = new_pos 
         self.vel = new_vel 
