@@ -21,7 +21,7 @@ N = 200
 L = (float(N/rho)**(1/3))
 speed = 0.01
 particle_size = 0.2
-orbit = 0.2
+orbit = 0.0
 
 
 # Window
@@ -61,7 +61,7 @@ w.addItem(cube)
 
 # Replace with your initialized Domain
 domain = Domain(Epot)
-domain.fill(N, L, 1, 1)
+domain.fill(N, L, 0.01, 0)
 domain.minimizeEnergy()
 
 

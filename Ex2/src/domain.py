@@ -88,9 +88,10 @@ class Domain:
         if positions.ndim != 2 or positions.shape[1] != 3:
             raise ValueError("positions must be an Mx3 array")
         # Compute all squared distances between pairs without iterating.
-        new_pos = positions - self.length * np.round(positions/self.length)
+        #new_pos = positions - self.length * np.round(positions/self.length)
 
         delta = positions[:, np.newaxis, :] - positions
+        delta = delta - self.length * np.round(delta/self.length)
         r2 = (delta * delta).sum(axis=2)
         # Take only the upper triangle (combinations of two atoms).
         indices = np.triu_indices(r2.shape[0], k=1)
