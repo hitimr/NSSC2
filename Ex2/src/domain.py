@@ -59,7 +59,14 @@ class Domain:
     fEpot = object
     grad_Epot = object
 
-    def __init__(self, deprecated_Epot=Epot):
+    def __init__(self, deprecated_Epot=None):
+        """Initialize the domain
+
+        Args:
+            deprecated_Epot (any, optional): old way of adding Epot to the
+            domain. No longer has any effect but its still in there to be
+            backwards compatible
+        """
         # Domain parameters
         self.particle_count = -1
         self.length = -1
@@ -81,6 +88,8 @@ class Domain:
         if positions.ndim != 2 or positions.shape[1] != 3:
             raise ValueError("positions must be an Mx3 array")
         # Compute all squared distances between pairs without iterating.
+        new_pos = positions - self.length * np.round(positions/self.length)
+
         delta = positions[:, np.newaxis, :] - positions
         r2 = (delta * delta).sum(axis=2)
         # Take only the upper triangle (combinations of two atoms).
@@ -130,7 +139,7 @@ class Domain:
         Returns:
             [type]: [description]
         """        
-        return float(0.5 * np.dot(self.vel, self.vel.T).sum())
+        return float(0.5 * np.dot(self.vel.T, self.vel).sum())
 
     def verlet_advance(self, dt):
         if(dt == 0): return
@@ -141,8 +150,6 @@ class Domain:
         
         new_f = -self.grad_Epot(new_pos)
         new_vel = self.vel + 0.5 * (f + new_f ) * dt
-
-        #new_pos = new_pos - self.length * np.round(new_pos/self.length)
         
         self.pos = new_pos 
         self.vel = new_vel 
