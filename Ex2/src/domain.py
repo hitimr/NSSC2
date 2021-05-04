@@ -116,7 +116,7 @@ class Domain:
         if(dt == 0): return
 
         # TODO: optimize, maybe switch to jax
-        self.pos = self.pos - self.length * np.round(new_pos/self.length)
+        #self.pos = self.pos - self.length * np.round(new_pos/self.length)
         f = -self.grad_Epot(self.pos)        
         new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
         
@@ -255,7 +255,7 @@ class Domain:
         Args:
             fileName (str): path to file
         """
-        f = open(fileName+".txt", "r")
+        f = open(fileName, "r")
         self.particle_count=int(f.readline())
         comment=f.readline()
         self.length=float(f.readline())
@@ -291,9 +291,9 @@ class Domain:
             comment (str): arbitrary comment/description for Line 2
         """
         if append==1:
-            f = open(fileName+".txt", "a")
+            f = open(fileName, "a")
         else:
-            f = open(fileName+".txt", "w")
+            f = open(fileName, "w")
         f.write(str(self.particle_count)+"\n")
         f.write(comment+"\n")
         f.write(str(self.length)+"\n")

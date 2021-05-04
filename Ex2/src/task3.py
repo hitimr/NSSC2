@@ -14,24 +14,24 @@ from src.domain import Epot, Domain
 
 # see https://docs.python.org/3/library/argparse.html
 if __name__ == "__main__":
-    """
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('integers', metavar='N', type=int, nargs='+',
-                    help='an integer for the accumulator')
-    parser.add_argument('--sum', dest='accumulate', action='store_const',
-                    const=sum, default=max,
-                    help='sum the integers (default: find the max)')
-    """
-    #print(sys.argv)
-    # oder sys.arg
-    #args = parser.parse_args()
-    #print(args.accumulate(args.integers))
-
-
+    
+    parser = argparse.ArgumentParser(description='Script to generate trajectory')
+    parser.add_argument('inputfile', type=str,
+                    help='name of inputfile')
+    parser.add_argument('deltat', type=float, 
+                    help='timestep')
+    parser.add_argument('numiter', type=int, 
+                    help='number of iterations')
+ 
+    args = parser.parse_args()
 
     domain = Domain(Epot)
-    domain.fill(10,1,1)
-    print(Epot(domain.pos))
-    domain.verlet_advance(0.1)  # TODO: repeat N-1
-
-    print(Epot(domain.pos))
+    #domain.fill(10,1,1,0.1)
+    domain.read_from_file(args.inputfile)
+    domain.write_to_file("outfile", "comment",0)
+    for a in range(0,args.numiter-1):
+        domain.verlet_advance(args.deltat)
+        domain.write_to_file("outfile", "comment",1)
+    #domain.verlet_advance(0.1)  # TODO: repeat N-1
+    domain.visualize_pos(True)
+    #print(Epot(domain.pos))
