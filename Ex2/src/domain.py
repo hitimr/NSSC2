@@ -59,18 +59,38 @@ class Domain:
     fEpot = object
     grad_Epot = object
 
-    def __init__(self, fEpot=Epot):
+    def __init__(self, deprecated_Epot=Epot):
         # Domain parameters
         self.particle_count = -1
         self.length = -1
         self.std_dev = -1
 
         # Domain Physics
-        self.fEpot = jax.jit(fEpot)
+        self.fEpot = jax.jit(self.Epot_source)
         self.grad_Epot = jax.jit(jax.grad(self.fEpot))
 
         # Benchmark stats
         self.time_minimizeEnergy = -1
+
+
+    def Epot_source(self, positions):
+        """Lennard-Jones potential in reduced units.
+        In this system of units, epsilon=1 and sigma=2**(-1. / 6.).
+        """
+        positions = to3D(positions)
+        if positions.ndim != 2 or positions.shape[1] != 3:
+            raise ValueError("positions must be an Mx3 array")
+        # Compute all squared distances between pairs without iterating.
+        delta = positions[:, np.newaxis, :] - positions
+        r2 = (delta * delta).sum(axis=2)
+        # Take only the upper triangle (combinations of two atoms).
+        indices = np.triu_indices(r2.shape[0], k=1)
+        rm2 = 1. / r2[indices]
+        # Compute the potental energy recycling as many calculations as possible.
+        rm6 = rm2 * rm2 * rm2
+        rm12 = rm6 * rm6
+        return (rm12 - 2. * rm6).sum()
+
 
     def fill(self, particle_count, length, spread, std_dev):
         # TODO: Move length arguemnt to constructor
@@ -341,7 +361,7 @@ def playground_hiti():
     np.random.seed(1)
 
     domain = Domain(Epot)
-    domain.fill(10, 10, 1)   
+    domain.fill(10, 10, 1, 1)   
     #domain.visualize_pos(show=False, fileName="out/plot1.png")
     domain.minimizeEnergy()
     #domain.visualize_pos(show=True, fileName="out/plot2.png")
@@ -376,5 +396,5 @@ def playground_hickel():
 
 if __name__ == "__main__":
     #playgroud_reno()
-    playground_hickel()
-    # playground_hiti()
+    #playground_hickel()
+    playground_hiti()
