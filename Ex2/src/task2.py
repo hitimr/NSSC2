@@ -21,7 +21,7 @@ def task2(M, L, sigma, fileName):
     domain = Domain()
     domain.fill(M, L, spread, sigma, minimizeEpot=True, verbose=True)
 
-    print("Domain Setup complete. Saving results to f{fileName}")
+    print(f"Domain Setup complete. Saving results to {fileName}")
     domain.write_to_file(fileName, comment="Initial conditions",append=False)
 
 
