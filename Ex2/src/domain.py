@@ -192,7 +192,7 @@ class Domain:
 
         #randomize positions
         mean = [0, 0, 0]
-        matrix = [[1, 0, 0], [0, 1, 0],[0,0,1]]
+        matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         randomize = np.random.multivariate_normal(mean, matrix, self.particle_count)*self.spread
 
         #old code
@@ -334,6 +334,27 @@ class Domain:
 
         return
 
+    def writeenergy(self, fileName, comment="", append=0):
+        """Write domain data to a file
+
+        #TODO, Hickel: Append Blocks
+
+        Args:
+            fileName (str): path to file
+            comment (str): arbitrary comment/description for Line 2
+        """
+        if append==1:
+            f = open(fileName, "a")
+        else:
+            f = open(fileName, "w")
+        f.write(str(self.particle_count)+"\n")
+        f.write(comment+"\n")
+        f.write(str(self.length)+"\n")
+        for a in range(0,self.particle_count):
+            f.write(str(self.pos[a][0])+" "+str(self.pos[a][1])+" "+str(self.pos[a][2])+" "+str(self.vel[a][0])+" "+str(self.vel[a][1])+" "+str(self.vel[a][2]))
+            f.write("\n")
+        f.close()
+
     def average_distance(self):
         distances = np.triu(scipy.spatial.distance.cdist(domain.pos, domain.pos)) # calculate distances but throws away lower triangle
         average = distances.sum() / (2*self.particle_count**2)
@@ -344,25 +365,27 @@ def playgroud_reno():
     domain = Domain()
     domain.fill(10**3, 1, 0.1, 0.1)
 
-    print(domain.pos)
-    # print(domain.vel)
-    #domain.visualize_pos()
-    # domain.integrate(1,10)
-    #domain.visualize_pos()
+    import pandas as pd
+    N = 20
+    rho = 0.8
 
-    """
-    def integrate(self,dt,N):
-        # integrates over N steps within a time inverval of lenght dt
-        # force = grad(E) is set to 0 at the moment
+    L = ((float(N)/rho))**(1.0/3.0)
+    np.random.seed(1)
 
-        force = 0
-        for i in range(N):
-            self.pos = self.pos + self.vel*(dt/N) + 0.5*force*(dt/N)**2
-            self.pos = self.vel + (force+force)*dt/(2*N)
-            self.write_to_file("trajectory","testcomment")"""
+    domain = Domain(Epot)
+    domain.fill(10, 10, 1, 1)   
+    #domain.visualize_pos(show=False, fileName="out/plot1.png")
+    domain.minimizeEnergy()
+    #domain.visualize_pos(show=True, fileName="out/plot2.png")
+    for i in range(10):
+                
+        domain.verlet_advance(0.1)
 
-        # it would be nice, if read_to_file() would add the new positions,
-        # insted of overwriting the old ones
+
+        print(domain.Epot())
+        print(domain.Ekin())
+
+
 
 def playground_hiti():
 
@@ -407,6 +430,7 @@ def playground_hickel():
     
 
 if __name__ == "__main__":
-    #playgroud_reno()
+    playgroud_reno()
+
     #playground_hickel()
-    playground_hiti()
+    # playground_hiti()
