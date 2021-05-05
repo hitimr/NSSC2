@@ -35,7 +35,7 @@ def part1(infile):
 
 def part2():
     # TODO: Hiti
-    # settings
+    # TODO: replace with trajectory file
     rho = 0.8
     N = 200
     L = (float(N/rho)**(1/3))
@@ -45,9 +45,9 @@ def part2():
 
     domain = Domain()
     domain.fill(N, L, spread, 1)
-    print(domain.Epot())
     domain.minimizeEnergy()
-    print(domain.Epot())
+
+    
 
 
 

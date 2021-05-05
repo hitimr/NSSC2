@@ -102,7 +102,7 @@ class Domain:
         return (rm12 - 2. * rm6).sum()
 
 
-    def fill(self, particle_count, length, spread, std_dev):
+    def fill(self, particle_count, length, spread, std_dev, minimizeEpot=False, verbose=False):
         # TODO: Move length arguemnt to constructor
         """Fill the domain with particles as specified in Task 2
 
@@ -121,9 +121,25 @@ class Domain:
         self.spread = spread
         self.std_dev = std_dev
 
-        self.initialize_pos()
-        self.initialize_vel()
+        if(verbose): print(f"Filling domain with {self.particle_count} particles")
+        self.initialize_pos()   # Placing M particles at random positions in the box
+        if(verbose): print(f"Epot = {self.Epot()}")
 
+        # Move particles to local energy minimum using CG Thisfunction initially
+        # was called outside of fill(). The parameter minimizeEpot exists so old
+        # code is still compatible
+        if(minimizeEpot == True):
+            if(verbose): print("Moving particles to local energy minimum")
+            self.minimizeEnergy()
+            if(verbose): print(f"Epot = {self.Epot()}")
+
+        # Add velocities
+        if(verbose): print("Adding velocities")
+        self.initialize_vel()
+        if(verbose): print(f"Epot = {self.Epot()}, Ekin = {self.Ekin()}")
+        
+        # Sanity checks
+        # TODO: check if the sum of all forces = 0
         assert (self.pos.shape == self.vel.shape)
 
     def Epot(self):

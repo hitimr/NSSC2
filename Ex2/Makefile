@@ -10,6 +10,9 @@ install:
 	echo \n
 	echo "Sucessfully installed virtual environment. Please run 'source md/bin/activate' to activate the environment"
 
+task2:
+	python3 src/task2.py 200 6.3 1
+
 task3:
 	python3 src/task3.py 10
 
