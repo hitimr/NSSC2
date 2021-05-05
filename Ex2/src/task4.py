@@ -22,7 +22,7 @@ def part1(infile):
     length=len(all_lines)
     dt_count=length/(particle_count+3)
     f.close()
-    f = open("task4_out1.txt", "w")
+    f = open(DIR_OUT + "task4_out1.txt", "w")
     for a in range(0,int(dt_count)):
         domain.read_from_file(infile,a)
         f.write(str(domain.Epot())+" "+str(domain.Ekin())+"\n")

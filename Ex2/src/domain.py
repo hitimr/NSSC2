@@ -319,7 +319,7 @@ class Domain:
         assert (self.pos.shape == self.vel.shape)
 
         return
-
+#'/home/hiti/repos/NSSC2/Ex2/out/unitTest_testFile.txt'
     def write_to_file(self, fileName, comment="", append=0):
         """Write domain data to a file
 
@@ -330,9 +330,9 @@ class Domain:
             comment (str): arbitrary comment/description for Line 2
         """
         if append==1:
-            f = open(DIR_OUT+fileName, "a")
+            f = open(fileName, "a")            
         else:
-            f = open(DIR_OUT+fileName, "w")
+            f = open(fileName, "w")
         f.write(str(self.particle_count)+"\n")
         f.write(comment+"\n")
         f.write(str(self.length)+"\n")

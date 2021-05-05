@@ -11,6 +11,7 @@ import pytest
 import jax
 
 from src.domain import Domain, Epot
+from src.misc import *
 
 
 
@@ -24,7 +25,7 @@ def test_minimize():
 
 def test_read_write_to_file():
     # TODO fix unit test
-    fileName = "out/unitTest_testFile"
+    fileName = DIR_OUT + "unitTest_testFile.txt"
 
     old_domain = Domain(Epot)
     old_domain.fill(5, 9, 1, 0.1)
