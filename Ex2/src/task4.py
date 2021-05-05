@@ -12,9 +12,25 @@ import argparse
 from src.domain import Epot, Domain
 
 
-def part1():
+def part1(infile):
     # TODO: Hickel
-    pass
+    domain = Domain()
+    f = open(infile, "r")
+    all_lines=f.readlines()
+    particle_count=float(all_lines[0])
+    length=len(all_lines)
+    dt_count=length/(particle_count+3)
+    #print(dt_count)
+    #print(len(all_lines))
+    f.close()
+    f = open("task4_out1.txt", "w")
+    for a in range(0,int(dt_count)):
+        domain.read_from_file(infile,a)
+        #E_pot=domain.Epot()
+        #E_kin=domain.Ekin()
+        f.write(str(domain.Epot())+" "+str(domain.Ekin())+"\n")
+    f.close()
+    #pass
 
 
 def part2():
@@ -37,5 +53,9 @@ def part2():
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    parser = argparse.ArgumentParser(description='Script to generate trajectory')
+    parser.add_argument('inputfile', type=str,
+                    help='name of inputfile')
+    args = parser.parse_args()
+    part1(args.inputfile)
+    #part2()
