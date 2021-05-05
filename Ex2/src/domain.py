@@ -330,9 +330,9 @@ class Domain:
             comment (str): arbitrary comment/description for Line 2
         """
         if append==1:
-            f = open(fileName, "a")
+            f = open(DIR_OUT+fileName, "a")
         else:
-            f = open(fileName, "w")
+            f = open(DIR_OUT+fileName, "w")
         f.write(str(self.particle_count)+"\n")
         f.write(comment+"\n")
         f.write(str(self.length)+"\n")
@@ -444,19 +444,13 @@ def playground_hickel():
     domain = Domain()
     domain.fill(5, 9, 1, 0.1)
     domain.write_to_file("test", "test")
-    print("appended lines")
-    #domain.fill(10, 10, 1, 0.1)
     domain.write_to_file("test", "test",1)
     domain_new = Domain()
-    domain_new.read_from_file("test",0)
-    print(domain.pos)
-    print(domain_new.pos)
-    print(domain.vel)
-    print(domain_new.vel)
+    domain_new.read_from_file(DIR_OUT+"test",0)
     
 
 if __name__ == "__main__":
-    playgroud_reno()
+    #playgroud_reno()
 
-    #playground_hickel()
+    playground_hickel()
     # playground_hiti()

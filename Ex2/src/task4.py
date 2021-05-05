@@ -15,24 +15,18 @@ from src.misc import *
 
 
 def part1(infile):
-    # TODO: Hickel
     domain = Domain()
     f = open(infile, "r")
     all_lines=f.readlines()
     particle_count=float(all_lines[0])
     length=len(all_lines)
     dt_count=length/(particle_count+3)
-    #print(dt_count)
-    #print(len(all_lines))
     f.close()
     f = open("task4_out1.txt", "w")
     for a in range(0,int(dt_count)):
         domain.read_from_file(infile,a)
-        #E_pot=domain.Epot()
-        #E_kin=domain.Ekin()
         f.write(str(domain.Epot())+" "+str(domain.Ekin())+"\n")
     f.close()
-    #pass
 
 
 def part2(FileName):

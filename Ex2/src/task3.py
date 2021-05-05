@@ -25,10 +25,8 @@ if __name__ == "__main__":
 
     outFile = DIR_OUT + "task3.txt"
     domain = Domain(Epot)
-    #domain.fill(10,1,1,0.1)
     domain.read_from_file(args.inputfile)
     domain.write_to_file(outFile, "comment",0)
     for a in range(0,args.numiter-1):
         domain.verlet_advance(args.deltat)
         domain.write_to_file(outFile, "comment",1)
-    #domain.visualize_pos(True)
