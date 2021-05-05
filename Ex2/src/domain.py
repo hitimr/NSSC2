@@ -88,7 +88,6 @@ class Domain:
         if positions.ndim != 2 or positions.shape[1] != 3:
             raise ValueError("positions must be an Mx3 array")
         # Compute all squared distances between pairs without iterating.
-        #new_pos = positions - self.length * np.round(positions/self.length)
 
         delta = positions[:, np.newaxis, :] - positions
         delta = delta - self.length * np.round(delta/self.length)
@@ -163,15 +162,12 @@ class Domain:
 
         # TODO: optimize, maybe switch to jax
         #self.pos = self.pos - self.length * np.round(new_pos/self.length)
-        f = -self.grad_Epot(self.pos)        
+        f = -self.grad_Epot(self.pos)       
         new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
-        
-        #new_pos = new_pos - self.length * np.round(new_pos/self.length)    # TODO: use delta x -> lecture 6 slaides page 33
 
         new_f = -self.grad_Epot(new_pos)
         new_vel = self.vel + 0.5 * (f + new_f ) * dt
 
-        
         
         self.pos = new_pos 
         self.vel = new_vel 
@@ -284,8 +280,7 @@ class Domain:
             self.fEpot, 
             self.pos.ravel(),
             jac=self.grad_Epot,
-            method='CG',
-            #options={"disp" : True, "maxiter" : 10}  # Uncomment for Debug stats
+            method='CG'
         )
         new_pos = to3D(result.x)
         self.pos = new_pos
@@ -357,6 +352,35 @@ class Domain:
         return average
 
 
+    def volumetric_density(self, sample_cnt=20):
+
+        r = np.linspace(0, self.length/2., sample_cnt)
+
+        # set 0th particle as the origin
+        origin = self.pos[0]
+
+        # calculate eudlicdian distances to that particle
+        distances = np.array(np.linalg.norm(self.pos[1:] - origin, axis=1))
+
+        # perform minimum image transformation
+        distances = abs(MI_transform(distances, self.length))
+        assert(len(distances) == self.particle_count-1)
+
+        # ust histogram() to count particles in each shell
+        hist, edges = np.histogram(distances, bins=r)
+        
+        densities = []
+        for i in range(1,len(hist)):
+            # calculate volume of the shell
+            V = 4/3 * math.pi * (r[i]**3 - r[i-1]**3)
+
+            # divide number of particles in that
+            densities.append(hist[i]  / V)
+
+        return densities
+
+
+
 def playgroud_reno():
     domain = Domain()
     domain.fill(10**3, 1, 0.1, 0.1)
@@ -383,30 +407,17 @@ def playgroud_reno():
 
 def playground_hiti():
 
-    N = 20
+    N = 200
     rho = 0.8
 
     L = ((float(N)/rho))**(1.0/3.0)
     np.random.seed(1)
 
     domain = Domain(Epot)
-    domain.fill(10, 10, 1, 1)   
-    #domain.visualize_pos(show=False, fileName="out/plot1.png")
-    domain.minimizeEnergy()
-    #domain.visualize_pos(show=True, fileName="out/plot2.png")
-    domain.verlet_advance(0.1)
+    domain.fill(N, L, 0, 1)  
 
-    print(domain.Epot())
-    print(domain.Ekin())
+    domain.volumetric_density()
 
-    #print(domain.vel)
-    pos = domain.pos.T
-    vel = domain.vel.T
-
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.quiver(pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], length=3)
-    #plt.show()
 
 def playground_hickel():
     domain = Domain()
