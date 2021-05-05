@@ -27,3 +27,6 @@ def to3D(v):
     
     n = len(v) // 3
     return np.reshape(v, (n,3))
+
+def MI_transform(delta, L):
+    return delta - L * np.round(delta/float(L))

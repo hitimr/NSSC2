@@ -2,6 +2,9 @@ OUT_DIR = out
 
 $(shell mkdir -p $(OUT_DIR))
 
+
+all: task2 task3
+
 #install workspace
 install:
 	sudo apt install python3-pip python3.8-venv
@@ -10,8 +13,11 @@ install:
 	echo \n
 	echo "Sucessfully installed virtual environment. Please run 'source md/bin/activate' to activate the environment"
 
+task2:
+	python3 src/task2.py 200 6.3 1 out/task2.txt
+
 task3:
-	python3 src/task3.py 10
+	python3 src/task3.py out/task2.txt 0.001 100
 
 # remove virtual environment
 uninstall:

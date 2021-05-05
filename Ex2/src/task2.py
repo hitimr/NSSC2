@@ -6,25 +6,48 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
+import argparse
 from src.domain import Epot, Domain
+from src.misc import *
+
+
+
+def task2(M, L, sigma, fileName):
+
+    spread = 1/(3*M**(1/3)) # Parameter for how much particles are distrubed from their ideal position
+
+
+    print(f"Creating domain with M={M}, L={L}, Σ={sigma}")
+    domain = Domain()
+    domain.fill(M, L, spread, sigma, minimizeEpot=True, verbose=True)
+
+    print(f"Domain Setup complete. Saving results to {fileName}")
+    domain.write_to_file(fileName, comment="Initial conditions",append=False)
+
 
 
 
 if __name__ == "__main__":
-    domain = Domain(Epot)   # Create domain. Epot (Argument) is the function that is used to calculate the potential
-    domain.fill(8, 10, 1)  # Set size to 10 and fill it with 8 particles
+    try:
+        parser = argparse.ArgumentParser(description='Script to generate initiual conditions ')
+        parser.add_argument('M', type=int, help='Number of aprticles')
+        parser.add_argument('L', type=float, help='side lenght of the simulation box')
+        parser.add_argument('sigma', type=float, help='standard deviation')
+        parser.add_argument('fileName', type=str, help='soutput file')
 
-    epot = domain.Epot()
-    ekin = domain.Ekin()
-    E = domain.Epot() + domain.Ekin()
-    print(f"Total Energy = {E}")
+        args = parser.parse_args()
 
-    domain.minimizeEnergy() # Move particles to minimum
-    
-    E = domain.Epot() + domain.Ekin()
-    print(f"Total Energy = {E}")
 
-    domain.verlet_advance(0.01) # advance time by 0.01
+        M = args.M
+        L = args.L
+        sigma = args.sigma
+        fileName = args.fileName
 
-    E = domain.Epot() + domain.Ekin()
-    print(f"Total Energy = {E}")
+    except:
+        print("Error while parsing parameters. Using default parameters instead")
+        M = 200
+        L = 6.3
+        sigma = 1
+        fileName = DIR_OUT + "task2.txt"
+
+    task2(M, L, sigma, fileName)
