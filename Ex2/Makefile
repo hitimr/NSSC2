@@ -3,7 +3,7 @@ OUT_DIR = out
 $(shell mkdir -p $(OUT_DIR))
 
 
-all: task2 task3
+all: task2 task3 task4
 
 #install workspace
 install:
@@ -17,7 +17,10 @@ task2:
 	python3 src/task2.py 200 6.3 1 out/task2.txt
 
 task3:
-	python3 src/task3.py out/task2.txt 0.001 100
+	python3 src/task3.py out/task2.txt 0.001 10
+
+task4:
+	python3 src/task4.py out/task3.txt
 
 # remove virtual environment
 uninstall:

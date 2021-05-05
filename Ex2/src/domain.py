@@ -160,8 +160,6 @@ class Domain:
     def verlet_advance(self, dt):
         if(dt == 0): return
 
-        # TODO: optimize, maybe switch to jax
-        #self.pos = self.pos - self.length * np.round(new_pos/self.length)
         f = -self.grad_Epot(self.pos)       
         new_pos = self.pos + (self.vel + 0.5 * f * dt) * dt
 

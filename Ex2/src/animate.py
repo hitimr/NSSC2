@@ -86,8 +86,9 @@ def update():
     domain.verlet_advance(speed)    # advance domain in time
     new_pos = np.array(domain.pos)  # get new position
 
-    origin = new_pos[0]
-    new_pos = new_pos - origin
+    # uncomment to get the view from the 0th particle
+    #origin = new_pos[0]
+    #new_pos = new_pos - origin
 
     new_pos = new_pos - domain.length * np.round(new_pos/domain.length) # minimum image convention
     sp.setData(pos=new_pos)
