@@ -46,6 +46,18 @@ def run(Nx,dt,task,num_iter,printmod,filename):
     #print(res)
     return C
 
+def plotsingle(C,desc,filename):
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    ax.set_xlabel('x')
+    ax.set_ylabel('C')
+    ax.legend(loc='best')
+    plt.plot(C,label=str(desc))
+    plt.legend(loc="upper right")
+    plt.savefig(DIR_OUT + filename + ".png")
+    #plt.show()
+
+
 
 parser = argparse.ArgumentParser(description='Script to generate trajectory')
 parser.add_argument('Nx', type=int,help='Nx', default=100, nargs='?', const=1)
@@ -58,8 +70,9 @@ parser.add_argument('filename', type=str, help='enter filename', default="defaul
 
 args = parser.parse_args()
 
-
+#print(args.task)
 C=run(args.Nx,args.deltat,args.task,args.num_iter,args.printmod,args.filename)
+plotsingle(C,"bla",args.filename)
 
 
 #fgr,axs=plt.subplots(2)
