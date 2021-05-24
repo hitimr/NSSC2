@@ -4,18 +4,21 @@ import matplotlib.animation as animation
 import argparse
 
 
-def animate(ydata, fileName, title=""):
+def animate(ydata, fileName, title="no title"):
     xdata = np.linspace(0,1,len(ydata[0]))
     fig, ax = plt.subplots()
     line, = ax.plot(xdata, ydata[0], label="time evolution")
     initial_line = ax.plot(xdata, ydata[0], "--", label="initial condition")
-    ax.legend(loc="upper right")
-    ax.set_ylim([np.min(ydata), 1.1*np.max(ydata)])
-    ax.set_title(title)
+    
     global i
     i = 0
 
+    ax.legend(loc="upper right")
+    ax.set_ylim([np.min(ydata), 1.1*np.max(ydata)])
+    ax.set_title(f"{title}, Frame: {i}")
+
     def animate(i):
+        ax.set_title(f"{title}, Frame: {i}")
         line.set_ydata(ydata[i])
         i = i+1
         return line,
