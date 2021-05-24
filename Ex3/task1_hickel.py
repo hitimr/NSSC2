@@ -4,6 +4,59 @@ import argparse
 from misc import *
 
 
+"""
+iport task1_hickel as task1
+import animate
+
+Nx = 500
+dt = 1
+num_iter = 300
+printmod = 1
+filename ="temp.txt"
+
+result_numeric = task1.run(Nx, dt, 1, num_iter, printmod, filename)
+
+t = 100
+result_analitic = analytical_sol(t, Nx, 100)
+
+d = 10**(-6)*dt/(1/(Nx+1))**2
+
+#plt.plot(np.linspace(0,1, Nx), result_analitic, label="analytic")
+#plt.plot(np.linspace(0,1, Nx), result_numeric[t], label="numeric")
+
+plt.plot(np.abs(result_analitic-result_numeric[t]))
+plt.title(f"Numerical Error at t={t}, d=D*dt/dx² = {d}")
+plt.legend()
+
+"""
+
+
+def analytical_sol(t, points=100, n_max=100):
+    x_vals = np.linspace(1,0,points)
+    n = np.arange(0, n_max+1, 1)
+
+    # create vector with alternating signs so we dont need (-1)^n
+    signs = np.empty((n_max+1,),int)
+    signs[::2] = 1
+    signs[1::2] = -1
+
+    # pull out redundant calculations
+    t = 10**(-6)*t
+    pi2t = np.pi*np.pi*t
+    
+
+    # solution for a single point
+    def analytical_sol_single(x):    
+        return 1-2*np.sum(
+           signs / ((n+0.5)*np.pi) * np.cos((n+0.5)*np.pi*x) * np.exp( -(n*n+n+0.25) * pi2t)
+        )
+    
+    # vectorize over x_vals for parallel performance
+    vectorized = np.vectorize(analytical_sol_single)
+    return vectorized(x_vals)
+
+
+
 def apply_boundaries(C,task):
     if task == 1:
         C[0] = 1
@@ -44,7 +97,7 @@ def run(Nx,dt,task,num_iter,printmod,filename):
     np.savetxt(DIR_OUT + filename,res)
 
     #print(res)
-    return C
+    return res
 
 def plotsingle(C,desc,filename):
     fig = plt.figure()
@@ -58,31 +111,31 @@ def plotsingle(C,desc,filename):
     #plt.show()
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Script to generate trajectory')
+    parser.add_argument('Nx', type=int,help='Nx', default=100, nargs='?', const=1)
+    parser.add_argument('deltat', type=float, help='timestep', default=0.01, nargs='?', const=1)
+    parser.add_argument('num_iter', type=int, help='number of timesteps', default=1000, nargs='?', const=1)
+    parser.add_argument('printmod', type=int, help='modulo for printing', default=10, nargs='?', const=1)
+    parser.add_argument('task', type=int, help='task', default=1, nargs='?', const=1)
+    parser.add_argument('filename', type=str, help='enter filename', default="default_filename.txt", nargs='?', const=1)
+    #parser.add_argument('plot', type=int, help='plot or not to plot', default=0, nargs='?', const=1)
 
-parser = argparse.ArgumentParser(description='Script to generate trajectory')
-parser.add_argument('Nx', type=int,help='Nx', default=100, nargs='?', const=1)
-parser.add_argument('deltat', type=float, help='timestep', default=0.01, nargs='?', const=1)
-parser.add_argument('num_iter', type=int, help='number of timesteps', default=1000, nargs='?', const=1)
-parser.add_argument('printmod', type=int, help='modulo for printing', default=10, nargs='?', const=1)
-parser.add_argument('task', type=int, help='task', default=1, nargs='?', const=1)
-parser.add_argument('filename', type=str, help='enter filename', default="default_filename.txt", nargs='?', const=1)
-#parser.add_argument('plot', type=int, help='plot or not to plot', default=0, nargs='?', const=1)
+    args = parser.parse_args()
 
-args = parser.parse_args()
-
-#print(args.task)
-C=run(args.Nx,args.deltat,args.task,args.num_iter,args.printmod,args.filename)
-plotsingle(C,"bla",args.filename)
+    #print(args.task)
+    C=run(args.Nx,args.deltat,args.task,args.num_iter,args.printmod,args.filename)
+    plotsingle(C,"bla",args.filename)
 
 
-#fgr,axs=plt.subplots(2)
-#C1=run(100,2,1,1000)
-#C2=run(100,2,2,1000)
-#C3=run(100,2,1,100000)
-#C4=run(100,2,2,100000)
-#plt.yscale("log")
-#plt.plot(C3)
-#axs[0].plot(C1)
-#axs[0].plot(C2)
-#axs[1].plot(C3)
-#axs[1].plot(C4)
+    #fgr,axs=plt.subplots(2)
+    #C1=run(100,2,1,1000)
+    #C2=run(100,2,2,1000)
+    #C3=run(100,2,1,100000)
+    #C4=run(100,2,2,100000)
+    #plt.yscale("log")
+    #plt.plot(C3)
+    #axs[0].plot(C1)
+    #axs[0].plot(C2)
+    #axs[1].plot(C3)
+    #axs[1].plot(C4)
