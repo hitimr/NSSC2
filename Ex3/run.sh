@@ -12,8 +12,8 @@ do
 		do
 			for d in "${task[@]}"
 			do
-				echo "python3 task1_hickel.py $a $b $c $print_mod $task Nx_${a}_dt_${b}_numIter_${c}_task_${d}.txt"
-				python3 task1_hickel.py $a $b $c $print_mod $task Nx_${a}_dt_${b}_numIter_${c}_task_${d}.txt
+				echo "python3 task1_hickel.py $a $b $c $print_mod $d Nx_${a}_dt_${b}_numIter_${c}_task_${d}.txt"
+				python3 task1_hickel.py $a $b $c $print_mod $d Nx_${a}_dt_${b}_numIter_${c}_task_${d}.txt
 			done
 		done
 	done
