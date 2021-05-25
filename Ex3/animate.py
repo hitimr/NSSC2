@@ -4,27 +4,41 @@ import matplotlib.animation as animation
 import argparse
 
 
-def animate(ydata, fileName, title="no title"):
-    xdata = np.linspace(0,1,len(ydata[0]))
+def animate(yNumeric, fileName, title="no title", yAnalytic=[]):
     fig, ax = plt.subplots()
-    line, = ax.plot(xdata, ydata[0], label="time evolution")
-    initial_line = ax.plot(xdata, ydata[0], "--", label="initial condition")
+    
+
+    xNumeric =  np.linspace(0,1,len(yNumeric[0]))
+    lineNumeric, = ax.plot(xNumeric, yNumeric[0], label="numeric evolution")
+
+    # Add analytic data if passed as argument
+    if len(yAnalytic) != 0:
+        if(len(yNumeric) != len(yAnalytic)): raise ValueError("numeric solution and analytic solution must have the same number of time steps")
+
+        xAnalytic = np.linspace(0,1,len(yAnalytic[0])) 
+        lineAnalytic, = ax.plot(xAnalytic, yAnalytic[0], "x", label="analytic evolution")
     
     global i
     i = 0
 
+    initial_line = ax.plot(xNumeric, yNumeric[0], "--", label="initial condition")
     ax.legend(loc="upper right")
-    ax.set_ylim([np.min(ydata), 1.1*np.max(ydata)])
+    ax.set_ylim([np.min(yNumeric), 1.1*np.max(yNumeric)])
     ax.set_title(f"{title}, Frame: {i}")
 
-    def animate(i):
+    def update(i):
+        i += 1
+        # Update Title
         ax.set_title(f"{title}, Frame: {i}")
-        line.set_ydata(ydata[i])
-        i = i+1
-        return line,
+
+        # Update Data
+        lineNumeric.set_ydata(yNumeric[i-1])
+
+        if len(yAnalytic) != 0:
+            lineAnalytic.set_ydata(yAnalytic[i-1])
 
 
-    ani = animation.FuncAnimation(fig, animate, frames=len(ydata))
+    ani = animation.FuncAnimation(fig, update, frames=len(yNumeric))
     ani.save(fileName+".gif", fps=30, writer='imagemagick')
 
     fig.savefig(fileName+".png")
