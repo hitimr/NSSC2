@@ -52,7 +52,7 @@ def animations():
     dx = 0.01
     Nx = int(1/(dx+0))
     x_vals = np.linspace(0, 1, Nx)
-    steps = 100
+    steps = 130
 
     for co in [0.8, 1.0, 1.05]:
         print(f"Animating for Co={co}")
