@@ -7,3 +7,5 @@ Scripts:
 - Task2.py:     upwind advection scheme including plot generation for Task2
 - misc.py:      miscellaneous global variables related to the project
 - animate.py:   sript that creates an animation for a given data file
+- task1.3.py:   task 1.3 using an implicit solver of first order (produce plots by uncommenting the commands in the last part of the script)
+- task1.4.py:   task 1.4 using an implicit solver of second order (produce plots by uncommenting the commands in the last part of the script)
