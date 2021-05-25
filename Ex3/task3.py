@@ -42,51 +42,38 @@ def fill_matrix(matrix):
 def apply_BC(C_vector):
     C_vector[0] = dirichlet
     C_vector[-1] = C_vector[-2]
-
-    #C_vector[0] = C_vector[0] + S*D*dirichlet
-    #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_0[-2])
-
-    #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_vector[-2])
-    #C_vector[-1] = C_vector[-2] #+ S*D*C_vector[-2]
-    
     return C_vector
 
 
-
-
-
 if __name__ == "__main__":
+
     #settings of time and space
-    xmax = 10
-    tmax = 10000
+    xmax = 100
+    tmax = 5000
     dx = 1/xmax
-    dt = 40
+    dt = 1
     D = 10**(-6)
     dirichlet = 1 #at x=0
     neuman = 0 #at x=h
 
     #initialization
-    space = np.linspace(0,xmax,xmax)
+    space = np.linspace(0,1,xmax)
     time = np.linspace(0,tmax,tmax)
     S = dt/(dx*dx)
+    #S=1000
     C = [] #concentration values
     A = numpy.zeros([xmax,xmax]) #discretisation matrix
     C_0 = numpy.zeros([xmax]) #concentration vector at given time step
 
     #solve
     fill_matrix(A)
-    #C_0 = apply_BC(C_0)
     C_old = C_0
     for i in range(tmax):
         C_old = apply_BC(C_old)
         C_new = TDMAsolve(A,C_old)
         C.append(C_new)
         C_old = C_new
-
     C = np.array(C)
-    df = pd.DataFrame(C)
-    df.to_csv("task3.csv",index=False)
-
 
     #plots
     plottimesteps = [0,round((tmax-1)*0.01),round((tmax-1)*0.1),round((tmax-1)*0.5),tmax-1]
@@ -99,6 +86,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.xlabel("x")
     plt.ylabel("C")
+    plt.title("Implicit method, 1st order, S = "+str(S))
     plt.grid()
     plt.show()
-    #plt.savefig('plots/asdfasdfasdfasdf.pdf')
+    #plt.savefig('plots/implicit_'+str(i)+".pdf")
