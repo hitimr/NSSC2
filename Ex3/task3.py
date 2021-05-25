@@ -1,8 +1,10 @@
 import numpy
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from task1_hickel import analytical_sol
 
-#https://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)
+#thomas algorithm
 def TDMAsolve(A, b):
     Ac = A.copy()
     bc = b.copy()
@@ -38,9 +40,15 @@ def fill_matrix(matrix):
 
 #apply BC to concentration vector
 def apply_BC(C_vector):
-    C_vector[0] = C_vector[0] + S*D*dirichlet
+    C_vector[0] = dirichlet
+    C_vector[-1] = C_vector[-2]
+
+    #C_vector[0] = C_vector[0] + S*D*dirichlet
+    #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_0[-2])
+
     #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_vector[-2])
     #C_vector[-1] = C_vector[-2] #+ S*D*C_vector[-2]
+    
     return C_vector
 
 
@@ -49,18 +57,16 @@ def apply_BC(C_vector):
 
 if __name__ == "__main__":
     #settings of time and space
-    xmax = 100
-    tmax = 1000
+    xmax = 10
+    tmax = 10000
     dx = 1/xmax
-    dt = 60
+    dt = 40
     D = 10**(-6)
-    #D = 0.1
-    #################################################
     dirichlet = 1 #at x=0
     neuman = 0 #at x=h
 
     #initialization
-    space = np.linspace(1,xmax,xmax)
+    space = np.linspace(0,xmax,xmax)
     time = np.linspace(0,tmax,tmax)
     S = dt/(dx*dx)
     C = [] #concentration values
@@ -73,12 +79,13 @@ if __name__ == "__main__":
     C_old = C_0
     for i in range(tmax):
         C_old = apply_BC(C_old)
-        #C_new = np.linalg.solve(A,C_old) #compute next C vector
         C_new = TDMAsolve(A,C_old)
         C.append(C_new)
-        C_old = C_new #set old C vector to new for next iteration
+        C_old = C_new
 
     C = np.array(C)
+    df = pd.DataFrame(C)
+    df.to_csv("task3.csv",index=False)
 
 
     #plots
@@ -86,7 +93,8 @@ if __name__ == "__main__":
     fig = plt.figure(figsize = (7,5))
     for i in plottimesteps:
         #plt.plot(space,C[i,:],label="C")
-        plt.plot(space,C[i,:],label="C at t="+str(i))
+        plt.plot(space,C[i,:],label="C after i="+str(i))
+    plt.plot(space,analytical_sol(tmax, points=xmax, n_max=1000),label="analytical sol")
 
     plt.legend()
     plt.xlabel("x")
