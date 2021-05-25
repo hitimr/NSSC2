@@ -52,12 +52,12 @@ def animations():
     dx = 0.01
     Nx = int(1/(dx+0))
     x_vals = np.linspace(0, 1, Nx)
-    steps = 100
+    steps = 140
 
     res_analytic = advect_analytical(func_gauss, Nx=Nx, steps=steps, c=dx*steps)
     res_numeric =  advect_upwind(func_gauss, 1, steps, Nx)
 
-    animate(res_numeric, "task2_gauss_co_1", title="Courant = 1", yAnalytic=res_analytic)
+    animate(res_numeric, "animations/task2_gauss_co_1", title="Courant = 1", yAnalytic=res_analytic)
     #plt.show()
 
 
@@ -103,7 +103,7 @@ def courantPlots(courant):
 
 
 if __name__ == "__main__":
-    #animations()
+    animations()
     courantPlots(0.8)
     courantPlots(1.0)
     courantPlots(1.2)
