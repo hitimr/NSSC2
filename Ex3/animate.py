@@ -54,4 +54,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = np.loadtxt(args.inFile)
-    animate(data, args.outFile)
+    animate(data, args.outFile, title="Task2")
