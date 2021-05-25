@@ -5,6 +5,7 @@ import pandas as pd
 from task1_hickel import analytical_sol
 
 
+#thomas algorithm
 def TDMAsolve(A, b):
     Ac = A.copy()
     bc = b.copy()
@@ -38,7 +39,7 @@ def fill_matrix(matrix):
     return matrix
 
 
-#compute right-hand side
+#compute right-hand side (Crank Nicholson scheme)
 def computeRHS(C_vector):
     B = numpy.zeros([len(C_vector),len(C_vector)])
     for i in range(len(B[0])):
@@ -48,33 +49,28 @@ def computeRHS(C_vector):
         B[i,i+1] = S*D
     return numpy.dot(B,C_vector)
 
-
 #apply BC to concentration vector
 def apply_BC(C_vector):
     C_vector[0] = dirichlet
     C_vector[-1] = C_vector[-2]
-
     #C_vector[0] = C_vector[0] + S*D*dirichlet
     #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_0[-2])
-
-    #C_vector[-1] = C_vector[-1] + S*D*(2*dx*neuman + C_vector[-2])
-    #C_vector[-1] = C_vector[-2] #+ S*D*C_vector[-2]
-    
     return C_vector
 
 
 if __name__ == "__main__":
+
     #settings of time and space
     xmax = 100
-    tmax = 1000
+    tmax = 5000
     dx = 1/xmax
-    dt = 60
+    dt = 1
     D = 10**(-6)
     dirichlet = 1 #at x=0
     neuman = 0 #at x=h
 
     #initialization
-    space = np.linspace(1,xmax,xmax)
+    space = np.linspace(0,1,xmax)
     time = np.linspace(0,tmax,tmax)
     S = dt/(dx*dx)
     C = [] #concentration values
@@ -89,19 +85,21 @@ if __name__ == "__main__":
         C_new = TDMAsolve(A,C_old)
         C.append(C_new)
         C_old = computeRHS(C_new)
-
+        C_old = C_new
     C = np.array(C)
 
-
-    plottimesteps = [0,round((tmax-1)*0.01),round((tmax-1)*0.1),round((tmax-1)*0.5),tmax-1]
+    #plots
+    plottime = tmax-1
     fig = plt.figure(figsize = (7,5))
-    for i in plottimesteps:
-        #plt.plot(space,C[i,:],label="C")
-        plt.plot(space,C[i,:],label="C after i="+str(i))
+
+    plt.plot(space,C[plottime,:], 'b.',label="C after i="+str(plottime))
+    plt.plot(space,analytical_sol(tmax, points=xmax, n_max=tmax),"r-",label="analytical sol")
+    err = C[plottime,:] - analytical_sol(tmax, points=xmax, n_max=tmax)
+    plt.plot(space,err, label="error")
 
     plt.legend()
     plt.xlabel("x")
     plt.ylabel("C")
     plt.grid()
     plt.show()
-    #plt.savefig('plots/asdfasdfasdfasdf.pdf')
+    #plt.savefig('plots/error.pdf')
