@@ -93,17 +93,18 @@ if __name__ == "__main__":
 
     #error plot
     plottime = tmax-1
+
     fig = plt.figure(figsize = (7,5))
 
-    plt.plot(space,C[plottime,:], 'b.',label="C after i="+str(plottime))
+    plt.plot(space,C[plottime,:], 'b.',label="C - 1st order")
     plt.plot(space,analytical_sol(tmax, points=xmax, n_max=tmax),"r-",label="analytical sol")
 
-    err = C[plottime,:] - analytical_sol(tmax-1, points=xmax, n_max=1000)
+    err = C[plottime,:] - analytical_sol(plottime, points=xmax, n_max=1000)
     plt.plot(space,err, label="error")
 
     plt.legend()
     plt.xlabel("x")
     plt.ylabel("C")
     plt.grid()
-    plt.show()
-    # plt.savefig('plots/error1.pdf')
+    # plt.show()
+    plt.savefig('plots/error1.pdf')
