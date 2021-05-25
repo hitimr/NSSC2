@@ -31,4 +31,9 @@ echo "python3 task1_1.py 100 49 5000 1 Nx_100_dt_49_numIter_5000_task_1.txt"
 python3 task1_1.py 100 49 5000 1 Nx_100_dt_49_numIter_5000_task_1.txt
 echo "python3 task1_2.py 100 49 5000 1 Nx_100_dt_49_numIter_5000_task_2.txt"
 python3 task1_2.py 100 49 5000 1 Nx_100_dt_49_numIter_5000_task_1.txt
+echo "python3 task1_1.py 100 51 5000 1 Nx_100_dt_51_numIter_5000_task_1.txt"
+python3 task1_1.py 100 51 5000 1 Nx_100_dt_51_numIter_5000_task_1.txt
+echo "python3 task1_2.py 100 51 5000 1 Nx_100_dt_51_numIter_5000_task_2.txt"
+python3 task1_2.py 100 51 5000 1 Nx_100_dt_51_numIter_5000_task_1.txt
+
 
