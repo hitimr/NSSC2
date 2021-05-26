@@ -2,7 +2,7 @@ import numpy
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from task1_hickel import analytical_sol
+from task1_functions import analytical_sol
 
 
 #thomas algorithm
