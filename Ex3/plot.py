@@ -86,11 +86,11 @@ def plot_unstable():
     #plt.show()
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    plot_num_iter_1_1()
-    plot_num_iter_1_2()
-    plot_num_vs_analytical()
-    plot_error()
-    plot_t_infinity()
-    plot_unstable()
+    #plot_num_iter_1_1()
+    #plot_num_iter_1_2()
+    #plot_num_vs_analytical()
+    #plot_error()
+    #plot_t_infinity()
+    #plot_unstable()

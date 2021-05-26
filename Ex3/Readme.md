@@ -4,7 +4,7 @@ Folder structure:
 - ./animations: animations for each task. also include a png-File representing the laast frame of the animation
 
 Scripts:
-- Task2.py:           upwind advection scheme including plot generation for Task2
+- task2_1.py:           upwind advection scheme including plot generation for Task2
 - misc.py:            miscellaneous global variables related to the project
 - animate.py:         script that creates an animation for a given data file
 - task1_1.py:         script that creates output file for task1_1
