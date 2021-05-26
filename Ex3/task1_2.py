@@ -24,3 +24,11 @@ if __name__ == "__main__":
     plt.plot(np.linspace(0,1, 100),C[-1])
     plt.savefig(DIR_OUT +args.filename+".png")
     #plt.show()
+    if args.filename=="task1_2":
+        num_iter=[100,500,1000,5000,10000,20000]
+        for b in num_iter:
+            C=t1f.run(100,20,2,b,1,"Nx_100_dt_20_numIter_"+str(b)+"_task_2.txt")
+        C=t1f.run(100,20,1,20000,1,"Nx_100_dt_20_numIter_20000_task_1.txt")
+        C=t1f.run(100,20,2,20000,2,"Nx_100_dt_20_numIter_20000_task_2.txt")
+        plot.plot_num_iter_1_2()
+        plot.plot_t_infinity()

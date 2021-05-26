@@ -13,20 +13,35 @@ def setup():
     plt.legend(loc="upper right")
 
 
-def plot_num_iter():
-    num_iter=[100,500,1000,5000,10000,20000]
-    for a in range(1,3):
+def plot_num_iter_1_1():
+        num_iter=[100,500,1000,5000,10000,20000]
+    #for a in range(1,3):
         fgr,axs=plt.subplots(1)
         axs.set_xlabel('x')
         axs.set_ylabel('C')
         axs.legend(loc='best')
         for b in num_iter:
-            C_tmp=np.loadtxt(DIR_OUT + "Nx_100_dt_20_numIter_"+str(b)+"_task_"+str(a)+".txt")
+            C_tmp=np.loadtxt(DIR_OUT + "Nx_100_dt_20_numIter_"+str(b)+"_task_1.txt")
             axs.plot(np.linspace(0,1, 100),C_tmp[-1],label="num_iter = "+str(b))
-            plt.title("C for different number of iterations task1."+str(a))
+            plt.title("C for different number of iterations task1_1")
         plt.legend(loc="upper right")
-        plt.savefig(DIR_OUT +"task1_"+str(a)+"numIter_task.png")
+        plt.savefig(DIR_OUT +"task1_1_numIter_task.png")
         #plt.show()
+def plot_num_iter_1_2():
+        num_iter=[100,500,1000,5000,10000,20000]
+    #for a in range(1,3):
+        fgr,axs=plt.subplots(1)
+        axs.set_xlabel('x')
+        axs.set_ylabel('C')
+        axs.legend(loc='best')
+        for b in num_iter:
+            C_tmp=np.loadtxt(DIR_OUT + "Nx_100_dt_20_numIter_"+str(b)+"_task_2.txt")
+            axs.plot(np.linspace(0,1, 100),C_tmp[-1],label="num_iter = "+str(b))
+            plt.title("C for different number of iterations task1_2")
+        plt.legend(loc="upper right")
+        plt.savefig(DIR_OUT +"task1_2_numIter_task.png")
+        #plt.show()
+
 
 def plot_num_vs_analytical():
     setup()
@@ -55,8 +70,8 @@ def plot_t_infinity():
     C1=np.loadtxt(DIR_OUT + "Nx_100_dt_20_numIter_20000_task_1.txt")
     C2=np.loadtxt(DIR_OUT + "Nx_100_dt_20_numIter_20000_task_2.txt")
     plt.title("Behavior for large t")
-    plt.plot(np.linspace(0,1, 100), C1[-1], label="analytic")
-    plt.plot(np.linspace(0,1, 100), C2[-1], label="numeric")
+    plt.plot(np.linspace(0,1, 100), C1[-1], label="task 1_1")
+    plt.plot(np.linspace(0,1, 100), C2[-1], label="task 1_2")
     plt.legend()
     plt.savefig(DIR_OUT + "task_1_2_t_infinity.png")
     #plt.show()
@@ -73,7 +88,8 @@ def plot_unstable():
 
 if __name__ == "__main__":
 
-    plot_num_iter()
+    plot_num_iter_1_1()
+    plot_num_iter_1_2()
     plot_num_vs_analytical()
     plot_error()
     plot_t_infinity()

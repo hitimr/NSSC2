@@ -9,8 +9,8 @@ Scripts:
 - animate.py:         script that creates an animation for a given data file
 - task1_1.py:         script that creates output file for task1_1
 - task1_2.py:         script that creates output file for task1_2
-- task1.3.py:         using an implicit solver of first order (produce plots by uncommenting the commands in the last part of the script)
-- task1.4.py:         using an implicit solver of second order (produce plots by uncommenting the commands in the last part of the script)
+- task1_3.py:         using an implicit solver of first order (produce plots by uncommenting the commands in the last part of the script)
+- task1_4.py:         using an implicit solver of second order (produce plots by uncommenting the commands in the last part of the script)
 - plot.py:            script that creates plots
 - run.sh:             shellscript to run different settings and create output
 - task1_functions.py  functions used in task1_1.py and task1_2.py
@@ -26,8 +26,4 @@ positional arguments:
   printmod    modulo for creating smaller files for animation, 1 is fine  
   filename    name of output file 
 
-- To create all plots from Task1_1 and Task1_2:
-  ./run.sh
-  python3 plot.py
-	
-
+- To create all plots from Task1_1 and Task1_2 just run task1_1.py and task1_2.py without input arguments
