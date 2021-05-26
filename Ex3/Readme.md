@@ -4,15 +4,14 @@ Folder structure:
 - ./animations: animations for each task. also include a png-File representing the laast frame of the animation
 
 Scripts:
-- task2_1.py:           upwind advection scheme including plot generation for Task2
+- task2_1.py:         upwind advection scheme including plot generation for Task2
 - misc.py:            miscellaneous global variables related to the project
 - animate.py:         script that creates an animation for a given data file
 - task1_1.py:         script that creates output file for task1_1
 - task1_2.py:         script that creates output file for task1_2
 - task1_3.py:         using an implicit solver of first order (produce plots by uncommenting the commands in the last part of the script)
 - task1_4.py:         using an implicit solver of second order (produce plots by uncommenting the commands in the last part of the script)
-- plot.py:            script that creates plots
-- run.sh:             shellscript to run different settings and create output
+- plot.py:            plotting funtions task1_1 and task1_2
 - task1_functions.py  functions used in task1_1.py and task1_2.py
 
 Usage Info:
