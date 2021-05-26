@@ -102,4 +102,4 @@ if __name__ == "__main__":
     plt.ylabel("C")
     plt.grid()
     # plt.show()
-    plt.savefig('plots/error2.pdf')
+    plt.savefig('plots/task4error.pdf')
