@@ -5,13 +5,17 @@ class Mesh:
     variation = "noVariation"
     size = -1
     adj_mat = np.array
+    nodal_temps = np.array
+    
 
     def __init__(self, variation, size):
         assert(type(variation) == str)
         assert(type(size) == int and size > 2)
 
-        if variation == "V0": self.init_V0()
-        else: raise ValueError(f"Unknown argumen '{variation}' for variation")
+        if variation == "V0": 
+            self.init_V0()
+        else: 
+            raise ValueError(f"Unknown argumen '{variation}' for variation")
 
         self.variation = variation
 
@@ -24,19 +28,24 @@ class Mesh:
 
         adjacency matrix is hardcoded
             0   1   2   3   
-        0       1   1   
-        1   1           1
-        2   1           1
-        3       1   1
+        0   1   1   1   
+        1   1   1        1
+        2   1       1    1
+        3       1   1    1
 
         """
         self.adj_mat = np.array([
-            [0,1,1,0],
-            [1,0,0,1],
-            [1,0,0,1],
-            [0,1,1,0],
+            [1,1,1,0],
+            [1,1,0,1],
+            [1,0,1,1],
+            [0,1,1,1],
         ])
-        print(self.adj_mat)
+
+        # Temperature distribution
+        # 2.0   1.0
+        # 2.0   1.0
+        self.nodal_temps = [2.0, 1.0, 2.0, 1.0]
+        
         pass
 
 
