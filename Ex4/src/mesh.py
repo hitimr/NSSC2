@@ -6,6 +6,8 @@ class Mesh:
     size = -1
     adj_mat = np.array
     nodal_temps = np.array
+    x_coords = [0, 1, 0, 1]
+    y_coords = [0, 0, 1, 1]
     
 
     def __init__(self, variation, size):
@@ -44,7 +46,7 @@ class Mesh:
         # Temperature distribution
         # 2.0   1.0
         # 2.0   1.0
-        self.nodal_temps = [2.0, 1.0, 2.0, 1.0]
+        self.nodal_temps = [4.0, 2.0, 4.0, 2.0]
         
         pass
 
