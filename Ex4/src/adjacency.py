@@ -2,7 +2,7 @@ import math
 import numpy
 
 
-#position of finite element in 9x9 mes
+#position of finite element in 9x9 mesh (hardcoded!)
 def posFE(FE):
     posFEx = math.ceil(((FE-2)%18)/2)
     posFEy = math.ceil((FE-2)/18-1)
