@@ -54,15 +54,14 @@ def magicsolver(A,T,P):
             P[i] = P_unknown[j]
             j+=1
 
-    return [T,P]
+    return T,P
 
 
 if __name__ == "__main__":
-    A = [[9,10,11,12],[1,2,3,4],[5,6,7,8],[13,14,15,16]]
-    A = numpy.array(A)
+    A = numpy.array([[9,10,11,12],[1,2,3,4],[5,6,7,8],[13,14,15,16]])
     T = [100,None,None,400]
     P = [None,2000,3000,None]
 
-    solution = magicsolver(A,T,P)
-    print("T =",solution[0])
-    print("P =",solution[1])
+    T,P = magicsolver(A,T,P)
+    print("T =",T)
+    print("P =",P)
