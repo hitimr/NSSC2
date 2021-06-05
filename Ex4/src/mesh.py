@@ -21,6 +21,8 @@ class Mesh:
             self.init_V0()
         elif variation == "V1":
             self.init_V1()
+        elif variation == "V3":
+            self.init_V3()
         else: 
             raise ValueError(f"Unknown argumen '{variation}' for variation")
 
@@ -87,8 +89,28 @@ class Mesh:
         x = np.linspace(0, 1, self.nx)
         y = np.linspace(0, 1, self.ny)
         self.xv, self.yv = np.meshgrid(x,y)
-            
 
+    def init_V3(self):
+        self.nx = 10
+        self.ny = 10
+        self.L = 10
+
+        # values in polar coordinates
+        r_vals = np.linspace(self.L, 2*self.L, self.nx)
+        phi_vals = np.linspace(0, 1/4*np.pi, self.ny) + np.pi
+
+        # generate polar mesh
+        r, phi = np.meshgrid(r_vals, phi_vals)
+
+        # transform to cartesian
+        x,y = [], []
+        for i in range(len(r)):
+            x.append(r[i]*np.cos(phi[i]))
+            y.append(r[i]*np.sin(phi[i]))
+
+        # store in mesh  
+        nodal_coords_x = np.array(x)
+        nodal_coords_y = np.array(y)
 
     #returns adjacency matrix for regular mesh in Figure 1 (assignment)
     def generate_adj_mat(self, nnodes):
@@ -132,10 +154,10 @@ class Mesh:
         self.nodal_temps = np.linalg.solve(self.stiff_mat, self.nodal_forces)
         self.nodal_temps.shape = (self.nx, self.ny)
 
-
+    def plot(self):
+        plt.scatter(self.nodal_coords_x, self.nodal_coords_y)
 
 if __name__ == "__main__":
-    mesh = Mesh("V1")
-    mesh.solve()
+    mesh = Mesh("V3")
 
     mesh.plot()
