@@ -89,14 +89,6 @@ class Mesh:
         self.xv, self.yv = np.meshgrid(x,y)
             
 
-    def plot(self):
-        plt.pcolor(
-            self.xv,
-            self.yv,
-            self.nodal_temps
-        )
-        plt.show()
-
 
     #returns adjacency matrix for regular mesh in Figure 1 (assignment)
     def generate_adj_mat(self, nnodes):
