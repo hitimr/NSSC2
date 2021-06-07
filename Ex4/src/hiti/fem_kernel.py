@@ -14,8 +14,8 @@ class FEM_Kernel():
 
     def solve(self):
         # solve Ax = b
-        A = self.mesh.stiff_mat
-        b = self.mesh.nodal_forces
+        A = np.linalg.inv(self.mesh.adj_mat)
+        b = self.mesh.nodal_temps
 
         x = np.linalg.solve(A, b)
         print(x)
@@ -23,7 +23,7 @@ class FEM_Kernel():
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V1")
+    mesh = Mesh("V0", 4)
 
     kernel = FEM_Kernel()
     kernel.set_mesh(mesh)
