@@ -33,5 +33,11 @@ def test_get_face_nodes():
     assert(mesh.get_face_nodes(2).all() == np.array([1,10,11]).all())
     assert(mesh.get_face_nodes(162).all() == np.array([89,98,99]).all())
 
+def test_generate_adj_mat():
+    mesh = Mesh('V1')
+
+    mat = mesh.adj_mat
+    # TODO unit test
+
 if __name__ == "__main__":
     test_get_face_nodes()

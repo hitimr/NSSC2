@@ -1,6 +1,9 @@
+from Ex4.src.read_file import read_from_file
 import numpy as np
 import matplotlib.pyplot as plt
 
+from magicsolver import *
+from misc import *
 
 class Mesh:
     variation = "noVariation"
@@ -9,21 +12,37 @@ class Mesh:
     index_mat = np.array    # martirx that represents the index position of every node
     adj_mat = np.array  # adjacency matrix
 
-    nodal_temps = np.array
-    nodal_forces = np.array
+    nodal_temps = []
+    nodal_forces = []
     nodal_coords_x = np.array
     nodal_coords_y = np.array
 
     
 
-    def __init__(self, variation):
-        assert(type(variation) == str)
+    def __init__(self, variation=None):
 
         # common settings for all variations
         self.nx = 10
         self.ny = 10
+        self.n = self.nx*self.ny
         self.L = 10
-            
+
+        file_params = read_from_file(DIR_SRC + "inputfile_group_5.txt")
+
+
+        # apply boundary conditions
+        # TODO: replace with values from file
+        # append is not ideal but size is only 100
+        self.nodal_temps = []
+        for i in range(10): self.nodal_temps.append(373)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        for i in range(10,self.n): self.nodal_temps.append(None)
+
+
+        self.nodal_forces = []
+        for i in range(10): self.nodal_forces.append(None)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        for i in range(10,90): self.nodal_forces.append(0)
+        for i in range(90,self.n): self.nodal_forces.append(1500000)
+
         # initialize depending on the variation
         if variation == "V0": 
             self.init_V0()
@@ -31,6 +50,8 @@ class Mesh:
             self.init_V1()
         elif variation == "V3":
             self.init_V3()
+        elif variation == None:
+            pass
         elif variation == 'debug':
             pass
         else: 
@@ -42,6 +63,7 @@ class Mesh:
         self.index_mat = self.generate_nodal_indices()
         self.adj_mat = self.generate_adj_mat(self.nx*self.ny)
         self.stiff_mat = self.generate_stiffnessMat()
+        return
 
     def generate_nodal_indices(self):
         """Generate a matrix where every entry corresponds to the index of a givern node
@@ -81,28 +103,28 @@ class Mesh:
 
 
     def generate_stiffnessMat(self):
-        k = 2
-        n = self.nx * self.ny
+        n = self.nx * self.ny   # TODO: generalize for different nx and ny
 
         # use triu to remove duzplicates
-        upper = np.triu(self.adj_mat)   
+        edges = np.triu(self.adj_mat)   
 
-        stiff_mat = np.zeros((n,n))
-        for y in range(n):
-            for x in range(n):
-                if(upper[x][y] == 1):
-                    sub_mat =  np.zeros((n,n))
-                    sub_mat[x][x] = k
-                    sub_mat[y][y] = k
-                    #sub_mat[x][-y] = -k
-                    #sub_mat[-x][y] = -k
+        stiff_mat = np.zeros((n, n))
+        for y in range(self.ny):
+            for x in range(self.nx):
+                if(edges[x][y] != 0):
+                    # TODO: replace sub mat
+                    sub_mat =  np.zeros((n*n, n*n))
+                    sub_mat[x][x] = self.adj_mat[x][y]
+                    sub_mat[y][y] = self.adj_mat[x][y]
+                    sub_mat[x][y] = -self.adj_mat[x][y]
+                    sub_mat[y][x] = -self.adj_mat[x][y]
 
-                    stiff_mat += sub_mat
+                    #stiff_mat[x][x] += self.adj_mat[x][y]
+                    #stiff_mat[y][y] += self.adj_mat[x][y]
 
         # fill diagonal
-        for y in range(n):
-            for x in range(n):
-                stiff_mat[x][y] = k
+        for i in range(n):
+            stiff_mat[i][i] = 314
 
         return stiff_mat
         
@@ -141,7 +163,6 @@ class Mesh:
         self.nx = 10
         self.ny = self.nx
         n =  self.nx * self.ny
-        k = 314
 
 
         self.nodal_forces = np.zeros(n)
@@ -154,7 +175,6 @@ class Mesh:
 
 
     def init_V3(self):
-
         # values in polar coordinateL
         a, b = 1.25, 1
         r_vals = np.linspace(2*self.L, self.L, self.nx)
@@ -183,6 +203,8 @@ class Mesh:
         # TODO: replace with values read from file
         k = 314
         k_mod = 50
+        #mod_faces = [9,10,11,12,13,14,27,28,29,29,30,31,32]
+        mod_faces = []
 
         n = int(nnodes**0.5)
         A = np.zeros([nnodes,nnodes])
@@ -213,6 +235,15 @@ class Mesh:
             A[i-dshift,i] = 0
             A[i,i-dshift] = 0
 
+
+        for face in mod_faces:
+            nodes = self.get_face_nodes(face) # get 3 nodes of vertex
+            for node in nodes:
+                A[nodes[0], node]= k_mod
+                A[nodes[1], node]= k_mod
+                A[nodes[2], node]= k_mod
+                    
+
         return A
 
 
@@ -222,9 +253,26 @@ class Mesh:
         self.nodal_temps.shape = (self.nx, self.ny)
 
     def plot(self):
-        plt.scatter(self.nodal_coords_x, self.nodal_coords_y)
+        T = np.reshape(T, (-1, len(x)))
+        fig, ax = plt.subplots()
+        plt.xlim(x[0], x[-1])
+        plt.ylim(y[0], y[-1])
+        ax.set_title('Temperature plot')
+        ax.pcolormesh(T)
+        plt.show()
+
 
 if __name__ == "__main__":
-    mesh = Mesh("V3")
+    mesh = Mesh()
+
+    #T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
+
+    A = mesh.stiff_mat[10:,10:]
+    b = mesh.nodal_forces[10:]
+    T = np.linalg.solve(A,b)
+
+    plt.pcolor(T)
+    plt.show()
+    pass
 
     #mesh.plot()
