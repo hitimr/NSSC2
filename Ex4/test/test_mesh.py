@@ -9,6 +9,9 @@ import numpy as np
 from src.mesh import *
 
 
+def test_init():
+    mesh = Mesh('debug')
+    assert(mesh.num_faces == 162)
 
 def test_generate_adj_mat():
     mesh = Mesh('debug')

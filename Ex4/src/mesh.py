@@ -1,9 +1,14 @@
-from Ex4.src.read_file import read_from_file
+#include parent folder
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir) 
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-from magicsolver import *
-from misc import *
+from src.magicsolver import *
+from src.misc import *
 
 class Mesh:
     variation = "noVariation"
@@ -17,31 +22,37 @@ class Mesh:
     nodal_coords_x = np.array
     nodal_coords_y = np.array
 
+
     
 
     def __init__(self, variation=None):
 
         # common settings for all variations
+        file_params = read_from_file(DIR_SRC + "inputfile_group_5.txt")
+
         self.nx = 10
         self.ny = 10
         self.n = self.nx*self.ny
-        self.L = 10
-
-        file_params = read_from_file(DIR_SRC + "inputfile_group_5.txt")
+        self.L = float(file_params["L"])
+        self.hz = float(file_params["hz"])
+        self.k = float(file_params["k"])
+        self.k_mod = float(file_params["c"])
+        self.num_faces = (self.nx - 1) * (self.ny - 1) * 2
+        
 
 
         # apply boundary conditions
-        # TODO: replace with values from file
         # append is not ideal but size is only 100
         self.nodal_temps = []
-        for i in range(10): self.nodal_temps.append(373)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        for i in range(10): self.nodal_temps.append(float(file_params["T_y_0"]))     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
         for i in range(10,self.n): self.nodal_temps.append(None)
-
 
         self.nodal_forces = []
         for i in range(10): self.nodal_forces.append(None)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
         for i in range(10,90): self.nodal_forces.append(0)
-        for i in range(90,self.n): self.nodal_forces.append(1500000)
+        for i in range(90,self.n): 
+            self.nodal_forces.append(float(file_params["q_y_L"]))
+        #for i in range(90,self.n): self.nodal_forces.append(10)
 
         # initialize depending on the variation
         if variation == "V0": 
@@ -62,8 +73,9 @@ class Mesh:
         # generate data from init values
         self.index_mat = self.generate_nodal_indices()
         self.adj_mat = self.generate_adj_mat(self.nx*self.ny)
-        self.stiff_mat = self.generate_stiffnessMat()
+        self.stiff_mat = self.generate_global_stiffness_mat()
         return
+        
 
     def generate_nodal_indices(self):
         """Generate a matrix where every entry corresponds to the index of a givern node
@@ -101,63 +113,82 @@ class Mesh:
         nodes.sort()
         return np.array(nodes)
 
+    def generate_global_stiffness_mat(self):
+        global_stiff_mat = np.zeros((self.n, self.n))
 
-    def generate_stiffnessMat(self):
-        n = self.nx * self.ny   # TODO: generalize for different nx and ny
+        for face in range(1, self.num_faces+1):
+            nodes = self.get_face_nodes(face)
 
-        # use triu to remove duzplicates
-        edges = np.triu(self.adj_mat)   
+            element_stiffness_mat = self.generate_element_stiffness_mat(face)
 
-        stiff_mat = np.zeros((n, n))
-        for y in range(self.ny):
-            for x in range(self.nx):
-                if(edges[x][y] != 0):
-                    # TODO: replace sub mat
-                    sub_mat =  np.zeros((n*n, n*n))
-                    sub_mat[x][x] = self.adj_mat[x][y]
-                    sub_mat[y][y] = self.adj_mat[x][y]
-                    sub_mat[x][y] = -self.adj_mat[x][y]
-                    sub_mat[y][x] = -self.adj_mat[x][y]
+            # connectivity matrix
+            # TODO replace witzh hand code
+            connectivity_mat = np.zeros((3,self.n))
+            connectivity_mat[0][nodes[0]] = 1
+            connectivity_mat[1][nodes[1]] = 1
+            connectivity_mat[2][nodes[2]] = 1
 
-                    #stiff_mat[x][x] += self.adj_mat[x][y]
-                    #stiff_mat[y][y] += self.adj_mat[x][y]
+            global_stiff_mat += connectivity_mat.T @ element_stiffness_mat @ connectivity_mat
 
-        # fill diagonal
-        for i in range(n):
-            stiff_mat[i][i] = 314
-
-        return stiff_mat
+        return global_stiff_mat  
         
+    def generate_element_stiffness_mat(self, face):   # TODO: repalce with nodes to save redundant function call
+        assert(face > 0)
+        assert(face < (self.num_faces + 1))
 
+        # TODO: check for kmod
+        k = self.k
+        nodes = self.get_face_nodes(face)
 
-    def init_V0(self):
-        """Initialize using the simplest case:
+        # get absolute coordinates of every node
+        x = [self.nodal_coords_x[node] for node in nodes]
+        y = [self.nodal_coords_y[node] for node in nodes]
 
-        2 - 3
-        | \ |
-        0 - 1
+        # Zienkiewicz p. 120
+        a = [
+            x[1]*y[2] - x[2]*y[1], 
+            x[2]*y[0] - x[0]*y[2],
+            x[0]*y[1] - x[1]*y[0]
+        ]
 
-        adjacency matrix is hardcoded
-            0   1   2   3   
-        0   1   1   1   
-        1   1   1        1
-        2   1       1    1
-        3       1   1    1
+        b = [
+            y[1] - y[2],
+            y[2] - y[0],
+            y[0] - y[1]
+        ]
 
-        """
-        self.adj_mat = np.array([
-            [1,1,1,0],
-            [1,1,0,1],
-            [1,0,1,1],
-            [0,1,1,1],
+        c = [
+            x[2] - x[1],
+            x[1] - x[2], 
+            x[1] - x[0]
+        ]
+
+        area = (x[0] * b[0] + x[1]*b[1] + x[2]*b[2]) / 2
+
+        # calculate sub matrix
+        H_xx = np.array([
+            [b[0]*b[0], b[0]*b[1], b[0]*b[2]],
+            [b[1]*b[0], b[1]*b[1], b[1]*b[2]],
+            [b[2]*b[0], b[2]*b[1], b[2]*b[2]],
         ])
 
-        # Temperature distribution
-        # 2.0   1.0
-        # 2.0   1.0
-        self.nodal_temps = [4.0, 2.0, 4.0, 2.0]
+        H_yy = np.array([
+            [c[0]*c[0], c[0]*c[1], c[0]*c[2]],
+            [c[1]*c[0], c[1]*c[1], c[1]*c[2]],
+            [c[2]*c[0], c[2]*c[1], c[2]*c[2]],
+        ])
+
+        H = k*self.hz / (4*area) *(H_xx + H_yy)
+        return np.array(H)
         
-        pass
+
+    def init_V0(self):
+        x = np.linspace(0.0, self.L, self.nx)
+        y = np.linspace(0.0, self.L, self.ny)
+
+        self.nodal_coords_x, self.nodal_coords_y = np.meshgrid(x,y)
+        self.nodal_coords_x =  self.nodal_coords_x.ravel()
+        self.nodal_coords_y =  self.nodal_coords_y.ravel()
 
     def init_V1(self):
         self.nx = 10
@@ -263,13 +294,10 @@ class Mesh:
 
 
 if __name__ == "__main__":
-    mesh = Mesh()
+    mesh = Mesh("V0")
 
-    #T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
+    T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
 
-    A = mesh.stiff_mat[10:,10:]
-    b = mesh.nodal_forces[10:]
-    T = np.linalg.solve(A,b)
 
     plt.pcolor(T)
     plt.show()
