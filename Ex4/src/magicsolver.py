@@ -1,3 +1,4 @@
+import numpy as np
 import numpy
 
 #for the equation A*T = P (A matrix, T, P vectors)
@@ -58,10 +59,19 @@ def magicsolver(A,T,P):
 
 
 if __name__ == "__main__":
-    A = numpy.array([[9,10,11,12],[1,2,3,4],[5,6,7,8],[13,14,15,16]])
-    T = [100,None,None,400]
-    P = [None,2000,3000,None]
+    #initialization
+    n = 100
+    unknowns = 50
+    A = numpy.random.rand(n,n)
+    T = numpy.random.rand(n)
+    P = numpy.random.rand(n)
+    T = numpy.ndarray.tolist(T)
+    P = numpy.ndarray.tolist(P)
+    for i in range(len(T)-unknowns):
+        T[i] = None
+    for i in range(len(T)-unknowns,len(T)):
+        P[i] = None
 
+    #print difference to numpy solution
     T,P = magicsolver(A,T,P)
-    print("T =",T)
-    print("P =",P)
+    print(T-numpy.linalg.solve(A, P))
