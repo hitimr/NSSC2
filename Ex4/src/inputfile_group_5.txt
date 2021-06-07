@@ -1,0 +1,42 @@
+"""
+NSSCII - FEM.
+Input to be parsed through.
+
+SI-units to be used:
+    + T in K
+    + L in m
+    + k in W/(mK)
+    + q in W/m^2 - ad Neumann
+    + P in W - ad nodal forces
+"""
+
+# Group number.
+groupnr = 5
+
+# Length in x- and y-direction.
+L = 0.02
+
+# Thickness (z-direction).
+hz = 0.001
+
+# Thermal conductivity (k=k_xx=k_yy, k_xy = 0.).
+k = 314.
+
+# Factor c for modifying thermal conductivity k for
+# elements in elements_to_be_modified.
+c = 50.
+
+# Elements to be modified.
+elements_to_be_modified = [
+                          9-14
+                          27-32
+                          45-50
+                          63-68
+                          81-86
+                          99-103
+                          117-119
+                          ]
+
+# Boundary conditions. (q is acting as a heat sink!)
+q(y=L) = 1500000.
+T(y=0) = 373.
