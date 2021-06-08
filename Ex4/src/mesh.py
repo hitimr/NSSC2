@@ -426,8 +426,10 @@ class Mesh:
         for a in range(0,mesh.num_faces+1):
             elements.append(mesh.get_face_nodes(a))
         triangulation = tri.Triangulation(mesh.nodal_coords_x, mesh.nodal_coords_y,elements)
+        x,y=mesh.face_center_x, mesh.face_center_y
         plt.triplot(triangulation, '-k')
         plt.tricontourf(triangulation, T)
+        plt.quiver(x,y,1,1)
         plt.colorbar()
         plt.show()
 
