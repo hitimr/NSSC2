@@ -84,7 +84,7 @@ class Mesh:
 
             # TODO: replace with Q from book (pdf p. 164)
             area = dx*self.hz
-            nodal_power = float(file_params["q_y_L"])*area
+            nodal_power = -float(file_params["q_y_L"])*area
             self.nodal_forces.append(nodal_power)
             
 
@@ -343,6 +343,6 @@ if __name__ == "__main__":
 
     plt.matshow(mesh.stiff_mat)
     plt.show()
-    #T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
+    T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
     pass
 
