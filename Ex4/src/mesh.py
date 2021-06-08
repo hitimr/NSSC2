@@ -23,8 +23,12 @@ class Mesh:
     nodal_coords_x = np.array
     nodal_coords_y = np.array
 
-
-    
+    face_ids = np.array # number of every face [1,2,3,...] as stated in the assignment
+    face_k = np.array   # k value for a given face_id
+    face_center_x = np.array    # x coordinate of the center of every face
+    face_center_y = np.array    # y coordinate of the center of every face
+    face_flux_x = np.array  # x coordinate of the flux
+    face_flux_y = np.array  # y coordinate of the flux
 
     def __init__(self, variation=None):
 
@@ -39,11 +43,9 @@ class Mesh:
         self.k = float(file_params["k"])
         self.k_mod = float(file_params["c"])
         self.num_faces = (self.nx - 1) * (self.ny - 1) * 2
+        #self.mod_faces = file_params["all_elements"]
+        self.mod_faces = [-1]
         
-
-
-            #self.nodal_forces.append(float(file_params["q_y_L"]))
-        #for i in range(90,self.n): self.nodal_forces.append(10)
 
         # initialize depending on the variation
         if variation == "V0": 
@@ -88,11 +90,31 @@ class Mesh:
             self.nodal_forces.append(nodal_power)
             
 
-        # generate data from init values
+        # generate matrices for simulation
         self.index_mat = self.generate_nodal_indices()
         self.adj_mat = self.generate_adj_mat(self.nx*self.ny)
         self.stiff_mat = self.generate_global_stiffness_mat()
+
+        # calculate stuff about faces
+        self.face_ids = np.arange(start=1, stop=self.num_faces+1, step=1)
+        self.face_center_x, self.face_center_y = [], []
+        for face_id in self.face_ids:
+            x,y = self.get_face_center(face_id)
+            self.face_center_x.append(x)
+            self.face_center_y.append(y)
+
+        self.face_center_x = np.array(self.face_center_x)
+        self.face_center_y = np.array(self.face_center_y)
+
         return
+
+    def get_face_center(self, face):
+        nodes = self.get_face_nodes(face)
+
+        center_x = (self.nodal_coords_x[nodes[0]] + self.nodal_coords_x[nodes[1]] + self.nodal_coords_x[nodes[2]]) / 3.
+        center_y = (self.nodal_coords_y[nodes[0]] + self.nodal_coords_y[nodes[1]] + self.nodal_coords_y[nodes[2]]) / 3.
+
+        return center_x, center_y
 
     def get_face_area(self, face):
         nodes = self.get_face_nodes(face)
@@ -181,14 +203,23 @@ class Mesh:
             #     global_stiff_mat[nodes[i]][nodes[1]] += element_stiffness_mat[i][1]
             #     global_stiff_mat[nodes[i]][nodes[2]] += element_stiffness_mat[i][2]
 
-        return global_stiff_mat  
+        return global_stiff_mat 
+
+    def get_face_k(self, face):
+        if face in self.mod_faces:
+            k = self.k_mod
+        else:
+            k = self.k
+
+        return k
+
         
-    def generate_element_stiffness_mat(self, face):   # TODO: repalce with nodes to save redundant function call
+    def generate_element_stiffness_mat(self, face): 
         assert(face > 0)
         assert(face < (self.num_faces + 1))
 
-        # TODO: check for kmod
-        k = self.k
+        k = self.get_face_k(face)
+
         nodes = self.get_face_nodes(face)
 
         # get absolute coordinates of every node
@@ -196,13 +227,6 @@ class Mesh:
         y = [self.nodal_coords_y[node] for node in nodes]
 
         # Zienkiewicz p. 120
-        """
-        a = [
-            x[1]*y[2] - x[2]*y[1], 
-            x[2]*y[0] - x[0]*y[2],
-            x[0]*y[1] - x[1]*y[0]
-        ]"""
-
         b = [
             y[1] - y[2],
             y[2] - y[0],
@@ -284,10 +308,6 @@ class Mesh:
 
         if int(nnodes**0.5)*int(nnodes**0.5)!=nnodes: return "[ENTER NODE NUMBER OF SQUARE-SHAPED DOMAIN]"
 
-
-        #mod_faces = [9,10,11,12,13,14,27,28,29,29,30,31,32]
-        mod_faces = []
-
         n = int(nnodes**0.5)
         A = np.zeros([nnodes,nnodes])
 
@@ -317,16 +337,80 @@ class Mesh:
             A[i-dshift,i] = 0
             A[i,i-dshift] = 0                   
 
-        #for i in range(nnodes):
-            #A[i][i] = 1
-
         return A
 
 
     def solve(self):
-        # solve Ax = b
-        self.nodal_temps = np.linalg.solve(self.stiff_mat, self.nodal_forces)
-        self.nodal_temps.shape = (self.nx, self.ny)
+        T,P = magicsolver(self.stiff_mat, self.nodal_temps, self.nodal_forces)
+
+        self.nodal_temps = np.array(T)
+        self.nodal_forces = np.array(P)
+
+        flux = np.array([self.flux(face) for face in self.face_ids]).T
+        gradient = np.array([self.gradient(face) for face in self.face_ids]).T
+
+        self.face_flux_x = flux[0]
+        self.face_flux_y = flux[1]
+        self.face_gradient_x = gradient[0]
+        self.face_gradient_y = gradient[1]
+
+        pass
+
+    def perform_sanity_checks(self):
+        # TODO: finish and integrate in V0
+        # The temperature gradient must be constant in the entire model and equal to the overallgradient ∆T/∆y
+        delta_T = self.nodal_temps.max() - self.nodal_temps.min()
+        delta_y = self.L
+        global_gradient = delta_T / delta_y
+        grad = np.linalg.norm([self.face_gradient_x, self.face_gradient_y], axis=0)
+        #res = np.allclose(, global_gradient)
+
+        print("Local gradients constant and equal to the overall gradient?",
+            np.allclose(grad_t[:, 1], global_gradient))
+        print("Local fluxes constant and equal to the applied flux?", np.allclose(heat_flux[:, 1], q_0))
+        print("Heat flux and temperature gradient yield k on each element?", np.allclose(-heat_flux[:, 1] / grad_t[:, 1], k))
+
+
+
+    def flux(self, face):
+        # calculate flux according to eq. (2) in the assignment
+        gradient = self.gradient(face)
+        k_ij = self.get_face_k(face)
+        flux = k_ij * self.gradient(face)
+
+        return flux
+
+
+        
+
+    def gradient(self, face):
+        # calculate the gradient on a given face
+        area = self.get_face_area(face)
+        nodes = self.get_face_nodes(face)
+
+        x = [self.nodal_coords_x[node] for node in nodes]
+        y = [self.nodal_coords_y[node] for node in nodes]
+
+        # I know this aprt is redundant but its not erally worth to make that efficient
+        b = [
+            y[1] - y[2],
+            y[2] - y[0],
+            y[0] - y[1]
+        ]
+
+        c = [
+            x[2] - x[1],
+            x[0] - x[2],
+            x[1] - x[0]
+        ]
+
+        T = np.array([self.nodal_temps[nodes[0]], self.nodal_temps[nodes[1]], self.nodal_temps[nodes[2]]])
+        M = np.array([
+            b,
+            c
+            ])
+        gradient = 1./(2*area) * M @ T # eq. (5) from assignment
+        return gradient
 
     def plot(self):
         T = np.reshape(T, (-1, len(x)))
@@ -351,9 +435,8 @@ class Mesh:
 
 if __name__ == "__main__":
     mesh = Mesh("V0")
-
-    plt.matshow(mesh.stiff_mat)
+    mesh.solve()
+    mesh.plot_test(mesh.nodal_temps)
+    plt.scatter(mesh.nodal_coords_x, mesh.nodal_coords_y)
+    plt.scatter(mesh.face_center_x, mesh.face_center_y)
     plt.show()
-    T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
-    pass
-
