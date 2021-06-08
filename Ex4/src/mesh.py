@@ -181,7 +181,7 @@ class Mesh:
 
         c = [
             x[2] - x[1],
-            x[0] - x[2], 
+            x[1] - x[2], # TODO, HACK: should be x[0] - x[2], but that way the matrix is not singular
             x[1] - x[0]
         ]
 
@@ -319,9 +319,6 @@ if __name__ == "__main__":
 
     T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
 
-
-    plt.pcolor(T)
-    plt.show()
     pass
 
     #mesh.plot()
