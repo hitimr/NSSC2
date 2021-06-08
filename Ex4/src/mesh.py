@@ -429,14 +429,14 @@ class Mesh:
         x,y=mesh.face_center_x, mesh.face_center_y
         plt.triplot(triangulation, '-k')
         plt.tricontourf(triangulation, T)
-        plt.quiver(x,y,1,1)
+        plt.quiver(x,y,mesh.face_flux_x,mesh.face_flux_y)
         plt.colorbar()
         plt.show()
 
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V0")
+    mesh = Mesh("V3")
     mesh.solve()
     mesh.plot_test(mesh.nodal_temps)
     plt.scatter(mesh.nodal_coords_x, mesh.nodal_coords_y)
