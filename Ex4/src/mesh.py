@@ -16,6 +16,7 @@ class Mesh:
 
     index_mat = np.array    # martirx that represents the index position of every node
     adj_mat = np.array  # adjacency matrix
+    stiff_mat = np.array # global stiffness matrix
 
     nodal_temps = []
     nodal_forces = []
@@ -41,17 +42,7 @@ class Mesh:
         
 
 
-        # apply boundary conditions
-        # append is not ideal but size is only 100
-        self.nodal_temps = []
-        for i in range(10): self.nodal_temps.append(float(file_params["T_y_0"]))     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
-        for i in range(10,self.n): self.nodal_temps.append(None)
-
-        self.nodal_forces = []
-        for i in range(10): self.nodal_forces.append(None)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
-        for i in range(10,90): self.nodal_forces.append(0)
-        for i in range(90,self.n): 
-            self.nodal_forces.append(float(file_params["q_y_L"]))
+            #self.nodal_forces.append(float(file_params["q_y_L"]))
         #for i in range(90,self.n): self.nodal_forces.append(10)
 
         # initialize depending on the variation
@@ -64,11 +55,37 @@ class Mesh:
         elif variation == None:
             pass
         elif variation == 'debug':
-            pass
+            self.init_V0()
         else: 
             raise ValueError(f"Unknown argumen '{variation}' for variation")
 
         self.variation = variation
+
+
+        # apply boundary conditions
+        # append is not ideal but size is only 100
+        self.nodal_temps = []
+        for i in range(0, 10): self.nodal_temps.append(float(file_params["T_y_0"]))     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        for i in range(10, 100): self.nodal_temps.append(None)
+
+        self.nodal_forces = []
+        for i in range(0,10): self.nodal_forces.append(None)  
+        for i in range(10, 90): self.nodal_forces.append(0)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        # cross section are recangles. lenghts may vary. height is constant
+        for i in range(90, 100): 
+            if(i == 90): 
+                 # left most node
+                dx = (self.nodal_coords_x[91] - self.nodal_coords_x[90]) / 2
+            elif(i == 99):
+                # right most node  
+                dx = (self.nodal_coords_x[99] - self.nodal_coords_x[98]) / 2 
+            else: 
+                dx = (self.nodal_coords_x[i+1] - self.nodal_coords_x[i]) / 2 + (self.nodal_coords_x[i] - self.nodal_coords_x[i-1]) / 2
+
+            # TODO: replace with Q from book (pdf p. 164)
+            area = dx*self.hz
+            nodal_power = float(file_params["q_y_L"])*area
+            self.nodal_forces.append(nodal_power)
 
         # generate data from init values
         self.index_mat = self.generate_nodal_indices()
@@ -120,7 +137,7 @@ class Mesh:
             nodes = self.get_face_nodes(face)
 
             element_stiffness_mat = self.generate_element_stiffness_mat(face)
-
+            
             # connectivity matrix
             # TODO replace witzh hand code
             connectivity_mat = np.zeros((3,self.n))
@@ -129,6 +146,11 @@ class Mesh:
             connectivity_mat[2][nodes[2]] = 1
 
             global_stiff_mat += connectivity_mat.T @ element_stiffness_mat @ connectivity_mat
+
+            # for i in range(3):
+            #     global_stiff_mat[nodes[i]][nodes[0]] += element_stiffness_mat[i][0]
+            #     global_stiff_mat[nodes[i]][nodes[1]] += element_stiffness_mat[i][1]
+            #     global_stiff_mat[nodes[i]][nodes[2]] += element_stiffness_mat[i][2]
 
         return global_stiff_mat  
         
@@ -159,7 +181,7 @@ class Mesh:
 
         c = [
             x[2] - x[1],
-            x[1] - x[2], 
+            x[0] - x[2], 
             x[1] - x[0]
         ]
 
@@ -178,7 +200,7 @@ class Mesh:
             [c[2]*c[0], c[2]*c[1], c[2]*c[2]],
         ])
 
-        H = k*self.hz / (4*area) *(H_xx + H_yy)
+        H = k*self.hz / (4*area) * (H_xx + H_yy)
         return np.array(H)
         
 
@@ -231,9 +253,7 @@ class Mesh:
 
         if int(nnodes**0.5)*int(nnodes**0.5)!=nnodes: return "[ENTER NODE NUMBER OF SQUARE-SHAPED DOMAIN]"
 
-        # TODO: replace with values read from file
-        k = 314
-        k_mod = 50
+
         #mod_faces = [9,10,11,12,13,14,27,28,29,29,30,31,32]
         mod_faces = []
 
@@ -246,14 +266,14 @@ class Mesh:
         dshift = n - 1 #diagonal shift from bottom right to upper left
         dshift2 = n + 1 #diagonal shift other direction (not used!)
         for i in range(nnodes-hshift): #horizontal
-            A[i,i+hshift] = k
-            A[i+hshift,i] = k
+            A[i,i+hshift] = 1
+            A[i+hshift,i] = 1
         for i in range(nnodes-vshift): #vertical
-            A[i,i+vshift] = k
-            A[i+vshift,i] = k
+            A[i,i+vshift] = 1
+            A[i+vshift,i] = 1
         for i in range(nnodes-dshift): #diagonal
-            A[i,i+dshift] = k
-            A[i+dshift,i] = k
+            A[i,i+dshift] = 1
+            A[i+dshift,i] = 1
         
         #correct boundary nodes
         hskip = n
@@ -295,6 +315,7 @@ class Mesh:
 
 if __name__ == "__main__":
     mesh = Mesh("V0")
+
 
     T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
 

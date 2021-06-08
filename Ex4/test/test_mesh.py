@@ -32,15 +32,53 @@ def test_generate_nodal_indices():
 def test_get_face_nodes():
     mesh = Mesh('debug')
     
-    assert(mesh.get_face_nodes(1).all() == np.array([0,1,10]).all())
-    assert(mesh.get_face_nodes(2).all() == np.array([1,10,11]).all())
-    assert(mesh.get_face_nodes(162).all() == np.array([89,98,99]).all())
+    assert(np.allclose(mesh.get_face_nodes(1), [0,1,10]))
+    assert(np.allclose(mesh.get_face_nodes(2), [1,10,11]))
+    assert(np.allclose(mesh.get_face_nodes(5), [2,3,12]))
+    assert(np.allclose(mesh.get_face_nodes(6), [3,12,13]))
+    assert(np.allclose(mesh.get_face_nodes(7), [3,4,13]))
+    assert(np.allclose(mesh.get_face_nodes(8), [4,13,14]))
+    assert(np.allclose(mesh.get_face_nodes(9), [4,5,14]))
+    assert(np.allclose(mesh.get_face_nodes(10), [5,14,15]))
+    assert(np.allclose(mesh.get_face_nodes(11), [5,6,15]))
+    assert(np.allclose(mesh.get_face_nodes(12), [6,15,16]))
+    assert(np.allclose(mesh.get_face_nodes(17), [8,9,18]))
+    assert(np.allclose(mesh.get_face_nodes(18), [9,18,19]))
+    assert(np.allclose(mesh.get_face_nodes(29), [15,16,25]))
 
-def test_generate_adj_mat():
-    mesh = Mesh('V1')
-
+def test_adj_mat():
+    mesh = Mesh('debug')
     mat = mesh.adj_mat
-    # TODO unit test
+
+    #face 1
+    assert(mat[0][1] == 1)
+    assert(mat[0][10] == 1)
+    assert(mat[1][10] == 1)
+
+    #face 2
+    assert(mat[1][11] == 1)
+    assert(mat[1][10] == 1)
+    assert(mat[10][11] == 1)
+
+    # face 5
+    assert(mat[2][3] == 1)
+    assert(mat[3][2] == 1)
+    assert(mat[2][12] == 1)
+    assert(mat[12][2] == 1)
+    assert(mat[3][12] == 1)
+    assert(mat[12][3] == 1)
+
+    #face 6
+    assert(mat[3][4] == 1)
+    assert(mat[3][13] == 1)
+    assert(mat[4][13] == 1)
+
+    # node 11
+    assert(mat[11][2] == 1)
+    assert(mat[11][10] == 1)
+    assert(mat[11][21] == 1)
+    assert(mat[11][12] == 1)
+    assert(mat[11][2] == 1)
 
 if __name__ == "__main__":
     test_get_face_nodes()
