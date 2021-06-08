@@ -86,12 +86,36 @@ class Mesh:
             area = dx*self.hz
             nodal_power = float(file_params["q_y_L"])*area
             self.nodal_forces.append(nodal_power)
+            
 
         # generate data from init values
         self.index_mat = self.generate_nodal_indices()
         self.adj_mat = self.generate_adj_mat(self.nx*self.ny)
         self.stiff_mat = self.generate_global_stiffness_mat()
         return
+
+    def get_face_area(self, face):
+        nodes = self.get_face_nodes(face)
+
+        # get absolute coordinates of every node
+        y = [self.nodal_coords_x[node] for node in nodes]
+        x = [self.nodal_coords_y[node] for node in nodes]
+
+        b = [
+            y[1] - y[2],
+            y[2] - y[0],
+            y[0] - y[1]
+        ]
+
+        c = [
+            x[2] - x[1],
+            x[0] - x[2],
+            x[1] - x[0]
+        ]
+
+        area = (x[0] * b[0] + x[1]*b[1] + x[2]*b[2]) / 2
+        return area
+
         
 
     def generate_nodal_indices(self):
@@ -116,18 +140,23 @@ class Mesh:
         row = int((face-1)/18)
         col = int((face-1) % 18 / 2)
 
-        node1 = self.index_mat[col+1][row]
-        node2 = self.index_mat[col][row+1]
+        #node1 = self.index_mat[col+1][row]
+        #node2 = self.index_mat[col][row+1]
 
         #diagonal nodes
         if (face % 2 == 0):
-            node3 = self.index_mat[col+1][row+1]
+            # upper triangle
+            node1 = self.index_mat[col+1][row]
+            node2 = self.index_mat[col+1][row+1]
+            node3 = self.index_mat[col][row+1]
         else:
-            node3 = self.index_mat[col][row]
+            node1 = self.index_mat[col][row]
+            node2 = self.index_mat[col+1][row]
+            node3 = self.index_mat[col][row+1]
 
         # return as list in ascending order
         nodes = [node1, node2, node3]
-        nodes.sort()
+        #nodes.sort()
         return np.array(nodes)
 
     def generate_global_stiffness_mat(self):
@@ -136,16 +165,16 @@ class Mesh:
         for face in range(1, self.num_faces+1):
             nodes = self.get_face_nodes(face)
 
-            element_stiffness_mat = self.generate_element_stiffness_mat(face)
-            
+            element_stiffness_mat = self.generate_element_stiffness_mat(face)            
             # connectivity matrix
-            # TODO replace witzh hand code
+            # TODO replace witzh hand code 
             connectivity_mat = np.zeros((3,self.n))
             connectivity_mat[0][nodes[0]] = 1
             connectivity_mat[1][nodes[1]] = 1
             connectivity_mat[2][nodes[2]] = 1
 
-            global_stiff_mat += connectivity_mat.T @ element_stiffness_mat @ connectivity_mat
+
+            global_stiff_mat += connectivity_mat.T @ element_stiffness_mat.T @ connectivity_mat
 
             # for i in range(3):
             #     global_stiff_mat[nodes[i]][nodes[0]] += element_stiffness_mat[i][0]
@@ -167,11 +196,12 @@ class Mesh:
         y = [self.nodal_coords_y[node] for node in nodes]
 
         # Zienkiewicz p. 120
+        """
         a = [
             x[1]*y[2] - x[2]*y[1], 
             x[2]*y[0] - x[0]*y[2],
             x[0]*y[1] - x[1]*y[0]
-        ]
+        ]"""
 
         b = [
             y[1] - y[2],
@@ -181,7 +211,7 @@ class Mesh:
 
         c = [
             x[2] - x[1],
-            x[1] - x[2], # TODO, HACK: should be x[0] - x[2], but that way the matrix is not singular
+            x[0] - x[2],
             x[1] - x[0]
         ]
 
@@ -199,8 +229,8 @@ class Mesh:
             [c[1]*c[0], c[1]*c[1], c[1]*c[2]],
             [c[2]*c[0], c[2]*c[1], c[2]*c[2]],
         ])
-
-        H = k*self.hz / (4*area) * (H_xx + H_yy)
+        H = np.zeros((3,3))
+        H += k*self.hz / (4*area) * (H_xx + H_yy)
         return np.array(H)
         
 
@@ -208,9 +238,9 @@ class Mesh:
         x = np.linspace(0.0, self.L, self.nx)
         y = np.linspace(0.0, self.L, self.ny)
 
-        self.nodal_coords_x, self.nodal_coords_y = np.meshgrid(x,y)
-        self.nodal_coords_x =  self.nodal_coords_x.ravel()
-        self.nodal_coords_y =  self.nodal_coords_y.ravel()
+        nodal_coords_x, nodal_coords_y = np.meshgrid(x,y)
+        self.nodal_coords_x =  nodal_coords_x.ravel()
+        self.nodal_coords_y =  nodal_coords_y.ravel()
 
     def init_V1(self):
         self.nx = 10
@@ -236,6 +266,7 @@ class Mesh:
         # generate polar mesh
         r, phi = np.meshgrid(r_vals, phi_vals)
 
+
         x,y = [], []
         for i in range(len(r)):
             x.append(r[i]*np.cos(phi[i]))
@@ -245,8 +276,8 @@ class Mesh:
         y = np.array(y).ravel()
 
         # store in mesh  
-        nodal_coords_x = np.array(x)
-        nodal_coords_y = np.array(y)
+        self.nodal_coords_x = np.array(x)
+        self.nodal_coords_y = np.array(y)
 
     #returns adjacency matrix for regular mesh in Figure 1 (assignment)
     def generate_adj_mat(self, nnodes):
@@ -284,16 +315,10 @@ class Mesh:
         #vertikal muss nicht korrigert werden
         for i in range(n-1,nnodes,dskip): #diagonal
             A[i-dshift,i] = 0
-            A[i,i-dshift] = 0
+            A[i,i-dshift] = 0                   
 
-
-        for face in mod_faces:
-            nodes = self.get_face_nodes(face) # get 3 nodes of vertex
-            for node in nodes:
-                A[nodes[0], node]= k_mod
-                A[nodes[1], node]= k_mod
-                A[nodes[2], node]= k_mod
-                    
+        #for i in range(nnodes):
+            #A[i][i] = 1
 
         return A
 
@@ -316,9 +341,8 @@ class Mesh:
 if __name__ == "__main__":
     mesh = Mesh("V0")
 
-
-    T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
-
+    plt.matshow(mesh.stiff_mat)
+    plt.show()
+    #T,P = magicsolver(mesh.stiff_mat, mesh.nodal_temps, mesh.nodal_forces)
     pass
 
-    #mesh.plot()

@@ -16,6 +16,9 @@ def test_init():
 def test_generate_adj_mat():
     mesh = Mesh('debug')
     mat = mesh.generate_adj_mat(10*10)
+    assert(mat)
+    pass
+
 
 
 def test_generate_nodal_indices():
@@ -42,9 +45,12 @@ def test_get_face_nodes():
     assert(np.allclose(mesh.get_face_nodes(10), [5,14,15]))
     assert(np.allclose(mesh.get_face_nodes(11), [5,6,15]))
     assert(np.allclose(mesh.get_face_nodes(12), [6,15,16]))
+    assert(np.allclose(mesh.get_face_nodes(13), [6,7,16]))
+    assert(np.allclose(mesh.get_face_nodes(16), [8, 17,18]))
     assert(np.allclose(mesh.get_face_nodes(17), [8,9,18]))
     assert(np.allclose(mesh.get_face_nodes(18), [9,18,19]))
     assert(np.allclose(mesh.get_face_nodes(29), [15,16,25]))
+
 
 def test_adj_mat():
     mesh = Mesh('debug')
@@ -52,6 +58,7 @@ def test_adj_mat():
 
     #face 1
     assert(mat[0][1] == 1)
+    assert(mat[0][11] == 0)
     assert(mat[0][10] == 1)
     assert(mat[1][10] == 1)
 
@@ -80,5 +87,9 @@ def test_adj_mat():
     assert(mat[11][12] == 1)
     assert(mat[11][2] == 1)
 
+    plt.matshow(mat[:30, :30])
+    plt.show()
+
 if __name__ == "__main__":
     test_get_face_nodes()
+    test_generate_adj_mat
