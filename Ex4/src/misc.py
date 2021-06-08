@@ -4,6 +4,13 @@ import platform
 import inspect
 import argparse
 import configparser
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp2d
+from matplotlib.collections import LineCollection
+import matplotlib.tri as tri
+
+
 
 # System specific directory separator
 if platform.system() in ["Darwin", "Linux"]:
@@ -60,7 +67,6 @@ def read_from_file(filename):
         i=i+1
     #return L,hz,k,c,q_y_L,T_y_0,all_elements
     return input_dict
-
 
 
 

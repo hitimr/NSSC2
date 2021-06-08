@@ -337,6 +337,17 @@ class Mesh:
         ax.pcolormesh(T)
         plt.show()
 
+    def plot_test(self, T):
+        elements=[]
+        for a in range(0,mesh.num_faces+1):
+            elements.append(mesh.get_face_nodes(a))
+        triangulation = tri.Triangulation(mesh.nodal_coords_x, mesh.nodal_coords_y,elements)
+        plt.triplot(triangulation, '-k')
+        plt.tricontourf(triangulation, T)
+        plt.colorbar()
+        plt.show()
+
+
 
 if __name__ == "__main__":
     mesh = Mesh("V0")
