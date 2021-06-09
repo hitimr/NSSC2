@@ -136,7 +136,7 @@ class Mesh:
         if(self.variation == "V0"):
             self.sanity_checks_V0()
 
-        print_HTP(self.adj_mat, self.nodal_temps, self.nodal_forces, DIR_OUT+f"output_{self.variation}.txt")
+        print_HTP(self.stiff_mat, self.nodal_temps, self.nodal_forces, DIR_OUT+f"output_{self.variation}.txt")
         pass
 
     def get_face_center(self, face):
