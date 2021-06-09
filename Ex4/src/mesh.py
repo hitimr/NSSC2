@@ -480,7 +480,7 @@ class Mesh:
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V4b")
+    mesh = Mesh("V4a")
     mesh.solve()
-    mesh.plot_gradient()
+    mesh.plot_flux()
 
