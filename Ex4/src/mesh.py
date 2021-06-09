@@ -288,7 +288,16 @@ class Mesh:
         self.nodal_coords_y = nodal_coords_y
         return
 
-
+    def init_V2_reno(self):
+        #first try von reno
+        x = np.linspace(0.0, self.L, self.nx)
+        y = np.linspace(0.0, self.L, self.ny)
+        nodal_coords_x, nodal_coords_y = np.meshgrid(x,y)
+        
+        for i in range(len(x)):
+            B = (self.L-y[i])/(2*self.L)
+            x[i] = x*(B*x/self.L-B+1)
+        return
 
     def init_V3(self):
         # values in polar coordinateL
@@ -312,8 +321,8 @@ class Mesh:
         self.nodal_coords_x = np.array(x)
         self.nodal_coords_y = np.array(y)
 
-    #returns adjacency matrix for regular mesh in Figure 1 (assignment)
     def generate_adj_mat(self, nnodes):
+        #returns adjacency matrix for regular mesh in Figure 1 (assignment)
 
         if int(nnodes**0.5)*int(nnodes**0.5)!=nnodes: return "[ENTER NODE NUMBER OF SQUARE-SHAPED DOMAIN]"
 
@@ -348,7 +357,6 @@ class Mesh:
 
         return A
 
-
     def solve(self):
         T,P = magicsolver(self.stiff_mat, self.nodal_temps, self.nodal_forces)
 
@@ -379,8 +387,6 @@ class Mesh:
         print("Local fluxes constant and equal to the applied flux?", np.allclose(heat_flux[:, 1], q_0))
         print("Heat flux and temperature gradient yield k on each element?", np.allclose(-heat_flux[:, 1] / grad_t[:, 1], k))
 
-
-
     def flux(self, face):
         # calculate flux according to eq. (2) in the assignment
         gradient = self.gradient(face)
@@ -388,9 +394,6 @@ class Mesh:
         flux = k_ij * self.gradient(face)
 
         return flux
-
-
-        
 
     def gradient(self, face):
         # calculate the gradient on a given face
@@ -448,5 +451,6 @@ class Mesh:
 if __name__ == "__main__":
     mesh = Mesh("V3")
     mesh.solve()
-    mesh.plot_test(mesh.nodal_temps)
+    #mesh.plot_test(mesh.nodal_temps)
     #plt.show()
+
