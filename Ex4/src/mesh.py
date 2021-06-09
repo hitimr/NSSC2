@@ -448,7 +448,7 @@ class Mesh:
         gradient = 1./(2*area) * M @ T # eq. (5) from assignment
         return gradient
 
-    def plot_flux(self, filename=''):
+    def plot_flux(self, filename='',title='Flux Plot'):
         elements=[]
         for a in range(0,self.num_faces+1):
             elements.append(self.get_face_nodes(a))
@@ -456,14 +456,17 @@ class Mesh:
         x,y=self.face_center_x, self.face_center_y
         plt.triplot(triangulation, '-k')
         plt.tricontourf(triangulation, self.nodal_temps)
-        plt.colorbar()
+        cbar = plt.colorbar()
+        cbar.set_label('T [K]')
         plt.quiver(x,y, self.face_flux_x, self.face_flux_y)
-        #plt.quiver(x,y,mesh.face_gradient_x,mesh.face_gradient_y)
         if filename != '':
             plt.savefig(filename)
+        plt.xlabel('x [m]')
+        plt.ylabel('y [m]')
+        plt.title(title)
         plt.show()
 
-    def plot_gradient(self, filename=''):
+    def plot_gradient(self, filename='',title='Gradient Plot'):
         elements=[]
         for a in range(0,self.num_faces+1):
             elements.append(self.get_face_nodes(a))
@@ -471,11 +474,14 @@ class Mesh:
         x,y=self.face_center_x, self.face_center_y
         plt.triplot(triangulation, '-k')
         plt.tricontourf(triangulation, self.nodal_temps)
-        plt.colorbar()
+        cbar = plt.colorbar()
+        cbar.set_label('T [K]')
         plt.quiver(x,y, self.face_gradient_x, self.face_gradient_y)
-        #plt.quiver(x,y,mesh.face_gradient_x,mesh.face_gradient_y)
         if filename != '':
             plt.savefig(filename)
+        plt.xlabel('x [m]')
+        plt.ylabel('y [m]')
+        plt.title(title)
         plt.show()
 
 
