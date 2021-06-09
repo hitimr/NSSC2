@@ -421,16 +421,7 @@ class Mesh:
         gradient = 1./(2*area) * M @ T # eq. (5) from assignment
         return gradient
 
-    def plot(self):
-        T = np.reshape(T, (-1, len(x)))
-        fig, ax = plt.subplots()
-        plt.xlim(x[0], x[-1])
-        plt.ylim(y[0], y[-1])
-        ax.set_title('Temperature plot')
-        ax.pcolormesh(T)
-        plt.show()
-
-    def plot_flux(self, filename):
+    def plot_flux(self, filename=''):
         elements=[]
         for a in range(0,self.num_faces+1):
             elements.append(self.get_face_nodes(a))
@@ -441,12 +432,13 @@ class Mesh:
         plt.colorbar()
         plt.quiver(x,y, self.face_flux_x, self.face_flux_y)
         #plt.quiver(x,y,mesh.face_gradient_x,mesh.face_gradient_y)
-        plt.savefig(filename)
+        if filename != '':
+            plt.savefig(filename)
         plt.show()
 
 
 if __name__ == "__main__":
     mesh = Mesh("V3")
     mesh.solve()
-    mesh.plot_test(mesh.nodal_temps)
+    mesh.plot_flux()
     #plt.show()
