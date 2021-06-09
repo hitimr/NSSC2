@@ -35,18 +35,18 @@ class Mesh:
     def __init__(self, variation=None):
 
         # common settings for all variations
-        file_params = read_from_file(DIR_SRC + "inputfile_group_5.txt")
+        self.file_params = read_from_file(DIR_SRC + "inputfile_group_5.txt")
 
         self.nx = 10
         self.ny = 10
         self.n = self.nx*self.ny
-        self.L = float(file_params["L"])
-        self.hz = float(file_params["hz"])
-        self.k = float(file_params["k"])
-        self.k_mod = float(file_params["c"])
+        self.L = float(self.file_params["L"])
+        self.hz = float(self.file_params["hz"])
+        self.k = float(self.file_params["k"])
+        self.k_mod = float(self.file_params["c"])
         self.num_faces = (self.nx - 1) * (self.ny - 1) * 2
-        self.mod_faces = file_params["all_elements"]
-        #self.mod_faces = [-1]
+        #self.mod_faces = file_params["all_elements"]
+        self.mod_faces = [-1]   # no faces to be modiefied
         
 
         # initialize depending on the variation
@@ -58,6 +58,10 @@ class Mesh:
             self.init_V2()
         elif variation == "V3":
             self.init_V3()
+        elif variation == "V4a":
+            self.init_V4a()
+        elif variation == "V4b":
+            self.init_V4b()           
         elif variation == None:
             pass
         elif variation == 'debug':
@@ -71,9 +75,10 @@ class Mesh:
         # apply boundary conditions
         # append is not ideal but size is only 100
         self.nodal_temps = []
-        for i in range(0, 10): self.nodal_temps.append(float(file_params["T_y_0"]))     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
+        for i in range(0, 10): self.nodal_temps.append(float(self.file_params["T_y_0"]))     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
         for i in range(10, 100): self.nodal_temps.append(None)
 
+        # define heat sink
         self.nodal_forces = []
         for i in range(0,10): self.nodal_forces.append(None)  
         for i in range(10, 90): self.nodal_forces.append(0)     # • N1 – N10: Dirichlet BCs (depending on the “load case”) T = ...
@@ -90,7 +95,7 @@ class Mesh:
 
             # TODO: replace with Q from book (pdf p. 164)
             area = dx*self.hz
-            nodal_power = -float(file_params["q_y_L"])*area
+            nodal_power = -float(self.file_params["q_y_L"])*area
             self.nodal_forces.append(nodal_power)
             
 
@@ -318,7 +323,7 @@ class Mesh:
         for i in range(len(self.nodal_coords_x)):
             B = 1/(2*self.L) * (self.L-self.nodal_coords_y[i])
             self.nodal_coords_x[i] =  self.nodal_coords_x[i] * (B/self.L*self.nodal_coords_x[i] - B + 1)
-            
+
 
     def init_V3(self):
         # values in polar coordinateL
@@ -341,6 +346,20 @@ class Mesh:
         # store in mesh  
         self.nodal_coords_x = np.array(x)
         self.nodal_coords_y = np.array(y)
+
+    def init_V4a(self):
+        self.init_V0() # start with regular grid from V0
+
+        self.mod_faces = self.file_params["all_elements"]
+        self.k = float(self.file_params["k"])
+        self.k_mod = float(self.file_params["k"])*float(self.file_params["c"])
+
+    def init_V4b(self):
+        self.init_V0() # start with regular grid from V0
+
+        self.mod_faces = self.file_params["all_elements"]
+        self.k = float(self.file_params["k"])
+        self.k_mod = float(self.file_params["k"])/float(self.file_params["c"])
 
     def generate_adj_mat(self, nnodes):
         #returns adjacency matrix for regular mesh in Figure 1 (assignment)
@@ -444,10 +463,24 @@ class Mesh:
             plt.savefig(filename)
         plt.show()
 
+    def plot_gradient(self, filename=''):
+        elements=[]
+        for a in range(0,self.num_faces+1):
+            elements.append(self.get_face_nodes(a))
+        triangulation = tri.Triangulation(self.nodal_coords_x, self.nodal_coords_y,elements)
+        x,y=self.face_center_x, self.face_center_y
+        plt.triplot(triangulation, '-k')
+        plt.tricontourf(triangulation, self.nodal_temps)
+        plt.colorbar()
+        plt.quiver(x,y, self.face_gradient_x, self.face_gradient_y)
+        #plt.quiver(x,y,mesh.face_gradient_x,mesh.face_gradient_y)
+        if filename != '':
+            plt.savefig(filename)
+        plt.show()
+
 
 if __name__ == "__main__":
-    mesh = Mesh("V2")
+    mesh = Mesh("V4b")
     mesh.solve()
-    mesh.plot_flux()
-    #plt.show()
+    mesh.plot_gradient()
 
