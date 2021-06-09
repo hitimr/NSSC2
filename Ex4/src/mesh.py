@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from src.magicsolver import *
 from src.misc import *
+from print_HTP import *
 
 class Mesh:
     variation = "noVariation"
@@ -135,6 +136,7 @@ class Mesh:
         if(self.variation == "V0"):
             self.sanity_checks_V0()
 
+        print_HTP(self.adj_mat, self.nodal_temps, self.nodal_forces, DIR_OUT+f"output_{self.variation}.txt")
         pass
 
     def get_face_center(self, face):
@@ -514,13 +516,13 @@ class Mesh:
         assert np.allclose(self.face_flux_y, overall_flux)
 
         # temperature gradient and flux together with eq (2) must yield the input
-        assert np.allclose((-1) * np.divide(mesh.face_flux_y, mesh.face_gradient_y), self.k)
+        assert np.allclose((-1) * np.divide(self.face_flux_y, self.face_gradient_y), self.k)
         
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V0")
+    mesh = Mesh("V1")
     mesh.solve()
     #mesh.plot_flux()
-    #mesh.plot_conservation_of_flow()
+    mesh.plot_conservation_of_flow()
 

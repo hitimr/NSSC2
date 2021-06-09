@@ -1,6 +1,7 @@
 import numpy as np
 import numpy
 
+
 #for the equation A*T = P (A matrix, T, P vectors)
 #we know some values from T and some from P, s.t. there exists a unique sol
 def magicsolver(A,T,P):
