@@ -214,7 +214,6 @@ class Mesh:
 
             element_stiffness_mat = self.generate_element_stiffness_mat(face)            
             # connectivity matrix
-            # TODO replace witzh hand code 
             # connectivity_mat = np.zeros((3,self.n))
             # connectivity_mat[0][nodes[0]] = 1
             # connectivity_mat[1][nodes[1]] = 1
@@ -484,7 +483,7 @@ class Mesh:
         plt.title(title)
         plt.show()
 
-    def plot_conservation_of_flow(self, title="no title", filename=''):
+    def plot_conservation_of_flow(self, filename='', title="no title",):
         first_face = 144
         x_vals = self.face_center_x[first_face:]
 
@@ -504,6 +503,8 @@ class Mesh:
         plt.xlabel("x [m]")
         plt.ylabel("flux [MW/m]")
         plt.legend()
+        if filename != '':
+            plt.savefig(filename)
         plt.show()
         pass
 
