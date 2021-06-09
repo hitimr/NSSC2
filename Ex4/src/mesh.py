@@ -27,8 +27,8 @@ class Mesh:
     face_k = np.array   # k value for a given face_id
     face_center_x = np.array    # x coordinate of the center of every face
     face_center_y = np.array    # y coordinate of the center of every face
-    face_flux_x = np.array  # x coordinate of the flux
-    face_flux_y = np.array  # y coordinate of the flu
+    face_flux_x = np.array  # x component of the flux
+    face_flux_y = np.array  # y component of the flu
     face_gradient_x = np.array
     face_gradient_y = np.array
 
@@ -54,6 +54,8 @@ class Mesh:
             self.init_V0()
         elif variation == "V1":
             self.init_V1()
+        elif variation == "V2":
+            self.init_V2()
         elif variation == "V3":
             self.init_V3()
         elif variation == None:
@@ -109,6 +111,22 @@ class Mesh:
         self.face_center_y = np.array(self.face_center_y)
 
         return
+
+    def solve(self):
+        T,P = magicsolver(self.stiff_mat, self.nodal_temps, self.nodal_forces)
+
+        self.nodal_temps = np.array(T)
+        self.nodal_forces = np.array(P)
+
+        flux = np.array([self.flux(face) for face in self.face_ids]).T
+        gradient = np.array([self.gradient(face) for face in self.face_ids]).T
+
+        self.face_flux_x = flux[0]
+        self.face_flux_y = flux[1]
+        self.face_gradient_x = -gradient[0]
+        self.face_gradient_y = -gradient[1]
+
+        pass
 
     def get_face_center(self, face):
         nodes = self.get_face_nodes(face)
@@ -276,17 +294,32 @@ class Mesh:
        
         nodal_coords_x = []
         for x_len in x_lengths:
-            nodal_coords_x.append(np.linspace(0, x_lengths, self.nx))
+            nodal_coords_x.append(np.linspace(0, x_len, self.nx))
         nodal_coords_x = np.array(nodal_coords_x).ravel()
         
         nodal_coords_y = []
-        for i in range(self.ny):
-            nodal_coords_y.append(np.linspace(0, self.L, self.ny))
+        for y in np.linspace(0, self.L, self.ny):
+            nodal_coords_y.append([y]*self.ny)
         nodal_coords_y = np.array(nodal_coords_y).ravel()
 
         self.nodal_coords_x = nodal_coords_x
         self.nodal_coords_y = nodal_coords_y
         return
+
+    def init_V1(self):
+        # generate square grid coords
+        x = np.linspace(0.0, self.L, self.nx)
+        y = np.linspace(0.0, self.L, self.ny)
+
+        nodal_coords_x, nodal_coords_y = np.meshgrid(x,y)
+        self.nodal_coords_x =  nodal_coords_x.ravel()
+        self.nodal_coords_y =  nodal_coords_y.ravel()
+
+        for i in range(len(self.nodal_coords_x)):
+            B = 1/(2*self.L) * (L)
+            self.nodal_coords_x = 
+
+
 
 
 
@@ -347,23 +380,6 @@ class Mesh:
             A[i,i-dshift] = 0                   
 
         return A
-
-
-    def solve(self):
-        T,P = magicsolver(self.stiff_mat, self.nodal_temps, self.nodal_forces)
-
-        self.nodal_temps = np.array(T)
-        self.nodal_forces = np.array(P)
-
-        flux = np.array([self.flux(face) for face in self.face_ids]).T
-        gradient = np.array([self.gradient(face) for face in self.face_ids]).T
-
-        self.face_flux_x = flux[0]
-        self.face_flux_y = flux[1]
-        self.face_gradient_x = -gradient[0]
-        self.face_gradient_y = -gradient[1]
-
-        pass
 
     def perform_sanity_checks(self):
         # TODO: finish and integrate in V0
@@ -438,7 +454,7 @@ class Mesh:
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V3")
+    mesh = Mesh("V1")
     mesh.solve()
     mesh.plot_flux()
     #plt.show()
