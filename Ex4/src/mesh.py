@@ -306,7 +306,7 @@ class Mesh:
         self.nodal_coords_y = nodal_coords_y
         return
 
-    def init_V1(self):
+    def init_V2(self):
         # generate square grid coords
         x = np.linspace(0.0, self.L, self.nx)
         y = np.linspace(0.0, self.L, self.ny)
@@ -316,22 +316,9 @@ class Mesh:
         self.nodal_coords_y =  nodal_coords_y.ravel()
 
         for i in range(len(self.nodal_coords_x)):
-            B = 1/(2*self.L) * (L)
-            self.nodal_coords_x = 
-
-
-
-
-    def init_V2_reno(self):
-        #first try von reno
-        x = np.linspace(0.0, self.L, self.nx)
-        y = np.linspace(0.0, self.L, self.ny)
-        nodal_coords_x, nodal_coords_y = np.meshgrid(x,y)
-        
-        for i in range(len(x)):
-            B = (self.L-y[i])/(2*self.L)
-            x[i] = x*(B*x/self.L-B+1)
-        return
+            B = 1/(2*self.L) * (self.L-self.nodal_coords_y[i])
+            self.nodal_coords_x[i] =  self.nodal_coords_x[i] * (B/self.L*self.nodal_coords_x[i] - B + 1)
+            
 
     def init_V3(self):
         # values in polar coordinateL
@@ -459,7 +446,7 @@ class Mesh:
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V1")
+    mesh = Mesh("V2")
     mesh.solve()
     mesh.plot_flux()
     #plt.show()
