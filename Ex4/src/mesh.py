@@ -396,20 +396,6 @@ class Mesh:
 
         return A
 
-    def perform_sanity_checks(self):
-        # TODO: finish and integrate in V0
-        # The temperature gradient must be constant in the entire model and equal to the overallgradient ∆T/∆y
-        delta_T = self.nodal_temps.max() - self.nodal_temps.min()
-        delta_y = self.L
-        global_gradient = delta_T / delta_y
-        grad = np.linalg.norm([self.face_gradient_x, self.face_gradient_y], axis=0)
-        #res = np.allclose(, global_gradient)
-
-        print("Local gradients constant and equal to the overall gradient?",
-            np.allclose(grad_t[:, 1], global_gradient))
-        print("Local fluxes constant and equal to the applied flux?", np.allclose(heat_flux[:, 1], q_0))
-        print("Heat flux and temperature gradient yield k on each element?", np.allclose(-heat_flux[:, 1] / grad_t[:, 1], k))
-
     def flux(self, face):
         # calculate flux according to eq. (2) in the assignment
         gradient = self.gradient(face)
