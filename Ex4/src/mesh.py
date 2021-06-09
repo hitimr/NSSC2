@@ -489,18 +489,20 @@ class Mesh:
         x_vals = self.face_center_x[first_face:]
 
         # plot calculated values
-        fluxes_out = np.linalg.norm([self.face_flux_x[first_face:], self.face_flux_y[first_face:]], axis=0)
+        fluxes_out = np.linalg.norm([self.face_flux_x[first_face:], self.face_flux_y[first_face:]], axis=0)*10**(-6.)
         plt.plot(x_vals, fluxes_out, "x-", label="Calculated output flow")
 
         # plot input (it's just a straight line)
-        fluxes_in = np.array([float(self.file_params["q_y_L"])]*len(fluxes_out))
+        fluxes_in = np.array([float(self.file_params["q_y_L"])]*len(fluxes_out))*10**(-6.)
         plt.plot(x_vals, fluxes_in, label="defined input flow")
 
         error = (fluxes_out - fluxes_in).sum() / fluxes_in.sum()
 
         plt.ylim([fluxes_in[0]*0.8, fluxes_in[0]*1.2])
-        plt.title(f"{title}\nRelative Error = {error*100}%")    # TODO: 2 kommastellen
+        plt.title(f"{title}\nRelative Error = {error*100:.4}%")    # TODO: 2 kommastellen
         plt.grid()
+        plt.xlabel("x [m]")
+        plt.ylabel("flux [MW/m]")
         plt.legend()
         plt.show()
         pass
@@ -510,6 +512,6 @@ class Mesh:
 if __name__ == "__main__":
     mesh = Mesh("V3")
     mesh.solve()
-    mesh.plot_flux()
+    #mesh.plot_flux()
     mesh.plot_conservation_of_flow()
 
