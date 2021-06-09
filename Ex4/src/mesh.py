@@ -504,7 +504,10 @@ class Mesh:
         pass
 
     def sanity_checks_V0(self):
+        print("Performaing sanity check for V0...")
+
         # temperature gradient must be constant:
+        print("Checking Gradient..")
         delta_T = abs(max(self.nodal_temps) - min(self.nodal_temps))
         delta_y = self.L
 
@@ -512,11 +515,15 @@ class Mesh:
         assert np.allclose(self.face_gradient_y, overall_gradient)
 
         # flux must be constant
+        print("Checking Flux..")
         overall_flux = float(self.file_params["q_y_L"])
         assert np.allclose(self.face_flux_y, overall_flux)
 
+        print("Checking conductivity..")
         # temperature gradient and flux together with eq (2) must yield the input
         assert np.allclose((-1) * np.divide(self.face_flux_y, self.face_gradient_y), self.k)
+
+        print("All checkts passed!")
         
 
 
