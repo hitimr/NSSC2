@@ -32,6 +32,8 @@ def test_generate_nodal_indices():
 
 def test_get_face_nodes():
     mesh = Mesh('debug')
+    a = mesh.get_face_nodes(0)
+    pass
     return # TODO: fix tests if there is time 
     assert(np.allclose(mesh.get_face_nodes(1).sort(), [0,1,10]))
     assert(np.allclose(mesh.get_face_nodes(2).sort(), [1,10,11]))

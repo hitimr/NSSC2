@@ -28,7 +28,9 @@ class Mesh:
     face_center_x = np.array    # x coordinate of the center of every face
     face_center_y = np.array    # y coordinate of the center of every face
     face_flux_x = np.array  # x coordinate of the flux
-    face_flux_y = np.array  # y coordinate of the flux
+    face_flux_y = np.array  # y coordinate of the flu
+    face_gradient_x = np.array
+    face_gradient_y = np.array
 
     def __init__(self, variation=None):
 
@@ -157,7 +159,7 @@ class Mesh:
 
     def get_face_nodes(self, face):
         # TODO: generalize for arbitrary nx, ny if there is time left
-
+        assert(face > 0)
         # treat mesh as 2 triangles forming a square
         row = int((face-1)/18)
         col = int((face-1) % 18 / 2)
@@ -430,7 +432,6 @@ class Mesh:
         plt.tricontourf(triangulation, T)
         plt.colorbar()
         plt.show()
-
 
 
 if __name__ == "__main__":
