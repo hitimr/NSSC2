@@ -510,8 +510,8 @@ class Mesh:
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V3")
+    mesh = Mesh("V4a")
     mesh.solve()
-    #mesh.plot_flux()
+    mesh.plot_flux()
     mesh.plot_conservation_of_flow()
 
