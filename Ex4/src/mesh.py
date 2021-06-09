@@ -131,6 +131,10 @@ class Mesh:
         self.face_gradient_x = -gradient[0]
         self.face_gradient_y = -gradient[1]
 
+        # perform sanity checks for V0
+        if(self.variation == "V0"):
+            self.sanity_checks_V0()
+
         pass
 
     def get_face_center(self, face):
@@ -444,11 +448,12 @@ class Mesh:
         cbar = plt.colorbar()
         cbar.set_label('T [K]')
         plt.quiver(x,y, self.face_flux_x, self.face_flux_y)
-        if filename != '':
-            plt.savefig(filename)
         plt.xlabel('x [m]')
         plt.ylabel('y [m]')
         plt.title(title)
+        plt.xticks(rotation=45)
+        if filename != '':
+            plt.savefig(filename)
         plt.show()
 
     def plot_gradient(self, filename='',title='Gradient Plot'):
@@ -462,11 +467,13 @@ class Mesh:
         cbar = plt.colorbar()
         cbar.set_label('T [K]')
         plt.quiver(x,y, self.face_gradient_x, self.face_gradient_y)
-        if filename != '':
-            plt.savefig(filename)
+
         plt.xlabel('x [m]')
         plt.ylabel('y [m]')
         plt.title(title)
+        plt.xticks(rotation=45)
+        if filename != '':
+            plt.savefig(filename)
         plt.show()
 
     def plot_conservation_of_flow(self, filename='', title="no title",):
@@ -484,7 +491,7 @@ class Mesh:
         error = (fluxes_out - fluxes_in).sum() / fluxes_in.sum()
 
         plt.ylim([fluxes_in[0]*0.8, fluxes_in[0]*1.2])
-        plt.title(f"{title}\nRelative Error = {error*100:.4}%")    # TODO: 2 kommastellen
+        plt.title(f"{title}\nRelative Error = {abs(error)*100:.4}%")    # TODO: 2 kommastellen
         plt.grid()
         plt.xlabel("x [m]")
         plt.ylabel("flux [MW/m]")
@@ -494,11 +501,26 @@ class Mesh:
         plt.show()
         pass
 
+    def sanity_checks_V0(self):
+        # temperature gradient must be constant:
+        delta_T = abs(max(self.nodal_temps) - min(self.nodal_temps))
+        delta_y = self.L
+
+        overall_gradient = [-delta_T / delta_y]*len(self.face_gradient_y)
+        assert np.allclose(self.face_gradient_y, overall_gradient)
+
+        # flux must be constant
+        overall_flux = float(self.file_params["q_y_L"])
+        assert np.allclose(self.face_flux_y, overall_flux)
+
+        # temperature gradient and flux together with eq (2) must yield the input
+        assert np.allclose((-1) * np.divide(mesh.face_flux_y, mesh.face_gradient_y), self.k)
+        
 
 
 if __name__ == "__main__":
-    mesh = Mesh("V4a")
+    mesh = Mesh("V0")
     mesh.solve()
-    mesh.plot_flux()
-    mesh.plot_conservation_of_flow()
+    #mesh.plot_flux()
+    #mesh.plot_conservation_of_flow()
 
