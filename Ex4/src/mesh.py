@@ -45,8 +45,8 @@ class Mesh:
         self.k = float(file_params["k"])
         self.k_mod = float(file_params["c"])
         self.num_faces = (self.nx - 1) * (self.ny - 1) * 2
-        #self.mod_faces = file_params["all_elements"]
-        self.mod_faces = [-1]
+        self.mod_faces = file_params["all_elements"]
+        #self.mod_faces = [-1]
         
 
         # initialize depending on the variation
@@ -159,7 +159,7 @@ class Mesh:
 
     def get_face_nodes(self, face):
         # TODO: generalize for arbitrary nx, ny if there is time left
-        assert(face > 0)
+        #assert(face > 0)
         # treat mesh as 2 triangles forming a square
         row = int((face-1)/18)
         col = int((face-1) % 18 / 2)
@@ -192,18 +192,18 @@ class Mesh:
             element_stiffness_mat = self.generate_element_stiffness_mat(face)            
             # connectivity matrix
             # TODO replace witzh hand code 
-            connectivity_mat = np.zeros((3,self.n))
-            connectivity_mat[0][nodes[0]] = 1
-            connectivity_mat[1][nodes[1]] = 1
-            connectivity_mat[2][nodes[2]] = 1
+            # connectivity_mat = np.zeros((3,self.n))
+            # connectivity_mat[0][nodes[0]] = 1
+            # connectivity_mat[1][nodes[1]] = 1
+            # connectivity_mat[2][nodes[2]] = 1
 
 
-            global_stiff_mat += connectivity_mat.T @ element_stiffness_mat.T @ connectivity_mat
+            # global_stiff_mat += connectivity_mat.T @ element_stiffness_mat.T @ connectivity_mat
 
-            # for i in range(3):
-            #     global_stiff_mat[nodes[i]][nodes[0]] += element_stiffness_mat[i][0]
-            #     global_stiff_mat[nodes[i]][nodes[1]] += element_stiffness_mat[i][1]
-            #     global_stiff_mat[nodes[i]][nodes[2]] += element_stiffness_mat[i][2]
+            for i in range(3):
+                global_stiff_mat[nodes[i]][nodes[0]] += element_stiffness_mat[i][0]
+                global_stiff_mat[nodes[i]][nodes[1]] += element_stiffness_mat[i][1]
+                global_stiff_mat[nodes[i]][nodes[2]] += element_stiffness_mat[i][2]
 
         return global_stiff_mat 
 
@@ -268,18 +268,25 @@ class Mesh:
         self.nodal_coords_x =  nodal_coords_x.ravel()
         self.nodal_coords_y =  nodal_coords_y.ravel()
 
+        self.mod_faces = [-1] # remove modded faces
+
     def init_V1(self):
-        self.nx = 10
-        self.ny = self.nx
-        n =  self.nx * self.ny
+        # trapezoidal shape
+        x_lengths = np.linspace(self.L, self.L/2, self.ny)
+       
+        nodal_coords_x = []
+        for x_len in x_lengths:
+            nodal_coords_x.append(np.linspace(0, x_lengths, self.nx))
+        nodal_coords_x = np.array(nodal_coords_x).ravel()
+        
+        nodal_coords_y = []
+        for i in range(self.ny):
+            nodal_coords_y.append(np.linspace(0, self.L, self.ny))
+        nodal_coords_y = np.array(nodal_coords_y).ravel()
 
-
-        self.nodal_forces = np.zeros(n)
-        self.nodal_forces[0:self.nx] = 1
-
-        x = np.linspace(0, 1, self.nx)
-        y = np.linspace(0, 1, self.ny)
-        self.xv, self.yv = np.meshgrid(x,y)
+        self.nodal_coords_x = nodal_coords_x
+        self.nodal_coords_y = nodal_coords_y
+        return
 
 
 
@@ -353,8 +360,8 @@ class Mesh:
 
         self.face_flux_x = flux[0]
         self.face_flux_y = flux[1]
-        self.face_gradient_x = gradient[0]
-        self.face_gradient_y = gradient[1]
+        self.face_gradient_x = -gradient[0]
+        self.face_gradient_y = -gradient[1]
 
         pass
 
@@ -423,16 +430,18 @@ class Mesh:
         ax.pcolormesh(T)
         plt.show()
 
-    def plot_test(self, T):
+    def plot_flux(self, filename):
         elements=[]
-        for a in range(0,mesh.num_faces+1):
-            elements.append(mesh.get_face_nodes(a))
-        triangulation = tri.Triangulation(mesh.nodal_coords_x, mesh.nodal_coords_y,elements)
-        x,y=mesh.face_center_x, mesh.face_center_y
+        for a in range(0,self.num_faces+1):
+            elements.append(self.get_face_nodes(a))
+        triangulation = tri.Triangulation(self.nodal_coords_x, self.nodal_coords_y,elements)
+        x,y=self.face_center_x, self.face_center_y
         plt.triplot(triangulation, '-k')
-        plt.tricontourf(triangulation, T)
-        plt.quiver(x,y,mesh.face_flux_x,mesh.face_flux_y)
+        plt.tricontourf(triangulation, self.nodal_temps)
         plt.colorbar()
+        plt.quiver(x,y, self.face_flux_x, self.face_flux_y)
+        #plt.quiver(x,y,mesh.face_gradient_x,mesh.face_gradient_y)
+        plt.savefig(filename)
         plt.show()
 
 
@@ -440,6 +449,4 @@ if __name__ == "__main__":
     mesh = Mesh("V3")
     mesh.solve()
     mesh.plot_test(mesh.nodal_temps)
-    plt.scatter(mesh.nodal_coords_x, mesh.nodal_coords_y)
-    plt.scatter(mesh.face_center_x, mesh.face_center_y)
-    plt.show()
+    #plt.show()
